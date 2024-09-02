@@ -1,4 +1,4 @@
-# SwingWise
+# GoodShot
 
 ### 0️⃣ Introduction
 #### 소개 
@@ -51,14 +51,8 @@
 2. 명세서 기반 사전학습 (개인과제 제출) ✅
 3. 아이디어 회의 자료 조사 ✅
 4. 구현 가능성 사전 검토 (개인 학습 및 기능 Test) ✅
-5. 요구 사항 명세서 작성 
+5. 요구 사항 명세서 작성 ✅
 
-cf. 프로젝트 주제가 매일 달라져서 해당 주차는 구현 가능성에 대한 기능 Test와 개인 학습을 위주로 진행했습니다.
 
-##### [8월26일 - 8월29일] 
-| 날짜 | 전체 | 김민경 | 권오윤 | 이문현  | 정민선 | 신영민 | 구동현  |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| 8/26 | 프로젝트 주제 회의, 컨설턴트 코치님 1차 사전 미팅 (딥페이크, 보안관) | Jira, Gitlab 설정, JPA 쿼리 메서드 공부  | 커서 기반 페이지네이션 공부 | MSA 내부 보안 및 WebSocket 통신, Cursor based Pagination, elk | 안드로이드 힐트 의존성 주입 공부 | Paging3 (Infinity Scroll), 반응형 프로그래밍과 명령형 프로그래밍에 대해서, Flow란, Data Stream  | LLM 데이터 활용 기법(RAG) 및 경량화 기법(LoRA, Quantization) 공부 |
-| 8/27 | 프로젝트 주제 회의(저스트 헬스), Git Convention 정의 | Spring Security, Swagger Annotation 공부  | 스프링 AOP 공부 | message queue, resttemplete, webclient, gitlab ci | 클린코드 공부 | Data Store와 SharedPreference에 대해서, Dependency, IoC에 대해서, 기본적인 Hilt Annotation 및 기본적인 Binding 방법 | Mediapipe 활용 이미지 기반 행동인식 구현(colab, android) 및 실시간 방식 시험(android) |
-| 8/28 | 프로젝트 주제 회의(AI 가상 성형 시뮬레이션)  | 명세서 Sub-PJT 1 사전학습 공부, 전문가 인터뷰 질문지 작성   | Sub1-PJT 사전 학습 개인 과제  | MGCNet, FaceVerse env 설정 및 테스트 | 명세서에 있는 머신러닝 역전파까지 공부 및 정리 + 힐트 강의  Part 1 중 힐트 개요까지 수강 | 3D 관련 GLB 파일 android 구동 테스트 및 Hilt Chatper1-4 끝 | 명세서 sub-pjt 및 FaceVerse 테스트 진행 |
-| 8/29 | 프로젝트 주제 구체화 회의 (동화 만들기, 골프 자세 교정)  | 명세서 Sub PJT-1 사전 과제 1, 2, 3  | Media Pipe Image-Generation Test  | mgcnet, styledrop 모델 실행 환경 설정 및 테스트, 폴더블 기기 문서 자료 조사  | 명세서 Sub PJT-1 공부 및 개인 사전 과제 1, 2, 3 | Android On Device LLM Test with Gemma2  | faceverse, style-aligned 모델 실행 환경 설정 및 실행 테스트, sub-pjt1 과제 2,3  |
+
+
