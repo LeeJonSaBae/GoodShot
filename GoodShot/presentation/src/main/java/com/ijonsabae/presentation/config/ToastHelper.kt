@@ -1,4 +1,4 @@
-package com.ijonsabae.goodshot.config
+package com.ijonsabae.presentation.config
 
 import android.content.Context
 import android.widget.Toast

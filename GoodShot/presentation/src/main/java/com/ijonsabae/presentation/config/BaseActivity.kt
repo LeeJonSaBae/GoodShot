@@ -1,14 +1,10 @@
-package com.ijonsabae.goodshot.config
+package com.ijonsabae.presentation.config
 
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.viewbinding.ViewBinding
-import com.ijonsabae.goodshot.R
 import javax.inject.Inject
 import javax.inject.Named
 

@@ -1,10 +1,10 @@
-package com.ijonsabae.goodshot.module
+package com.ijonsabae.presentation.module
 
 import android.app.Activity
 import androidx.fragment.app.Fragment
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.ijonsabae.goodshot.config.ToastHelper
+import com.ijonsabae.presentation.config.ToastHelper
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

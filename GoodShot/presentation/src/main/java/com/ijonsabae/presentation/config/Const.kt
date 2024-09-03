@@ -1,4 +1,4 @@
-package com.ijonsabae.goodshot.config
+package com.ijonsabae.presentation.config
 
 class Const {
     companion object{

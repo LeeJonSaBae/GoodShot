@@ -1,7 +1,7 @@
-package com.ijonsabae.goodshot.module
+package com.ijonsabae.presentation.module
 
 import androidx.fragment.app.Fragment
-import com.ijonsabae.goodshot.config.ToastHelper
+import com.ijonsabae.presentation.config.ToastHelper
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -1,14 +1,11 @@
-package com.ijonsabae.goodshot.config
+package com.ijonsabae.presentation.config
 
 import android.app.Application
 import android.util.Log
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import dagger.hilt.android.HiltAndroidApp
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 private const val TAG = "ApplicationClass_싸피"
