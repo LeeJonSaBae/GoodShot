@@ -21,6 +21,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "GoodShot"
 include(":app")
-include(":data")
 include(":domain")
 include(":presentation")
+include(":data")
