@@ -40,7 +40,7 @@ android {
 dependencies {
     implementation(project(":domain"))
     // Mp Android Chart
-    implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation (libs.mpandroidchart)
     // CameraX 세팅
     // CameraX core library using the camera2 implementation
     // The following line is optional, as the core library is included indirectly by camera-camera2
