@@ -39,6 +39,11 @@ android {
 
 dependencies {
     implementation(project(":domain"))
+
+    implementation (libs.androidx.core.splashscreen)
+
+    // Timeline-View
+    implementation (libs.vipulasri.timelineview)
     // Mp Android Chart
     implementation (libs.mpandroidchart)
     // CameraX 세팅
@@ -73,6 +78,8 @@ dependencies {
 
     // 글라이드
     implementation(libs.glide)
+    // 글라이드 transformation (blur 효과 등)
+    implementation(libs.glide.transformations)
 
     // Hilt 세팅
     implementation(libs.hilt.android)

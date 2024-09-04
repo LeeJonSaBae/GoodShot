@@ -1,7 +1,15 @@
 package com.ijonsabae.presentation.login
 
+import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
 import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.view.animation.AnticipateInterpolator
+import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
@@ -14,12 +22,16 @@ import com.ijonsabae.presentation.config.BaseActivity
 import com.ijonsabae.presentation.config.GolfSwingValueFormatter
 import com.ijonsabae.presentation.databinding.ActivityLoginBinding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.NonCancellable.start
 
 private const val TAG = "LoginActivity_싸피"
 @AndroidEntryPoint
 class LoginActivity: BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::inflate) {
-    lateinit var chart: BarChart
+    private lateinit var chart: BarChart
+    private lateinit var splashScreen: SplashScreen
     override fun onCreate(savedInstanceState: Bundle?) {
+        splashScreen = installSplashScreen()
+        //startSplash()
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         initChart()
