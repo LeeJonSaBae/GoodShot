@@ -11,9 +11,22 @@
 <!--        <item name="android:windowSplashScreenBackground">@drawable/launch_background</item>-->
     </style>
 
+    <style name="EditTextStyle" parent="Widget.Design.TextInputLayout">
+        <item name="colorControlNormal">@color/white</item>  // unFocus 상태일때 밑줄 색.
+        <item name="colorControlActivated">@color/white</item>  // Focus 상태일때 밑줄 색.
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textCursorDrawable">@color/white</item>  // cursor 색.
+    </style>
+
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@drawable/splash</item>
         <item name="windowSplashScreenAnimatedIcon">@android:color/transparent</item>
         <item name="postSplashScreenTheme">@style/Theme.GoodShot</item>
+    </style>
+
+    <style name="LoginCheckBox" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorControlNormal">@color/white</item>   <!-- normal border color change as you wish -->
+        <item name="colorControlActivated">@color/white</item> <!-- activated color change as you wish -->
+        <item name="android:textColor">#FFFF3F3C</item> <!-- checkbox text color -->
     </style>
 </resources>

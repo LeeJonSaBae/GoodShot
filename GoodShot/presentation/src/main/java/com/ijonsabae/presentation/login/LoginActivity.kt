@@ -2,6 +2,7 @@ package com.ijonsabae.presentation.login
 
 import android.animation.ObjectAnimator
 import android.animation.PropertyValuesHolder
+import android.graphics.Paint
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -23,6 +24,8 @@ import com.ijonsabae.presentation.config.GolfSwingValueFormatter
 import com.ijonsabae.presentation.databinding.ActivityLoginBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.NonCancellable.start
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 
 private const val TAG = "LoginActivity_싸피"
 @AndroidEntryPoint
@@ -30,11 +33,23 @@ class LoginActivity: BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::in
     private lateinit var chart: BarChart
     private lateinit var splashScreen: SplashScreen
     override fun onCreate(savedInstanceState: Bundle?) {
-        splashScreen = installSplashScreen()
+        splashScreen = installSplashScreen().apply {
+            setKeepOnScreenCondition{
+                // 1초 지연
+                runBlocking {
+                    delay(1000)
+                }
+                false
+            }
+
+        }
         //startSplash()
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        initChart()
+        binding.chart.visibility = View.GONE
+        //initChart()
+        binding.btnForgotPassword.paintFlags = Paint.UNDERLINE_TEXT_FLAG
+        binding.btnRegister.paintFlags = Paint.UNDERLINE_TEXT_FLAG
     }
 
     private fun initChart(){
