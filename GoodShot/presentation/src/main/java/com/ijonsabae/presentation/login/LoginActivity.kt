@@ -11,6 +11,8 @@ import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.navigation.Navigation
+import androidx.navigation.findNavController
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
@@ -46,10 +48,11 @@ class LoginActivity: BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::in
         //startSplash()
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        val navController = Navigation.findNavController(binding.root)
+//        navController.navigate(R.id.layout_login)
         binding.chart.visibility = View.GONE
         //initChart()
-        binding.btnForgotPassword.paintFlags = Paint.UNDERLINE_TEXT_FLAG
-        binding.btnRegister.paintFlags = Paint.UNDERLINE_TEXT_FLAG
+
     }
 
     private fun initChart(){

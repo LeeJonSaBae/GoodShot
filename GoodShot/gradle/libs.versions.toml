@@ -19,6 +19,7 @@ material = "1.12.0"
 activity = "1.9.1"
 constraintlayout = "2.1.4"
 mpandroidchart = "v3.1.0"
+navigationFragmentKtx = "2.8.0"
 okhttp = "4.10.0"
 recyclerview = "1.3.2"
 retrofit = "2.9.0"
@@ -36,6 +37,8 @@ androidx-camera-video = { module = "androidx.camera:camera-video", version.ref =
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraCore" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
+androidx-navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
+androidx-navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigationFragmentKtx" }
 androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 androidx-room-common = { module = "androidx.room:room-common", version.ref = "roomKtx" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomKtx" }
