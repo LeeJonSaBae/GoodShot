@@ -13,10 +13,10 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::b
     private lateinit var navController: NavController
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        (fragmentContext as LoginActivity).hideAppBar()
+        navController = Navigation.findNavController(binding.root)
         binding.btnFindPassword.paintFlags = Paint.UNDERLINE_TEXT_FLAG
         binding.btnRegister.paintFlags = Paint.UNDERLINE_TEXT_FLAG
-        navController = Navigation.findNavController(binding.root)
-        (fragmentContext as LoginActivity).hideAppBar()
 
         binding.btnRegister.setOnClickListener{
             navController.navigate(R.id.action_login_to_register)

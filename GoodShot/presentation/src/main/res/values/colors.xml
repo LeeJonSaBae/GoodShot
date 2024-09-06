@@ -5,4 +5,7 @@
     <color name="dark_green">#277A63</color>
     <color name="light_green">#4B9460</color>
     <color name="login_dark_green">#54806F</color>
+    <color name="gray">#A2A2A2</color>
+    <color name="dark_gray">#5D5D5D</color>
+
 </resources>

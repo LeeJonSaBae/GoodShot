@@ -15,7 +15,8 @@
             android:id="@+id/action_login_to_register"
             app:destination="@id/register"
             app:popUpTo="@id/register"
-            app:popUpToInclusive="true"/>
+            app:popUpToInclusive="true"
+            />
 
         <action
             android:id="@+id/action_login_to_find_password"
@@ -40,6 +41,12 @@
         android:label="password"
         tools:layout="@layout/fragment_find_password"
         >
+        <action
+            android:id="@+id/action_find_password_to_login"
+            app:destination="@id/login"
+            app:popUpTo="@id/login"
+            app:popUpToInclusive="true"
+            />
     </fragment>
 
 </navigation>

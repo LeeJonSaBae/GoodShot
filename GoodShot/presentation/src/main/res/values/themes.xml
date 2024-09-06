@@ -18,6 +18,7 @@
         <item name="android:statusBarColor">@color/white</item>
         <!--        상태바의 아이콘 및 글자 컬러를 검은색으로-->
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:includeFontPadding">false</item>
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
 
