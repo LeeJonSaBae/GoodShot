@@ -11,5 +11,7 @@ import com.ijonsabae.presentation.databinding.FragmentLoginBinding
 class FindPasswordFragment : BaseFragment<FragmentFindPasswordBinding>(FragmentFindPasswordBinding::bind, R.layout.fragment_find_password) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        (fragmentContext as LoginActivity).showAppBar("비밀번호 찾기")
+
     }
 }

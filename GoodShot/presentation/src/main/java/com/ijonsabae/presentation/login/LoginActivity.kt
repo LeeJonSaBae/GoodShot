@@ -1,18 +1,15 @@
 package com.ijonsabae.presentation.login
 
-import android.animation.ObjectAnimator
-import android.animation.PropertyValuesHolder
-import android.graphics.Paint
 import android.os.Bundle
-import android.util.Log
 import android.view.View
-import android.view.animation.AnticipateInterpolator
-import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.navigation.Navigation
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupWithNavController
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
@@ -25,9 +22,9 @@ import com.ijonsabae.presentation.config.BaseActivity
 import com.ijonsabae.presentation.config.GolfSwingValueFormatter
 import com.ijonsabae.presentation.databinding.ActivityLoginBinding
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.NonCancellable.start
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+
 
 private const val TAG = "LoginActivity_싸피"
 @AndroidEntryPoint
@@ -43,16 +40,45 @@ class LoginActivity: BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::in
                 }
                 false
             }
-
         }
         //startSplash()
         super.onCreate(savedInstanceState)
+        setSupportActionBar(binding.loginToolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+
+        binding.loginToolbar.navigationIcon = ContextCompat.getDrawable(this, R.drawable.back)
         setContentView(binding.root)
-        val navController = Navigation.findNavController(binding.root)
-//        navController.navigate(R.id.layout_login)
+
+
         binding.chart.visibility = View.GONE
         //initChart()
 
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // activity의 toolbar에서 fragment간 navigation graph와 연동하기 위함, 이를 통해 toolbar의 뒤로가기 버튼을 눌렀을 때
+        // fragment간 navigation을 관리하는 controller로 뒤로가기 함
+        val navController = findNavController(binding.fragmentLogin.id)
+        val appBarConfiguration = AppBarConfiguration(navController.graph)
+        binding.loginToolbar.setupWithNavController(navController, appBarConfiguration)
+
+        // Navigation이랑 Toolbar랑 같이 쓰면 supportActionBar.setHomeAsUpIndicator()를 써도
+        // HomeasUp Icon이 계속 적용이 안되고 초기화됨
+        // 그래서 이 리스너로 계속해서 뒤로가기 버튼 커스텀된 것 적용
+        navController.addOnDestinationChangedListener { controller, destination, arguments ->
+            binding.loginToolbar.navigationIcon =
+                ContextCompat.getDrawable(this@LoginActivity, R.drawable.back)
+        }
+    }
+
+    fun showAppBar(title: String){
+        binding.layoutAppbar.visibility = View.VISIBLE
+        binding.loginToolbar.title = title
+    }
+    fun hideAppBar(){
+        binding.layoutAppbar.visibility = View.GONE
     }
 
     private fun initChart(){
@@ -116,11 +142,11 @@ class LoginActivity: BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::in
             colors = listOf(
                 ContextCompat.getColor(
                     this@LoginActivity
-                    , R.color.dark_green
+                    , com.ijonsabae.presentation.R.color.dark_green
                 ),
                 ContextCompat.getColor(
                     this@LoginActivity,
-                    R.color.light_green
+                    com.ijonsabae.presentation.R.color.light_green
                 )
             )
         }

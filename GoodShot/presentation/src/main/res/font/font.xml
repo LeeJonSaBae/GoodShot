@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<font-family xmlns:android="http://schemas.android.com/apk/res/android">
+    <font android:font="@font/robotoblack" />
+    <font android:font="@font/robotoblackitalic" />
+    <font android:font="@font/robotobold" />
+    <font android:font="@font/robotobolditalic" />
+    <font android:font="@font/robotolight" />
+    <font android:font="@font/robotolightitalic" />
+    <font android:font="@font/robotoregular" />
+    <font android:font="@font/robotothin" />
+    <font android:font="@font/robotothinitalic" />
+
+    <font android:font="@font/notosanskr_thin" />
+    <font android:font="@font/notosanskr_extralight" />
+    <font android:font="@font/notosanskr_light" />
+    <font android:font="@font/notosanskr_regular" />
+    <font android:font="@font/notosanskr_medium" />
+    <font android:font="@font/notosanskr_black" />
+    <font android:font="@font/notosanskr_extrabold" />
+
+</font-family>

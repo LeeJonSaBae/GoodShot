@@ -1,17 +1,37 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.GoodShot" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="Base.Theme.GoodShot" parent="Theme.Material3.Light.NoActionBar">
+        <!--        버튼 등 위젯의 디폴트 컬러-->
+        <item name="colorPrimary">@color/dark_green</item>
+        <!--        버튼의 글자 색 적용-->
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorPrimaryDark">@color/black</item>
+
+        <!--        appbar 배경 컬러-->
+        <item name="colorSurface">@color/white</item>
+
+        <!--        기본 바탕 색-->
+        <item name="android:windowBackground">@color/white</item>
+        <item name="android:textColor">@color/black</item>
+
+        <!--        위에 상태 바 배경 컬러-->
+        <item name="android:statusBarColor">@color/white</item>
+        <!--        상태바의 아이콘 및 글자 컬러를 검은색으로-->
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
 
     </style>
 
     <style name="Theme.GoodShot" parent="Base.Theme.GoodShot" >
-<!--        <item name="android:windowBackground">@drawable/launch_background</item>-->
-<!--        <item name="android:windowSplashScreenBackground">@drawable/launch_background</item>-->
     </style>
 
-    <style name="EditTextStyle" parent="Widget.Design.TextInputLayout">
+    <style name="ToolBarStyle" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textSize">18sp</item>
+        <item name="android:fontFamily">@font/notosanskr_medium</item>
+    </style>
+
+    <style name="LoginEditTextStyle" parent="Widget.Design.TextInputLayout">
         <item name="colorControlNormal">@color/white</item>  // unFocus 상태일때 밑줄 색.
         <item name="colorControlActivated">@color/white</item>  // Focus 상태일때 밑줄 색.
         <item name="android:textColor">@color/white</item>
@@ -24,9 +44,19 @@
         <item name="postSplashScreenTheme">@style/Theme.GoodShot</item>
     </style>
 
-    <style name="LoginCheckBox" parent="Theme.AppCompat.NoActionBar">
-        <item name="colorControlNormal">@color/white</item>   <!-- normal border color change as you wish -->
-        <item name="colorControlActivated">@color/white</item> <!-- activated color change as you wish -->
-        <item name="android:textColor">#FFFF3F3C</item> <!-- checkbox text color -->
+    <style name="LoginCheckBox" parent="Widget.Material3.CompoundButton.CheckBox">
+        <item name="buttonTint">@color/white</item>
+        <item name="buttonIconTint">@android:color/darker_gray</item>
+
+        <!--        <item name="colorOutline">@color/dark_green</item>-->
+        <!--        <item name="colorOnBackground">@color/dark_green</item>-->
+        <!--        <item name="colorSurface">@color/dark_green</item>-->
+        <!--        <item name="colorSecondary">@color/dark_green</item>-->
+        <!--        <item name="colorAccent">@color/dark_green</item>-->
+        <!--        <item name="android:backgroundTint">@color/dark_green</item>-->
+        <!--        <item name="colorOnSecondary">@color/dark_green</item>-->
+        <!--        <item name="colorOnSurface">@color/dark_green</item>-->
+        <!--        <item name="colorOnTertiary">@color/dark_green</item>-->
+        <!--        <item name="colorTertiary">@color/dark_green</item>-->
     </style>
 </resources>
