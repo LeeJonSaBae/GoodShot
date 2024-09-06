@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/layout_login"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/login_background"
     >
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -29,6 +29,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/white"
+            android:textSize="14sp"
+            android:fontFamily="@font/notosanskr_regular"
+            android:textCursorDrawable="@drawable/cursor_white"
             app:layout_constraintBottom_toTopOf="@id/tv_password"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -49,10 +52,13 @@
 
         <EditText
             android:id="@+id/et_password"
-            android:textColor="@color/white"
-            android:backgroundTint="@color/white"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textCursorDrawable="@drawable/cursor_white"
+            android:fontFamily="@font/notosanskr_regular"
+            android:inputType="textPassword"
+            android:backgroundTint="@color/white"
             app:layout_constraintTop_toBottomOf="@id/tv_password"
             app:layout_constraintBottom_toTopOf="@id/checkbox"
             app:layout_constraintEnd_toEndOf="parent"
@@ -62,8 +68,8 @@
             android:id="@+id/checkbox"
             android:text="자동 로그인"
             android:textSize="14sp"
-            android:fontFamily="@font/notosanskr_regular"
             android:textColor="@color/white"
+            android:fontFamily="@font/notosanskr_regular"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="@style/LoginCheckBox"
@@ -73,16 +79,15 @@
 
         <android.widget.Button
             android:id="@+id/btn_login"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="로그인"
             android:textColor="@color/white"
             android:textSize="14sp"
             android:fontFamily="@font/notosanskr_regular"
             android:gravity="center"
-            android:layout_marginHorizontal="50dp"
             android:background="@drawable/round_login_button"
-            android:paddingVertical="14dp"
+            app:layout_constraintDimensionRatio="H,1:6.36"
             app:layout_constraintTop_toBottomOf="@id/checkbox"
             app:layout_constraintBottom_toTopOf="@id/btn_find_password"
             app:layout_constraintStart_toStartOf="parent"
@@ -93,28 +98,28 @@
             android:id="@+id/btn_find_password"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/black"
+            android:text="비밀번호를 잊어버리셨나요?"
             android:textSize="14sp"
+            android:textColor="@color/dark_gray"
             android:fontFamily="@font/notosanskr_regular"
             android:background="@android:color/transparent"
             app:layout_constraintTop_toBottomOf="@id/btn_login"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            android:text="비밀번호를 잊어버리셨나요?"
             />
 
         <android.widget.Button
             android:id="@+id/btn_register"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/black"
+            android:text="회원가입"
             android:textSize="14sp"
+            android:textColor="@color/dark_gray"
             android:fontFamily="@font/notosanskr_regular"
             android:background="@android:color/transparent"
             app:layout_constraintTop_toBottomOf="@id/btn_login"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:text="회원가입"
             />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
