@@ -13,7 +13,7 @@
         <!--        기본 바탕 색-->
         <item name="android:windowBackground">@color/white</item>
         <item name="android:textColor">@color/black</item>
-
+        <item name="android:includeFontPadding">false</item>
         <!--        위에 상태 바 배경 컬러-->
         <item name="android:statusBarColor">@color/white</item>
         <!--        상태바의 아이콘 및 글자 컬러를 검은색으로-->

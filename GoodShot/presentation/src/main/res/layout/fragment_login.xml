@@ -13,26 +13,26 @@
         android:layout_marginHorizontal="20dp"
         >
         <TextView
-            android:id="@+id/tv_nickname"
+            android:id="@+id/tv_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="닉네임"
             android:textColor="@color/white"
             android:textSize="18sp"
             android:fontFamily="@font/notosanskr_regular"
-            app:layout_constraintBottom_toTopOf="@id/et_nickname"
+            app:layout_constraintBottom_toTopOf="@id/til_name"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_chainStyle="packed"
             />
         <EditText
-            android:id="@+id/et_nickname"
+            android:id="@+id/til_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/white"
             app:layout_constraintBottom_toTopOf="@id/tv_password"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_nickname"
+            app:layout_constraintTop_toBottomOf="@id/tv_name"
             />
 
         <TextView
@@ -43,12 +43,12 @@
             android:textColor="@color/white"
             android:textSize="18sp"
             android:fontFamily="@font/notosanskr_regular"
-            app:layout_constraintTop_toBottomOf="@id/et_nickname"
-            app:layout_constraintBottom_toTopOf="@id/et_password"
+            app:layout_constraintTop_toBottomOf="@id/til_name"
+            app:layout_constraintBottom_toTopOf="@id/til_password"
             />
 
         <EditText
-            android:id="@+id/et_password"
+            android:id="@+id/til_password"
             android:textColor="@color/white"
             android:backgroundTint="@color/white"
             android:layout_width="match_parent"
@@ -67,7 +67,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="@style/LoginCheckBox"
-            app:layout_constraintTop_toBottomOf="@id/et_password"
+            app:layout_constraintTop_toBottomOf="@id/til_password"
             app:layout_constraintBottom_toTopOf="@id/btn_find_password"
             app:layout_constraintStart_toStartOf="parent"/>
 
