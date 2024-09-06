@@ -2,6 +2,8 @@ package com.ijonsabae.presentation.login
 
 import android.graphics.Paint
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.style.UnderlineSpan
 import android.view.View
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
@@ -13,10 +15,15 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::b
     private lateinit var navController: NavController
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val findPasswordDescription = "비밀번호를 잊어버리셨나요?"
+        val registerDescription = "회원 가입"
+        val underlinePasswordDescriptionString = SpannableString(findPasswordDescription).apply { setSpan(UnderlineSpan(),0, findPasswordDescription.length, 0) }
+        val underlineRegisterDescriptionString = SpannableString(registerDescription).apply { setSpan(UnderlineSpan(),0, registerDescription.length, 0) }
+        binding.btnFindPassword.text = underlinePasswordDescriptionString
+        binding.btnRegister.text = underlineRegisterDescriptionString
+
         (fragmentContext as LoginActivity).hideAppBar()
         navController = Navigation.findNavController(binding.root)
-        binding.btnFindPassword.paintFlags = Paint.UNDERLINE_TEXT_FLAG
-        binding.btnRegister.paintFlags = Paint.UNDERLINE_TEXT_FLAG
 
         binding.btnRegister.setOnClickListener{
             navController.navigate(R.id.action_login_to_register)
