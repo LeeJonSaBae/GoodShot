@@ -10,17 +10,50 @@
         <!--        appbar 배경 컬러-->
         <item name="colorSurface">@color/white</item>
 
+        <!--        꾹 눌러서 복사 범위 지정할 때 막대 바 색깔-->
+        <item name="colorSecondary">@color/white</item>
+        <item name="colorPrimaryVariant">@color/white</item>
+
+
+
         <!--        기본 바탕 색-->
         <item name="android:windowBackground">@color/white</item>
         <item name="android:textColor">@color/black</item>
-
         <!--        위에 상태 바 배경 컬러-->
         <item name="android:statusBarColor">@color/white</item>
         <!--        상태바의 아이콘 및 글자 컬러를 검은색으로-->
         <item name="android:windowLightStatusBar">true</item>
+        <!--        폰트로 인한 불필요한 패딩 제거-->
         <item name="android:includeFontPadding">false</item>
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+
+
+
+
+
+
+<!--        <item name="colorOnPrimarySurface">@color/dark_green</item>-->
+<!--        <item name="colorOnPrimaryContainer">@color/dark_green</item>-->
+<!--        <item name="colorSecondaryContainer">@color/dark_green</item>-->
+<!--        <item name="colorOnSecondaryContainer">@color/dark_green</item>-->
+
+<!--        <item name="colorTertiary">@color/dark_green</item>-->
+<!--        <item name="colorTertiaryContainer">@color/dark_green</item>-->
+<!--        <item name="colorOnTertiary">@color/dark_green</item>-->
+<!--        <item name="colorOnTertiaryContainer">@color/dark_green</item>-->
+
+<!--        <item name="colorPrimarySurface">@color/dark_green</item>-->
+<!--        <item name="colorOnSecondaryFixed">@color/dark_green</item>-->
+<!--        <item name="colorSecondaryVariant">@color/dark_green</item>-->
+<!--        <item name="color">@color/dark_green</item>-->
+<!--        <item name="colorOutline">@color/dark_green</item>-->
+<!--        <item name="colorOnBackground">@color/dark_green</item>-->
+<!--        <item name="colorAccent">@color/dark_green</item>-->
+<!--        <item name="android:backgroundTint">@color/dark_green</item>-->
+<!--        <item name="colorOnSecondary">@color/dark_green</item>-->
+<!--        <item name="colorOnSurface">@color/dark_green</item>-->
 
     </style>
 
@@ -48,16 +81,5 @@
     <style name="LoginCheckBox" parent="Widget.Material3.CompoundButton.CheckBox">
         <item name="buttonTint">@color/white</item>
         <item name="buttonIconTint">@android:color/darker_gray</item>
-
-        <!--        <item name="colorOutline">@color/dark_green</item>-->
-        <!--        <item name="colorOnBackground">@color/dark_green</item>-->
-        <!--        <item name="colorSurface">@color/dark_green</item>-->
-        <!--        <item name="colorSecondary">@color/dark_green</item>-->
-        <!--        <item name="colorAccent">@color/dark_green</item>-->
-        <!--        <item name="android:backgroundTint">@color/dark_green</item>-->
-        <!--        <item name="colorOnSecondary">@color/dark_green</item>-->
-        <!--        <item name="colorOnSurface">@color/dark_green</item>-->
-        <!--        <item name="colorOnTertiary">@color/dark_green</item>-->
-        <!--        <item name="colorTertiary">@color/dark_green</item>-->
     </style>
 </resources>

@@ -33,6 +33,9 @@
         android:label="register"
         tools:layout="@layout/fragment_register"
         >
+        <action
+            android:id="@+id/action_register_to_login"
+            app:destination="@id/login" />
     </fragment>
 
     <fragment
