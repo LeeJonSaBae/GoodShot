@@ -1,12 +1,11 @@
 package com.ijonsabae.presentation.login
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.navigation.NavController
-import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
@@ -21,6 +20,7 @@ import com.ijonsabae.presentation.config.BarChartRender
 import com.ijonsabae.presentation.config.BaseActivity
 import com.ijonsabae.presentation.config.GolfSwingValueFormatter
 import com.ijonsabae.presentation.databinding.ActivityLoginBinding
+import com.ijonsabae.presentation.main.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -73,6 +73,13 @@ class LoginActivity: BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::in
         }
     }
 
+    fun login(){
+        val intent = Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        startActivity(intent)
+        finish()
+    }
     fun showAppBar(title: String){
         binding.layoutAppbar.visibility = View.VISIBLE
         binding.loginToolbar.title = title

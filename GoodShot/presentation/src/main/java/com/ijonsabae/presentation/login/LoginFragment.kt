@@ -1,5 +1,6 @@
 package com.ijonsabae.presentation.login
 
+import android.content.Intent
 import android.graphics.Paint
 import android.os.Bundle
 import android.text.SpannableString
@@ -10,6 +11,10 @@ import androidx.navigation.Navigation
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentLoginBinding
+import com.ijonsabae.presentation.main.MainActivity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlin.math.log
 
 class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::bind, R.layout.fragment_login) {
     private lateinit var navController: NavController
@@ -30,6 +35,10 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::b
         }
         binding.btnFindPassword.setOnClickListener {
             navController.navigate(R.id.action_login_to_find_password)
+        }
+        binding.btnLogin.setOnClickListener {
+            val loginActivity = fragmentContext as LoginActivity
+            loginActivity.login()
         }
     }
 }
