@@ -10,10 +10,11 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_banner"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:paddingHorizontal="44dp"
         android:background="@drawable/home_main_background"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/layout_content"
         >
         <TextView
             android:id="@+id/tv_banner_title"
@@ -22,8 +23,8 @@
             android:text="밍깅이님,\n 오늘도 굿 샷~"
             android:textSize="22sp"
             android:textColor="@color/white"
-            android:fontFamily="@font/notosanskr_medium"
-            android:layout_marginBottom="24dp"
+            android:fontFamily="@font/pretendard_medium"
+            android:layout_marginVertical="24dp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toTopOf="@id/btn_consult"
             />
@@ -34,7 +35,7 @@
             android:layout_height="wrap_content"
             android:text="전문가의 상담이 필요하신가요?"
             android:textSize="12sp"
-            android:fontFamily="@font/notosanskr_black"
+            android:fontFamily="@font/pretendard_black"
             android:background="@drawable/radius_round_15_button"
             android:backgroundTint="@color/white"
             android:layout_marginBottom="24dp"
@@ -51,31 +52,7 @@
         app:layout_constraintTop_toBottomOf="@id/layout_banner"
         app:layout_constraintBottom_toBottomOf="parent"
         >
-<!--        <TextView-->
-<!--            android:id="@+id/tv_near_golf"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="지금 갈 만한 골프장은?"-->
-<!--            android:textSize="14sp"-->
-<!--            android:fontFamily="@font/notosanskr_semibold" />-->
-<!--        <ImageView-->
-<!--            android:id="@+id/iv_near_golf"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:src="@drawable/main_golf_logo_default"-->
-<!--            app:layout_constraintTop_toBottomOf="@id/tv_near_golf"-->
-<!--            app:layout_constraintEnd_toEndOf="parent"-->
-<!--            />-->
-<!--        <TextView-->
-<!--            android:id="@+id/tv_near_golf_name"-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_height="0dp"-->
-<!--            app:layout_constraintTop_toTopOf="@id/iv_near_golf"-->
-<!--            app:layout_constraintBottom_toBottomOf="@id/iv_near_golf"-->
-<!--            app:layout_constraintStart_toStartOf="parent"-->
-<!--            app:layout_constraintEnd_toStartOf="@id/iv_near_golf"-->
 
-<!--            />-->
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
