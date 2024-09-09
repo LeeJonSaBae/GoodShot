@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_navigation_graph"
+    app:startDestination="@id/home"
+    >
+    <fragment
+        android:id="@+id/home"
+        android:name="com.ijonsabae.presentation.home.HomeFragment"
+        android:label="home"
+        tools:layout="@layout/fragment_home"
+        >
+    </fragment>
+
+    <fragment
+        android:id="@+id/shot"
+        android:name="com.ijonsabae.presentation.shot.ShotFragment"
+        android:label="shot"
+        tools:layout="@layout/fragment_shot"
+        >
+    </fragment>
+
+    <fragment
+        android:id="@+id/replay"
+        android:name="com.ijonsabae.presentation.replay.ReplayFragment"
+        android:label="replay"
+        tools:layout="@layout/fragment_replay"
+        >
+    </fragment>
+
+    <fragment
+        android:id="@+id/profile"
+        android:name="com.ijonsabae.presentation.profile.ProfileFragment"
+        android:label="profile"
+        tools:layout="@layout/fragment_profile"
+        >
+    </fragment>
+
+</navigation>

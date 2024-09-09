@@ -20,6 +20,8 @@ class MainActivity: BaseActivity<ActivityMainBinding>(ActivityMainBinding::infla
 
     override fun onStart() {
         super.onStart()
+        val navController = findNavController(binding.mainFragmentView.id)
+        binding.navigation.setupWithNavController(navController)
 
     }
 }

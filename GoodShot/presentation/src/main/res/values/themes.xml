@@ -36,7 +36,10 @@
 
 <!--        <item name="colorOnPrimarySurface">@color/dark_green</item>-->
 <!--        <item name="colorOnPrimaryContainer">@color/dark_green</item>-->
-<!--        <item name="colorSecondaryContainer">@color/dark_green</item>-->
+
+<!--        bottom navigation ripple color-->
+<!--        <item name="colorSecondaryContainer">@android:color/holo_red_dark</item>-->
+
 <!--        <item name="colorOnSecondaryContainer">@color/dark_green</item>-->
 
 <!--        <item name="colorTertiary">@color/dark_green</item>-->
@@ -82,4 +85,5 @@
         <item name="buttonTint">@color/white</item>
         <item name="buttonIconTint">@android:color/darker_gray</item>
     </style>
+
 </resources>
