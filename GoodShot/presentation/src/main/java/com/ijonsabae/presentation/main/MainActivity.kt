@@ -37,7 +37,7 @@ class MainActivity: BaseActivity<ActivityMainBinding>(ActivityMainBinding::infla
         // 그래서 이 리스너로 계속해서 뒤로가기 버튼 커스텀된 것 적용
         navController.addOnDestinationChangedListener { controller, destination, arguments ->
             binding.mainToolbar.navigationIcon =
-                null
+                ContextCompat.getDrawable(this@MainActivity, R.drawable.back)
         }
 //        binding.navigation.setOnItemSelectedListener { item ->
 //            when(item.itemId){
