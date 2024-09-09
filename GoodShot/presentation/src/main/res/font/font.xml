@@ -18,4 +18,14 @@
     <font android:font="@font/notosanskr_black" />
     <font android:font="@font/notosanskr_extrabold" />
 
+    <font android:font="@font/pretendard_thin" />
+    <font android:font="@font/pretendard_extralight" />
+    <font android:font="@font/pretendard_light" />
+    <font android:font="@font/pretendard_regular" />
+    <font android:font="@font/pretendard_medium" />
+    <font android:font="@font/pretendard_semibold" />
+    <font android:font="@font/pretendard_bold" />
+    <font android:font="@font/pretendard_extrabold" />
+    <font android:font="@font/pretendard_black" />
+
 </font-family>
