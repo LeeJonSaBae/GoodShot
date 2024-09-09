@@ -37,7 +37,7 @@ class MainActivity: BaseActivity<ActivityMainBinding>(ActivityMainBinding::infla
         // 그래서 이 리스너로 계속해서 뒤로가기 버튼 커스텀된 것 적용
         navController.addOnDestinationChangedListener { controller, destination, arguments ->
             binding.mainToolbar.navigationIcon =
-                ContextCompat.getDrawable(this@MainActivity, R.drawable.back)
+                null
         }
     }
 
@@ -46,6 +46,6 @@ class MainActivity: BaseActivity<ActivityMainBinding>(ActivityMainBinding::infla
         binding.mainToolbar.title = title
     }
     fun hideAppBar(){
-        binding.mainToolbar.visibility = View.GONE
+        binding.layoutMainAppbar.visibility = View.GONE
     }
 }
