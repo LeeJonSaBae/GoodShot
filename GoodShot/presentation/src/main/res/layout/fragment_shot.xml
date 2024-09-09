@@ -5,21 +5,212 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_marginHorizontal="35dp"
     tools:context=".main.MainActivity">
 
-    <android.widget.Button
-        android:id="@+id/btn_camera"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cv_btn_camera"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:cardCornerRadius="15dp"
+        android:elevation="0dp"
+        android:layout_marginBottom="33dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/tv_shot_guide_title_1"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintVertical_bias="0"
+        app:layout_constraintDimensionRatio="1:1">
+        <ImageButton
+            android:id="@+id/btn_camera"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/shot_fill"
+            android:scaleType="centerCrop"
+            android:background="@color/dark_green"
+            app:tint="@color/white"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            />
+
+    </androidx.cardview.widget.CardView>
+    <com.ijonsabae.presentation.config.HalfHighlightTextView
+        android:id="@+id/tv_shot_guide_title_1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="확인"
-        android:textSize="12sp"
-        android:fontFamily="@font/notosanskr_black"
-        android:background="@drawable/radius_round_15_button"
-        android:backgroundTint="@color/white"
-        android:layout_marginBottom="24dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="스윙 촬영 이렇게 하세요!"
+        android:textSize="17sp"
+        android:fontFamily="@font/pretendard_medium"
+        android:layout_marginBottom="15dp"
+        app:layout_constraintTop_toBottomOf="@id/cv_btn_camera"
+        app:layout_constraintBottom_toTopOf="@id/tv_shot_guide_step_1"
+        app:layout_constraintVertical_bias="0"
         />
+
+    <TextView
+        android:id="@+id/tv_shot_guide_step_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="1. 옵션에서 정면/측면, 촬영횟수, 클럽을 선택해주세요."
+        android:textSize="14sp"
+        android:fontFamily="@font/pretendard_regular"
+        android:layout_marginBottom="4dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_shot_guide_title_1"
+        app:layout_constraintBottom_toTopOf="@id/tv_shot_guide_step_2"
+        />
+    <TextView
+        android:id="@+id/tv_shot_guide_step_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="2. 카메라에 전신이 모두 보이도록 서 주세요."
+        android:textSize="14sp"
+        android:fontFamily="@font/pretendard_regular"
+        android:layout_marginBottom="4dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_shot_guide_step_1"
+        app:layout_constraintBottom_toTopOf="@id/tv_shot_guide_step_3"
+        />
+    <TextView
+        android:id="@+id/tv_shot_guide_step_3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="3. START 버튼을 누르면 스윙 촬영이 시작됩니다"
+        android:textSize="14sp"
+        android:fontFamily="@font/pretendard_regular"
+        android:layout_marginBottom="33dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_shot_guide_step_2"
+        app:layout_constraintBottom_toTopOf="@id/tv_shot_guide_title_2"
+        />
+    <com.ijonsabae.presentation.config.HalfHighlightTextView
+        android:id="@+id/tv_shot_guide_title_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="스윙 촬영은 어떻게 진행되나요?"
+        android:textSize="17sp"
+        android:fontFamily="@font/pretendard_medium"
+        android:layout_marginBottom="15dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_shot_guide_step_3"
+        app:layout_constraintBottom_toTopOf="@id/timeline"
+        />
+<!--    <com.github.vipulasri.timelineview.TimelineView-->
+<!--        android:id="@+id/timeline"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/tv_shot_guide_title_2"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintVertical_bias="0"-->
+<!--        />-->
+
+
+    <com.github.vipulasri.timelineview.TimelineView
+        android:id="@+id/timeline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:markerSize="20dp"
+        app:lineWidth="3dp"
+        app:startLineColor="@color/highlight"
+        app:endLineColor="@color/highlight"
+        app:layout_constraintTop_toTopOf="@id/cv"
+        app:layout_constraintBottom_toBottomOf="@id/cv"
+        app:layout_constraintStart_toStartOf="parent"
+        app:lineStyle="dash"/>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cv"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="15dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="5dp"
+        android:layout_gravity="center_vertical"
+        app:layout_constraintTop_toBottomOf="@id/tv_shot_guide_title_2"
+        app:layout_constraintStart_toEndOf="@id/timeline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:cardBackgroundColor="@color/gray"
+        app:contentPadding="15dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/text_timeline_date"
+                android:textSize="12sp"
+                tools:text="24 JAN"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:id="@+id/text_timeline_title"
+                android:textColor="@android:color/black"
+                tools:text="Order Successfully Completed"/>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+
+
+
+
+    <com.github.vipulasri.timelineview.TimelineView
+        android:id="@+id/timeline1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:markerSize="20dp"
+        app:lineWidth="3dp"
+        app:startLineColor="@color/highlight"
+        app:endLineColor="@color/highlight"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/cv1"
+        app:layout_constraintBottom_toBottomOf="@id/cv1"
+        app:lineStyle="dash"/>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cv1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="15dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="5dp"
+        android:layout_gravity="center_vertical"
+        app:layout_constraintTop_toBottomOf="@id/cv"
+        app:layout_constraintStart_toEndOf="@id/timeline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:cardBackgroundColor="@color/gray"
+        app:contentPadding="15dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/text_timeline_date1"
+                android:textSize="12sp"
+                tools:text="24 JAN"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:id="@+id/text_timeline_title1"
+                android:textColor="@android:color/black"
+                tools:text="Order Successfully Completed"/>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
