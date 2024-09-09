@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="10dp"
+    android:layout_marginRight="10dp">
+
+    <com.github.vipulasri.timelineview.TimelineView
+        android:id="@+id/timeline"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        app:markerSize="10dp"
+        app:marker="@drawable/timeline_marker"
+        app:startLineColor="@color/timeline_color"
+        app:endLineColor="@color/timeline_color"
+        app:lineWidth="1dp"
+        app:lineStyleDashLength="2dp"
+        app:lineStyle="dash"/>
+
+
+    <TextView
+        android:id="@+id/text_timeline_title"
+        android:textColor="@android:color/black"
+        android:textSize="14sp"
+        android:fontFamily="@font/pretendard_regular"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="13dp"
+        android:layout_marginStart="17dp"
+        tools:text="Order Successfully Completed"/>
+
+
+
+</LinearLayout>
