@@ -2,22 +2,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/home"
+        android:id="@+id/home_tab"
         android:title="Home"
         android:icon="@drawable/home_selector_background"
         />
     <item
-        android:id="@+id/shot"
+        android:id="@+id/shot_tab"
         android:title="Shot"
         android:icon="@drawable/shot_selector_background"
         />
     <item
-        android:id="@+id/replay"
+        android:id="@+id/replay_tab"
         android:title="Replay"
         android:icon="@drawable/replay_selector_background"
         />
     <item
-        android:id="@+id/profile"
+        android:id="@+id/profile_tab"
         android:title="Profile"
         android:icon="@drawable/mypage_selector_background"
          />
