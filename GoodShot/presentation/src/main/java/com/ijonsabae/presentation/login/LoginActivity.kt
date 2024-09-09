@@ -43,14 +43,12 @@ class LoginActivity: BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::in
         }
         //startSplash()
         super.onCreate(savedInstanceState)
-        setSupportActionBar(binding.loginToolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-
-        binding.loginToolbar.navigationIcon = ContextCompat.getDrawable(this, R.drawable.back)
+        binding.loginToolbar.apply {
+            setSupportActionBar(this)
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+            this.navigationIcon = ContextCompat.getDrawable(this@LoginActivity, R.drawable.back)
+        }
         setContentView(binding.root)
-
-
         binding.chart.visibility = View.GONE
         //initChart()
 
