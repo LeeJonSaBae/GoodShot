@@ -27,6 +27,8 @@
         app:itemBackground="@color/white"
         app:itemRippleColor="@android:color/transparent"
         app:itemTextColor="@drawable/bottomnavigation_selector_color"
+        app:itemTextAppearanceActive="@style/BottomNavigation.ItemTextAppearance"
+        app:itemTextAppearanceInactive="@style/BottomNavigation.ItemTextAppearance"
         app:itemIconTint="@drawable/bottomnavigation_selector_color"
         app:labelVisibilityMode="labeled"
         app:layout_constraintTop_toBottomOf="@id/main_fragment_view"
