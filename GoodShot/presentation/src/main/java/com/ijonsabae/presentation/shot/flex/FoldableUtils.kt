@@ -30,13 +30,17 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
 import androidx.constraintlayout.widget.ConstraintSet
+import androidx.core.animation.doOnEnd
 import androidx.core.view.WindowInsetsCompat
 import androidx.window.layout.DisplayFeature
 import com.ijonsabae.presentation.R
+import com.ijonsabae.presentation.config.Const
 import com.ijonsabae.presentation.main.MainActivity
+import com.ijonsabae.presentation.shot.flex.FoldableUtils.getStatusBarHeight
 import com.ijonsabae.presentation.shot.flex.FoldableUtils.moveToTopOf
 import com.ijonsabae.presentation.shot.flex.FoldableUtils.restore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.runBlocking
 
 object FoldableUtils {
     private const val TAG = "FoldableUtils 싸피"
@@ -80,43 +84,41 @@ object FoldableUtils {
     }
 
     fun View.moveToTopOf(foldingFeatureRect: Rect, constraintLayout: ConstraintLayout) {
-        constraintLayout.setConstraintSet(
-            ConstraintSet().apply {
-                connect(this@moveToTopOf.id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP)
-                connect(this@moveToTopOf.id, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START)
-                connect(this@moveToTopOf.id, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END)
-                connect(this@moveToTopOf.id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM)
-                this@moveToTopOf.layoutParams.width = MATCH_PARENT
-                this@moveToTopOf.layoutParams.height = MATCH_CONSTRAINT
-                setDimensionRatio(this@moveToTopOf.id, "1:1")
-            }
-        )
+        val height = this.height
+        val translationY = this.translationY
 // 목표 위치를 정의합니다.
-        val targetY = foldingFeatureRect.top.toFloat()
-        // 현재 위치를 가져옵니다.
-        val startY = this.y
-        Log.d(TAG, "moveToTopOf: y ${this.y} height ${this.height} top ${this.top}")
-
-        // 목표 위치와 시작 위치를 계산하여 변화량을 구합니다.
-        val deltaY = targetY - startY - this.getStatusBarHeight()
-
-        Log.d(TAG, "moveToTopOf: status ${this.getStatusBarHeight()}")
-
-        // ValueAnimator를 설정합니다.
-        val animator = ValueAnimator.ofFloat(0f, -deltaY).apply {
-            duration = 300 // 애니메이션 지속 시간 (밀리초)
+        val animator1 = ValueAnimator.ofFloat(0F, foldingFeatureRect.bottom.toFloat() - height).apply {
+            duration = 100 // 애니메이션 지속 시간 (밀리초)
             interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
-
             addUpdateListener { valueAnimator ->
-                // 애니메이션의 현재 값을 가져옵니다.
                 val animatedValue = valueAnimator.animatedValue as Float
+                this@moveToTopOf.layoutParams.height  = (height + animatedValue).toInt()
+
+                this@moveToTopOf.requestLayout()
+                this@moveToTopOf.invalidate()
                 // View의 위치를 설정합니다.
-                this@moveToTopOf.translationY = animatedValue
+                Log.d(TAG, "animation1 : y ${y}")
+                doOnEnd {
+                    val animator = ValueAnimator.ofFloat(0F,y).apply {
+                        duration = 300 // 애니메이션 지속 시간 (밀리초)
+                        interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
+                        addUpdateListener { valueAnimator ->
+                            val animatedValue = valueAnimator.animatedValue as Float
+                            Log.d(TAG, "animation: $animatedValue")
+                            this@moveToTopOf.translationY  = translationY - animatedValue
+                            // View의 위치를 설정합니다.
+                            Log.d(TAG, "animation : y ${y}")
+//                this@restore.translationY = animatedValue
+//                this@restore.layoutParams.height = height - animatedValue.toInt()
+//                this@restore.requestLayout()
+                        }
+                    }
+                    animator.start()
+                }
             }
         }
-        // 애니메이션 시작
-        animator.start()
-        Log.d(TAG, "moveToTopOf top 좌표 : ${constraintLayout.top} ${this.top}")
+
+        animator1.start()
     }
 
     fun px2dp(px: Int, context: Context) = px / ((context.resources.displayMetrics.densityDpi.toFloat()) / DisplayMetrics.DENSITY_DEFAULT)
@@ -137,38 +139,23 @@ object FoldableUtils {
     }
 
     fun View.restore(foldingFeatureRect: Rect, constraintLayout: ConstraintLayout) {
-        constraintLayout.setConstraintSet(
-            ConstraintSet().apply {
-                connect(this@restore.id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP)
-                connect(this@restore.id, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START)
-                connect(this@restore.id, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END)
-                connect(this@restore.id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM)
-                setDimensionRatio(this@restore.id, "1:1")
-                this@restore.layoutParams.width = MATCH_PARENT
-                this@restore.layoutParams.height = MATCH_CONSTRAINT
-            }
-        )
 
-        val targetY = foldingFeatureRect.top.toFloat()
-        // 현재 위치를 가져옵니다.
-        val startY = this.y
-        Log.d(TAG, "moveToTopOf: y ${this.y} height ${this.height} top ${this.top}")
 
-        // ValueAnimator를 설정합니다.
-        val animator = ValueAnimator.ofFloat(0f, this.y).apply {
+        val translationY = this@restore.translationY
+
+        // 위치 이동
+        val animator = ValueAnimator.ofFloat(0F, translationY).apply {
             duration = 300 // 애니메이션 지속 시간 (밀리초)
             interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
-
             addUpdateListener { valueAnimator ->
-                // View의 위치를 설정합니다.
-                this@restore.translationY = 0F
+                val animatedValue = valueAnimator.animatedValue as Float
+                this@restore.translationY  = translationY - animatedValue
             }
         }
-
         // 애니메이션 시작
         animator.start()
-
-
-
+        this.layoutParams.height = MATCH_CONSTRAINT
+//        this.layoutParams.height = MATCH_PARENT
+        requestLayout()
     }
 }
