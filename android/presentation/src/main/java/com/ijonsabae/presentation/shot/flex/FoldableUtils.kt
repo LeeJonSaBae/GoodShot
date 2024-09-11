@@ -154,8 +154,8 @@ object FoldableUtils {
         }
         // 애니메이션 시작
         animator.start()
-        this.layoutParams.height = MATCH_CONSTRAINT
-//        this.layoutParams.height = MATCH_PARENT
+//        this.layoutParams.height = MATCH_CONSTRAINT
+        this.layoutParams.height = MATCH_PARENT
         requestLayout()
     }
 }

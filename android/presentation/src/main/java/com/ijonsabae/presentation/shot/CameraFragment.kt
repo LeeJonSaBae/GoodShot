@@ -119,7 +119,7 @@ class CameraFragment :
             if (cameraSource == null) {
                 cameraSource =
                     CameraSource(surfaceView, cameraListener)
-                    isPoseClassifier()
+                isPoseClassifier()
 //                lifecycleScope.launch(Dispatchers.Main) {
 //                    cameraSource?.initCamera()
 //                }
@@ -139,12 +139,12 @@ class CameraFragment :
                 // 3-3. use case와 카메라를 생명 주기에 binding
                 val imageAnalyzer = ImageAnalysis
                     .Builder()
-                    .setTargetResolution(Size(binding.camera.width, binding.camera.height))// 원하는 해상도 설정
-                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+
                     .build()
                     .also { analysis ->
-                        analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
-                            cameraSource!!.processImage(cameraSource!!.rotateBitmap(image.toBitmap(), true))  // 이미지 처리 함수 호출
+                        analysis.setAnalyzer(Executors.newFixedThreadPool(4)) { image ->
+                            val bitmap = image.toBitmap()
+                            cameraSource!!.processImage(cameraSource!!.rotateBitmap(bitmap,surfaceView.width, surfaceView.height, true))  // 이미지 처리 함수 호출
                             image.close()
                         }
                     }

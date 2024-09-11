@@ -37,7 +37,7 @@ class FoldingStateActor @Inject constructor(private val windowInfoTracker: Windo
     private var activeWindowLayoutInfo: WindowLayoutInfo? = null
     suspend fun checkFoldingState(
         activity: AppCompatActivity,
-        cameraViewfinder: SurfaceView,
+        cameraViewfinder: View,
         constraintLayout: ConstraintLayout
     ) {
         windowInfoTracker.windowLayoutInfo(activity)
@@ -47,7 +47,7 @@ class FoldingStateActor @Inject constructor(private val windowInfoTracker: Windo
             }
     }
 
-    private fun updateLayoutByFoldingState(cameraViewfinder: SurfaceView, constraintLayout: ConstraintLayout) {
+    private fun updateLayoutByFoldingState(cameraViewfinder: View, constraintLayout: ConstraintLayout) {
         val foldingFeature = activeWindowLayoutInfo?.displayFeatures
             ?.firstOrNull { it is FoldingFeature } as FoldingFeature?
             ?: return

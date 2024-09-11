@@ -17,10 +17,11 @@ limitations under the License.
 
 import PoseClassifier
 import PoseDetector
-import com.ijonsabae.presentation.shot.ai.utils.YuvToRgbConverter
+import android.R.attr
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.ImageFormat
 import android.graphics.Matrix
 import android.graphics.Rect
@@ -36,20 +37,18 @@ import android.view.Surface
 import android.view.SurfaceView
 import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
+import com.ijonsabae.presentation.shot.ai.utils.YuvToRgbConverter
 import kotlinx.coroutines.suspendCancellableCoroutine
-
 import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.math.max
 
+
 class CameraSource(
     private val surfaceView: SurfaceView,
     private val listener: CameraSourceListener,
 ) {
-
-    private val PREVIEW_WIDTH = surfaceView.width
-    private val PREVIEW_HEIGHT = surfaceView.height
 
     companion object {
         private const val TARGET_FPS = 24  // 추가된 부분
@@ -99,15 +98,15 @@ class CameraSource(
     suspend fun initCamera() {
         camera = openCamera(cameraManager, cameraId)
         imageReader =
-            ImageReader.newInstance(PREVIEW_WIDTH, PREVIEW_HEIGHT, ImageFormat.YUV_420_888, 3)
+            ImageReader.newInstance(surfaceView.width, surfaceView.height, ImageFormat.YUV_420_888, 3)
         imageReader?.setOnImageAvailableListener({ reader ->
             val image = reader.acquireLatestImage()
             if (image != null) {
                 if (!::imageBitmap.isInitialized) {
                     imageBitmap =
                         Bitmap.createBitmap(
-                            PREVIEW_WIDTH,
-                            PREVIEW_HEIGHT,
+                            surfaceView.width,
+                            surfaceView.height,
                             Bitmap.Config.ARGB_8888
                         )
                 }
@@ -119,7 +118,7 @@ class CameraSource(
 
 
                 val rotatedBitmap = Bitmap.createBitmap(
-                    imageBitmap, 0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT,
+                    imageBitmap, 0, 0, surfaceView.width, surfaceView.height,
                     rotateMatrix, false
                 )
                 processImage(rotatedBitmap)
@@ -140,22 +139,45 @@ class CameraSource(
         }
     }
 
-    fun rotateBitmap(bitmap:Bitmap, self: Boolean): Bitmap{
+    fun rotateBitmap(bitmap:Bitmap, width: Int, height: Int, self: Boolean): Bitmap{
         val rotateMatrix = Matrix()
+        //rotateMatrix.postScale(1F, 1F) // y축 기준으로 이미지를 뒤집음
+        Log.d(TAG, "rotateBitmap: bitmap ${bitmap.width} ${bitmap.height}")
+
         if(self){
             rotateMatrix.postRotate(270.0f)
-            rotateMatrix.postScale(-1f, 1f) // y축 기준으로 이미지를 뒤집음
+            rotateMatrix.postScale(-1F, 1F)
         }
         else{
             rotateMatrix.postRotate(90.0f)
-            rotateMatrix.postScale(1f, 1f) // y축 기준으로 이미지를 뒤집음
+            rotateMatrix.postScale(1F, 1F)
         }
 
+        val rotateBitmap = Bitmap.createBitmap(bitmap, 0,0, bitmap.width, bitmap.height,rotateMatrix, false)
+//        return rotateBitmap
+        // Bitmap과 View의 비율 계산
+        val bitmapRatio = rotateBitmap.width.toFloat() / rotateBitmap.height.toFloat()
+        val viewRatio = width.toFloat() / height.toFloat()
 
-        return Bitmap.createBitmap(
-            bitmap, 0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT,
-            rotateMatrix, false
-        )
+        var croppedBitmap = rotateBitmap
+
+        // Bitmap이 View보다 가로로 길 때 (비율에 맞게 가로를 자름)
+        if (bitmapRatio > viewRatio) {
+            val newWidth = (rotateBitmap.height * viewRatio).toInt()
+            val cropStartX = (rotateBitmap.width - newWidth) / 2
+            // 가로를 자르고 중앙에 맞추기
+            croppedBitmap = Bitmap.createBitmap(rotateBitmap, cropStartX, 0, newWidth, rotateBitmap.height)
+        }
+        // Bitmap이 View보다 세로로 길 때 (비율에 맞게 세로를 자름)
+        else if (bitmapRatio < viewRatio) {
+            val newHeight = (rotateBitmap.width / viewRatio).toInt()
+            val cropStartY = (rotateBitmap.height - newHeight) / 2
+            // 세로를 자르고 중앙에 맞추기
+            croppedBitmap = Bitmap.createBitmap(rotateBitmap, 0, cropStartY, rotateBitmap.width, newHeight)
+        }
+
+        // 크기를 View의 크기에 맞게 확장
+        return Bitmap.createScaledBitmap(croppedBitmap, width, height, false)
     }
 
     private suspend fun createSession(targets: List<Surface>): CameraCaptureSession =
@@ -276,9 +298,11 @@ class CameraSource(
             poseResult?.let {
                 listener.onDetectedInfo(it)
                 Log.d(TAG, "processImage: 사람 좌표 $it")
+                Log.d(TAG, "processImage: bitmap 크기 ${bitmap}")
                 visualize(it, bitmap)
             }
-        }
+        }else{
+            Log.d(TAG, "processImage: 처리 안함")}
     }
 
 

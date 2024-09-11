@@ -6,12 +6,58 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".main.MainActivity">
+<!--    <androidx.constraintlayout.widget.ConstraintLayout-->
+<!--        android:id="@+id/layout_camera_menu"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        android:background="@color/black"-->
+<!--        >-->
+<!--        <android.widget.Button-->
+<!--            android:id="@+id/btn_close"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="종료"-->
+<!--            android:textSize="20sp"-->
+<!--            android:textColor="@color/white"-->
+<!--            android:fontFamily="@font/pretendard_semibold"-->
+<!--            android:background="@android:color/transparent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintEnd_toStartOf="@id/camera_title"-->
+<!--            app:layout_constraintTop_toTopOf="parent"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            />-->
+<!--        <TextView-->
+<!--            android:id="@+id/camera_title"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:gravity="center"-->
+<!--            android:text="스윙 촬영"-->
+<!--            android:textSize="18sp"-->
+<!--            android:textColor="@color/white"-->
+<!--            android:textAlignment="center"-->
+<!--            app:layout_constraintStart_toEndOf="@id/btn_close"-->
+<!--            app:layout_constraintEnd_toStartOf="@id/btn_camera_change"-->
+<!--            app:layout_constraintTop_toTopOf="parent"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            />-->
+<!--        <ImageButton-->
+<!--            android:id="@+id/btn_camera_change"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:src=""-->
+<!--            android:background="@android:color/transparent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintTop_toTopOf="parent"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            />-->
+<!--    </androidx.constraintlayout.widget.ConstraintLayout>-->
 
     <SurfaceView
         android:id="@+id/camera"
         android:background="@drawable/border_background"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintDimensionRatio="1:1"
