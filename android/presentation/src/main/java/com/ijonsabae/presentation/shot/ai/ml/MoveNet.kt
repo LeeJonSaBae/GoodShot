@@ -248,7 +248,7 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
         // 함수가 끝나기 전에 flippedBitmap을 재활용
         flippedBitmap.recycle()
 
-        return Person(keyPoints = adjustedKeyPoints, score = totalScore / numKeyPoints)
+        return Person(keyPoints = keyPoints, score = totalScore / numKeyPoints)
     }
 
     override fun lastInferenceTimeNanos(): Long = lastInferenceTimeNanos

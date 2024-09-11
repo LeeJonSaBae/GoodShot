@@ -15,6 +15,7 @@ import android.os.Environment
 import android.os.Process
 import android.provider.MediaStore
 import android.util.Log
+import android.util.Size
 import android.view.SurfaceView
 import android.view.View
 import android.view.WindowManager
@@ -24,6 +25,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -52,6 +54,7 @@ import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.Executors
 import kotlin.system.measureTimeMillis
 
 private const val TAG = "CameraFragment_싸피"
@@ -111,6 +114,15 @@ class CameraFragment :
         cameraProviderFuture.addListener({
             // 2. CameraProvier 사용 가능 여부 확인
             // 생명주기에 binding 할 수 있는 ProcessCameraProvider 객체 가져옴
+            if (cameraSource == null) {
+                cameraSource =
+                    CameraSource(surfaceView, cameraListener)
+                isPoseClassifier()
+//                lifecycleScope.launch(Dispatchers.Main) {
+//                    cameraSource?.initCamera()
+//                }
+            }
+            createPoseEstimator()
             val cameraProvider = cameraProviderFuture.get()
 
             // 3. 카메라를 선택하고 use case를 같이 생명주기에 binding
@@ -118,7 +130,14 @@ class CameraFragment :
             // 3-1. Preview를 생성 → Preview를 통해서 카메라 미리보기 화면을 구현.
             // surfaceProvider는 데이터를 받을 준비가 되었다는 신호를 카메라에게 보내준다.
             // setSurfaceProvider는 PreviewView에 SurfaceProvider를 제공해준다.
-            val preview = Preview.Builder().build()
+            val preview = Preview.Builder().build().also {
+//                it.setSurfaceProvider { surfaceRequest ->
+//                    surfaceRequest.provideSurface(
+//                        surfaceView.holder.surface,
+//                        ContextCompat.getMainExecutor(fragmentContext)
+//                    ) { result -> surfaceRequest.willNotProvideSurface() }
+//                }
+            }
 //            preview.surfaceProvider = binding.camera.surfaceProvider
             // 아래처럼 써도 됨
 //           val preview = Preview.Builder().build().also {
@@ -127,15 +146,28 @@ class CameraFragment :
 
             // 3-2. 카메라 세팅을 한다. (useCase는 bindToLifecycle에서)
             // CameraSelector는 카메라 세팅을 맡는다.(전면, 후면 카메라)
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
             try {
                 // binding 전에 binding 초기화
                 cameraProvider.unbindAll()
 
                 // 3-3. use case와 카메라를 생명 주기에 binding
+                val imageAnalyzer = ImageAnalysis
+                    .Builder()
+                    .setTargetResolution(Size(binding.camera.width, binding.camera.height))// 원하는 해상도 설정
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+                    .also { analysis ->
+                        analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
+                            cameraSource!!.processImage(cameraSource!!.rotateBitmap(image.toBitmap(), true))  // 이미지 처리 함수 호출
+                            image.close()
+                        }
+                    }
+
+                // 3-3. use case와 카메라를 생명 주기에 binding
                 camera = cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview
+                    this, cameraSelector, imageAnalyzer
                 )
 
                 cameraController = camera!!.cameraControl
@@ -151,18 +183,6 @@ class CameraFragment :
 //            preview.surfaceProvider = binding.camera.surfaceProvider
             originalLayoutParams = binding.camera.layoutParams as ConstraintLayout.LayoutParams
         }, ContextCompat.getMainExecutor(fragmentContext))
-
-        if (cameraSource == null) {
-            cameraSource =
-                CameraSource(surfaceView, cameraListener).apply {
-                    prepareCamera()
-                }
-            isPoseClassifier()
-            lifecycleScope.launch(Dispatchers.Main) {
-                cameraSource?.initCamera()
-            }
-        }
-        createPoseEstimator()
     }
 
     private fun initObservers() {

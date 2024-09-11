@@ -48,9 +48,10 @@ class CameraSource(
     private val listener: CameraSourceListener,
 ) {
 
+    private val PREVIEW_WIDTH = surfaceView.width
+    private val PREVIEW_HEIGHT = surfaceView.height
+
     companion object {
-        private const val PREVIEW_WIDTH = 640
-        private const val PREVIEW_HEIGHT = 480
         private const val TARGET_FPS = 24  // 추가된 부분
 
         /** Threshold for confidence score. */
@@ -71,7 +72,7 @@ class CameraSource(
     private var framesPerSecond = 1
 
     private var frameCount = 0
-    private val TARGET_FPS = 24
+    private val TARGET_FPS = 60
 
     /** Detects, characterizes, and connects to a CameraDevice (used for all camera operations) */
     private val cameraManager: CameraManager by lazy {
@@ -137,6 +138,24 @@ class CameraSource(
                 session?.setRepeatingRequest(it, null, null)
             }
         }
+    }
+
+    fun rotateBitmap(bitmap:Bitmap, self: Boolean): Bitmap{
+        val rotateMatrix = Matrix()
+        if(self){
+            rotateMatrix.postRotate(270.0f)
+            rotateMatrix.postScale(-1f, 1f) // y축 기준으로 이미지를 뒤집음
+        }
+        else{
+            rotateMatrix.postRotate(90.0f)
+            rotateMatrix.postScale(1f, 1f) // y축 기준으로 이미지를 뒤집음
+        }
+
+
+        return Bitmap.createBitmap(
+            bitmap, 0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT,
+            rotateMatrix, false
+        )
     }
 
     private suspend fun createSession(targets: List<Surface>): CameraCaptureSession =
@@ -238,7 +257,7 @@ class CameraSource(
         framesPerSecond = 0
     }
 
-    private fun processImage(bitmap: Bitmap) {
+    fun processImage(bitmap: Bitmap) {
         frameCount++
 
         // framesPerSecond가 0이거나 TARGET_FPS보다 작으면 모든 프레임을 처리합니다.
@@ -256,6 +275,7 @@ class CameraSource(
             frameProcessedInOneSecondInterval++
             poseResult?.let {
                 listener.onDetectedInfo(it)
+                Log.d(TAG, "processImage: 사람 좌표 $it")
                 visualize(it, bitmap)
             }
         }
@@ -264,7 +284,7 @@ class CameraSource(
 
     private fun visualize(person: Person, bitmap: Bitmap) {
         val personList = if (person.score > MIN_CONFIDENCE) listOf(person) else listOf()
-
+        Log.d(TAG, "visualize: drawPersion: $personList")
         val outputBitmap = VisualizationUtils.drawBodyKeypoints(
             bitmap,
             personList,
@@ -298,7 +318,7 @@ class CameraSource(
 
             canvas.drawBitmap(
                 outputBitmap, Rect(0, 0, outputBitmap.width, outputBitmap.height),
-                Rect(left, top, right, bottom), null
+                Rect(0, 0, right, bottom), null
             )
             surfaceView.holder.unlockCanvasAndPost(canvas)
         }
