@@ -34,14 +34,8 @@ import android.os.HandlerThread
 import android.util.Log
 import android.view.Surface
 import android.view.SurfaceView
-import com.ijonsabae.presentation.shot.CameraState.POSITIONING
-import com.ijonsabae.presentation.shot.CameraViewModel
-import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ANKLE
-import com.ijonsabae.presentation.shot.ai.data.BodyPart.NOSE
-import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_ANKLE
 import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
-import com.ijonsabae.presentation.shot.ai.vo.PersonWithScore
 import kotlinx.coroutines.suspendCancellableCoroutine
 
 import java.util.*

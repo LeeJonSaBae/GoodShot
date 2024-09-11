@@ -4,8 +4,6 @@ import MoveNet
 import PoseMatcher
 import VideoEncoder
 import android.Manifest
-import android.app.AlertDialog
-import android.app.Dialog
 import android.content.ContentValues
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -21,29 +19,32 @@ import android.view.SurfaceView
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.Camera
+import androidx.camera.core.CameraControl
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import androidx.window.layout.WindowInfoTracker
 import com.google.gson.GsonBuilder
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentCameraBinding
-import com.ijonsabae.presentation.shot.CameraState.ADDRESS
-import com.ijonsabae.presentation.shot.CameraState.POSITIONING
-import com.ijonsabae.presentation.shot.CameraState.RESULT
-import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.ai.camera.CameraSource
-import com.ijonsabae.presentation.shot.ai.data.BodyPart
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.*
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.vo.FrameData
 import com.ijonsabae.presentation.shot.ai.vo.VideoData
+import com.ijonsabae.presentation.shot.flex.FoldingStateActor
+import com.ijonsabae.presentation.util.PermissionChecker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
@@ -53,9 +54,18 @@ import java.util.Date
 import java.util.Locale
 import kotlin.system.measureTimeMillis
 
+private const val TAG = "CameraFragment_싸피"
+
 class CameraFragment :
     BaseFragment<FragmentCameraBinding>(FragmentCameraBinding::bind, R.layout.fragment_camera) {
     private lateinit var navController: NavController
+    private lateinit var foldingStateActor: FoldingStateActor
+    private lateinit var permissionChecker: PermissionChecker
+    private lateinit var originalLayoutParams: ConstraintLayout.LayoutParams
+    private val permissionList = arrayOf(Manifest.permission.CAMERA)
+    private var camera: Camera? = null
+    private var cameraController: CameraControl? = null
+
     private val cameraViewModel by activityViewModels<CameraViewModel>()
 
     /** A [SurfaceView] for camera preview.   */
@@ -67,47 +77,92 @@ class CameraFragment :
     private var cameraSource: CameraSource? = null
     private var poseDetector: MoveNet? = null  // MoveNet 인스턴스를 저장할 변수 추가
     private var isClassifyPose = true
-    private val requestMultiplePermissionsLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            when {
-                permissions[Manifest.permission.CAMERA] == true -> {
-                    // 카메라 권한이 승인된 경우
-                    openCamera()
-                }
-
-                permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] == true -> {
-                    // 외부 저장소 권한이 승인된 경우
-                    // 필요한 작업을 수행할 수 있습니다.
-                }
-
-                else -> {
-                    // 하나 이상의 권한이 거부된 경우
-                    ErrorDialog.newInstance("카메라 권한을 허용해주세요.")
-                        .show(requireActivity().supportFragmentManager, "dialog")
-                }
-            }
-        }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         navController = Navigation.findNavController(binding.root)
-
-        surfaceView = binding.surfaceView
-
-        // 앱이 실행되는 동안 화면 켜짐 상태 유지
-        requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-        if (!isCameraPermissionGranted() || !isStoragePermissionGranted()) {
-            requestPermission()
-        } else {
-            openCamera()
-        }
-
+        /******* AI 카메라 코드 시작 *******/
         //자세 분류기
         poseMatcher = PoseMatcher(requireContext())
-
         // 카메라 상태를 변경해주기 위해 옵저버 등록
         initObservers()
+        surfaceView = binding.camera
+        /******* AI 카메라 코드 끝 *******/
+
+        foldingStateActor = FoldingStateActor(WindowInfoTracker.getOrCreate(fragmentContext))
+        permissionChecker = PermissionChecker(this)
+        permissionChecker.setOnGrantedListener { //퍼미션 획득 성공일때
+            startCamera()
+        }
+        if (permissionChecker.checkPermission(fragmentContext, permissionList)) {
+            Log.d(TAG, "onViewCreated: 통과")
+            permissionChecker.permitted.onGranted()
+        } else {
+            Log.d(TAG, "onViewCreated: 권한 부족")
+            permissionChecker.requestPermissionLauncher.launch(permissionList) // 권한없으면 창 띄움
+        }
+    }
+
+    private fun startCamera() {
+
+        // 1. CameraProvider 요청
+        // ProcessCameraProvider는 Camera의 생명주기를 LifeCycleOwner의 생명주기에 Binding 함
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(fragmentContext)
+        cameraProviderFuture.addListener({
+            // 2. CameraProvier 사용 가능 여부 확인
+            // 생명주기에 binding 할 수 있는 ProcessCameraProvider 객체 가져옴
+            val cameraProvider = cameraProviderFuture.get()
+
+            // 3. 카메라를 선택하고 use case를 같이 생명주기에 binding
+
+            // 3-1. Preview를 생성 → Preview를 통해서 카메라 미리보기 화면을 구현.
+            // surfaceProvider는 데이터를 받을 준비가 되었다는 신호를 카메라에게 보내준다.
+            // setSurfaceProvider는 PreviewView에 SurfaceProvider를 제공해준다.
+            val preview = Preview.Builder().build()
+//            preview.surfaceProvider = binding.camera.surfaceProvider
+            // 아래처럼 써도 됨
+//           val preview = Preview.Builder().build().also {
+//               it.setSurfaceProvider(mBinding.viewFinder.surfaceProvider)
+//           }
+
+            // 3-2. 카메라 세팅을 한다. (useCase는 bindToLifecycle에서)
+            // CameraSelector는 카메라 세팅을 맡는다.(전면, 후면 카메라)
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            try {
+                // binding 전에 binding 초기화
+                cameraProvider.unbindAll()
+
+                // 3-3. use case와 카메라를 생명 주기에 binding
+                camera = cameraProvider.bindToLifecycle(
+                    this, cameraSelector, preview
+                )
+
+                cameraController = camera!!.cameraControl
+                cameraController!!.setZoomRatio(1F) // 1x Zoom
+            } catch (exc: Exception) {
+                println("에러 $exc")
+                Log.d(TAG, "startCamera: 에러 $exc")
+            }
+
+            // 4. Preview를 PreviewView에 연결한다.
+            // surfaceProvider는 데이터를 받을 준비가 되었다는 신호를 카메라에게 보내준다.
+            // setSurfaceProvider는 PreviewView에 SurfaceProvider를 제공해준다.
+//            preview.surfaceProvider = binding.camera.surfaceProvider
+            originalLayoutParams = binding.camera.layoutParams as ConstraintLayout.LayoutParams
+        }, ContextCompat.getMainExecutor(fragmentContext))
+
+        if (cameraSource == null) {
+            cameraSource =
+                CameraSource(surfaceView, cameraListener).apply {
+                    prepareCamera()
+                }
+            isPoseClassifier()
+            lifecycleScope.launch(Dispatchers.Main) {
+                cameraSource?.initCamera()
+            }
+        }
+        createPoseEstimator()
     }
 
     private fun initObservers() {
@@ -123,14 +178,16 @@ class CameraFragment :
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        openCamera()
-    }
-
     override fun onResume() {
-        cameraSource?.resume()
         super.onResume()
+        cameraSource?.resume()
+        lifecycleScope.launch {
+            foldingStateActor.checkFoldingState(
+                fragmentContext as AppCompatActivity,
+                binding.camera,
+                binding.layoutCamera
+            )
+        }
     }
 
     override fun onPause() {
@@ -347,33 +404,6 @@ class CameraFragment :
         return uri
     }
 
-    private fun requestPermission() {
-        val permissionsToRequest = mutableListOf<String>()
-
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            permissionsToRequest.add(Manifest.permission.CAMERA)
-        }
-
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q &&
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            )
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            permissionsToRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        }
-
-        if (permissionsToRequest.isNotEmpty()) {
-            requestMultiplePermissionsLauncher.launch(permissionsToRequest.toTypedArray())
-        } else {
-            // 모든 권한이 이미 승인된 경우
-            openCamera()
-        }
-    }
-
     private fun showToast(message: String) {
         Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
     }
@@ -386,34 +416,6 @@ class CameraFragment :
             Process.myPid(),
             Process.myUid()
         ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun isStoragePermissionGranted(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            true // Android 10 이상에서는 Scoped Storage를 사용하므로 별도의 권한이 필요 없음
-        } else {
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED
-        }
-    }
-
-    // open camera
-    private fun openCamera() {
-        if (isCameraPermissionGranted()) {
-            if (cameraSource == null) {
-                cameraSource =
-                    CameraSource(surfaceView, cameraListener).apply {
-                        prepareCamera()
-                    }
-                isPoseClassifier()
-                lifecycleScope.launch(Dispatchers.Main) {
-                    cameraSource?.initCamera()
-                }
-            }
-            createPoseEstimator()
-        }
     }
 
     private var lastLogTime = 0L
@@ -448,8 +450,10 @@ class CameraFragment :
 //                    "오른 발목: ${point[RIGHT_ANKLE.position].score}"
 //        )
 
-        logWithThrottle("name: ${point[LEFT_WRIST.position].bodyPart}, x: ${point[LEFT_WRIST.position].coordinate.x}, y: ${point[LEFT_ANKLE.position].coordinate.y}\n" +
-                "name: ${point[RIGHT_WRIST.position].bodyPart}, x: ${point[RIGHT_WRIST.position].coordinate.x}, y: ${point[RIGHT_ANKLE.position].coordinate.y}")
+        logWithThrottle(
+            "name: ${point[LEFT_WRIST.position].bodyPart}, x: ${point[LEFT_WRIST.position].coordinate.x}, y: ${point[LEFT_ANKLE.position].coordinate.y}\n" +
+                    "name: ${point[RIGHT_WRIST.position].bodyPart}, x: ${point[RIGHT_WRIST.position].coordinate.x}, y: ${point[RIGHT_ANKLE.position].coordinate.y}"
+        )
 
 //        // 1. 몸 전체가 카메라 화면에 들어오는지 체크
 //        if ((point[NOSE.position].score) < 0.3 ||
@@ -470,29 +474,5 @@ class CameraFragment :
 //        } else {
 //            cameraViewModel.setCurrentState(SWING)
 //        }
-    }
-
-    /**
-     * Shows an error message dialog.
-     */
-    class ErrorDialog : DialogFragment() {
-
-        override fun onCreateDialog(savedInstanceState: Bundle?): Dialog =
-            AlertDialog.Builder(activity)
-                .setMessage(requireArguments().getString(ARG_MESSAGE))
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                }
-                .create()
-
-        companion object {
-
-            @JvmStatic
-            private val ARG_MESSAGE = "message"
-
-            @JvmStatic
-            fun newInstance(message: String): ErrorDialog = ErrorDialog().apply {
-                arguments = Bundle().apply { putString(ARG_MESSAGE, message) }
-            }
-        }
     }
 }

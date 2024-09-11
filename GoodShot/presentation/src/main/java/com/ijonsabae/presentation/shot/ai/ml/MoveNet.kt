@@ -171,8 +171,8 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
             )
             val inputTensor = processInputImage(detectBitmap, inputWidth, inputHeight)
             val outputTensor = TensorBuffer.createFixedSize(outputShape, DataType.FLOAT32)
-//            val widthRatio = detectBitmap.width.toFloat() / inputWidth
-//            val heightRatio = detectBitmap.height.toFloat() / inputHeight
+            val widthRatio = detectBitmap.width.toFloat() / inputWidth
+            val heightRatio = detectBitmap.height.toFloat() / inputHeight
 
             val positions = mutableListOf<Float>()
 
@@ -180,10 +180,8 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
                 interpreter.run(input.buffer, outputTensor.buffer.rewind())
                 val output = outputTensor.floatArray
                 for (idx in 0 until numKeyPoints) {
-//                    val x = output[idx * 3 + 1] * inputWidth * widthRatio
-//                    val y = output[idx * 3 + 0] * inputHeight * heightRatio
-                    val x = output[idx * 3 + 1]
-                    val y = output[idx * 3 + 0]
+                    val x = output[idx * 3 + 1] * inputWidth * widthRatio
+                    val y = output[idx * 3 + 0] * inputHeight * heightRatio
 
                     positions.add(x)
                     positions.add(y)
