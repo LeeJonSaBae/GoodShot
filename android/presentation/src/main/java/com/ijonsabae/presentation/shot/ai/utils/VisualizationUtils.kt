@@ -58,13 +58,15 @@ object VisualizationUtils {
     )
 
     // Draw line and point indicate body pose
-
     fun drawBodyKeypoints(
         input: Bitmap,
         persons: List<Person>,
         isTrackerEnabled: Boolean = false
     ): Bitmap {
         val width = input.width
+        val height = input.height
+        val longerSide = maxOf(width, height).toFloat()
+
         val paintCircle = Paint().apply {
             strokeWidth = CIRCLE_RADIUS
             color = Color.RED
@@ -83,6 +85,9 @@ object VisualizationUtils {
 
         val output = input.copy(Bitmap.Config.ARGB_8888, true)
         val originalSizeCanvas = Canvas(output)
+
+        fun adjustX(x: Float): Float = (x * longerSide - (longerSide - width) / 2).coerceIn(0f, width.toFloat())
+        fun adjustY(y: Float): Float = (y * longerSide - (longerSide - height) / 2).coerceIn(0f, height.toFloat())
 
         persons.forEach { person ->
             // 눈, 코, 귀에 대한 선을 제외하고 나머지 부위만 그리기
@@ -105,8 +110,8 @@ object VisualizationUtils {
                     val pointA = person.keyPoints[it.first.position].coordinate
                     val pointB = person.keyPoints[it.second.position].coordinate
                     originalSizeCanvas.drawLine(
-                        width - pointA.x, pointA.y,
-                        width - pointB.x, pointB.y,
+                        adjustX(pointA.x), adjustY(pointA.y),
+                        adjustX(pointB.x), adjustY(pointB.y),
                         paintLine
                     )
                 }
@@ -123,8 +128,8 @@ object VisualizationUtils {
                     )
                 ) {
                     originalSizeCanvas.drawCircle(
-                        width - point.coordinate.x,
-                        point.coordinate.y,
+                        adjustX(point.coordinate.x),
+                        adjustY(point.coordinate.y),
                         CIRCLE_RADIUS,
                         paintCircle
                     )
@@ -136,13 +141,13 @@ object VisualizationUtils {
             val leftEar = person.keyPoints[BodyPart.LEFT_EAR.position].coordinate
             val rightEar = person.keyPoints[BodyPart.RIGHT_EAR.position].coordinate
 
-            // 외접원의 중심과 반지름 계산 (X 좌표 반전)
-            val centerX = width - ((nose.x + leftEar.x + rightEar.x) / 3)
-            val centerY = (nose.y + leftEar.y + rightEar.y) / 3
+            // 외접원의 중심과 반지름 계산
+            val centerX = adjustX((nose.x + leftEar.x + rightEar.x) / 3)
+            val centerY = adjustY((nose.y + leftEar.y + rightEar.y) / 3)
             val radius = maxOf(
-                distance(width - nose.x, nose.y, centerX, centerY),
-                distance(width - leftEar.x, leftEar.y, centerX, centerY),
-                distance(width - rightEar.x, rightEar.y, centerX, centerY)
+                distance(adjustX(nose.x), adjustY(nose.y), centerX, centerY),
+                distance(adjustX(leftEar.x), adjustY(leftEar.y), centerX, centerY),
+                distance(adjustX(rightEar.x), adjustY(rightEar.y), centerX, centerY)
             )
 
             // 외접원 그리기

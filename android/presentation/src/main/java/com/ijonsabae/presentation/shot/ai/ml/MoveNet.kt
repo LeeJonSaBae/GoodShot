@@ -39,7 +39,6 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
         private const val MIN_CROP_KEYPOINT_SCORE = .2f
         private const val CPU_NUM_THREADS = 4
         private const val QUEUE_SIZE = 24 * 3 // 24fps * 3초 = 72
-        private const val NORMALIZATION_FACTOR = 640f
 
         // Parameters that control how large crop region should be expanded from previous frames'
         // body keypoints.
@@ -98,157 +97,106 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
         return Pair(images, joints)
     }
 
-
     override fun estimatePoses(bitmap: Bitmap): Person {
         val inferenceStartTimeNanos = SystemClock.elapsedRealtimeNanos()
 
-        // 원본 Bitmap 크기 출력
         Log.d("BitmapSize", "Original Bitmap: width = ${bitmap.width}, height = ${bitmap.height}")
 
-        // Bitmap을 Y축 기준으로 뒤집기
         val matrix = Matrix().apply {
             preScale(-1f, 1f)
         }
-        val flippedBitmap =
-            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+        val flippedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
 
-        // 이후의 코드에서 bitmap 대신 flippedBitmap을 사용
-
-        // 세로 길이를 기준으로 가로에 패딩을 추가해 1:1 비율로 만듭니다.
         val targetSize = maxOf(flippedBitmap.width, flippedBitmap.height)
-
-        // 가로 패딩 계산 (세로 길이에 맞춰 가로에 패딩을 추가)
         val widthPadding = maxOf(0, flippedBitmap.height - flippedBitmap.width)
 
-        // 새로운 비트맵을 생성하고 패딩을 추가
         val paddedBitmap = Bitmap.createBitmap(targetSize, targetSize, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(paddedBitmap)
-        val paint = Paint()
-        paint.color = Color.BLACK // 패딩 색상 설정 (필요에 따라 조정)
+        val paint = Paint().apply { color = Color.BLACK }
 
         canvas.drawRect(0f, 0f, targetSize.toFloat(), targetSize.toFloat(), paint)
-        canvas.drawBitmap(
-            flippedBitmap,
-            (widthPadding / 2).toFloat(), // 가로 중앙에 배치
-            0f, // 세로는 그대로
-            null
-        )
-        // 패딩된 비트맵을 imageQueue에 추가
+        canvas.drawBitmap(flippedBitmap, (widthPadding / 2).toFloat(), 0f, null)
+
         val currentTime = System.currentTimeMillis()
         if (imageQueue.size >= QUEUE_SIZE) {
             imageQueue.poll()
         }
         imageQueue.offer(TimestampedData(paddedBitmap, currentTime))
 
-
         if (cropRegion == null) {
             cropRegion = initRectF(bitmap.width, bitmap.height)
         }
 
         var totalScore = 0f
-
         val numKeyPoints = outputShape[2]
         val keyPoints = mutableListOf<KeyPoint>()
 
         cropRegion?.run {
             val rect = RectF(
-                (left * bitmap.width),
-                (top * bitmap.height),
-                (right * bitmap.width),
-                (bottom * bitmap.height)
+                (left * bitmap.width).coerceAtLeast(0f),
+                (top * bitmap.height).coerceAtLeast(0f),
+                (right * bitmap.width).coerceAtMost(bitmap.width.toFloat()),
+                (bottom * bitmap.height).coerceAtMost(bitmap.height.toFloat())
             )
+
+            // 최소 크기 설정
+            val minSize = 1
+            val width = maxOf(rect.width().toInt(), minSize)
+            val height = maxOf(rect.height().toInt(), minSize)
+
             val detectBitmap = Bitmap.createBitmap(
-                rect.width().toInt(),
-                rect.height().toInt(),
+                width,
+                height,
                 Bitmap.Config.ARGB_8888
             )
 
-            Canvas(detectBitmap).drawBitmap(
-                flippedBitmap,
-                -rect.left,
-                -rect.top,
-                null
-            )
+            Canvas(detectBitmap).drawBitmap(flippedBitmap, -rect.left, -rect.top, null)
             val inputTensor = processInputImage(detectBitmap, inputWidth, inputHeight)
             val outputTensor = TensorBuffer.createFixedSize(outputShape, DataType.FLOAT32)
-            val widthRatio = detectBitmap.width.toFloat() / inputWidth
-            val heightRatio = detectBitmap.height.toFloat() / inputHeight
-
-            val positions = mutableListOf<Float>()
 
             inputTensor?.let { input ->
                 interpreter.run(input.buffer, outputTensor.buffer.rewind())
                 val output = outputTensor.floatArray
                 for (idx in 0 until numKeyPoints) {
-                    val x = output[idx * 3 + 1] * inputWidth * widthRatio
-                    val y = output[idx * 3 + 0] * inputHeight * heightRatio
-
-                    positions.add(x)
-                    positions.add(y)
+                    val x = output[idx * 3 + 1]
+                    val y = output[idx * 3 + 0]
                     val score = output[idx * 3 + 2]
+
                     keyPoints.add(
                         KeyPoint(
                             BodyPart.fromInt(idx),
-                            PointF(
-                                x,
-                                y
-                            ),
+                            PointF(x, y),
                             score
                         )
                     )
                     totalScore += score
                 }
             }
-            val matrix = Matrix()
-            val points = positions.toFloatArray()
 
-            matrix.postTranslate(rect.left, rect.top)
-            matrix.mapPoints(points)
-            keyPoints.forEachIndexed { index, keyPoint ->
-                keyPoint.coordinate =
-                    PointF(
-                        points[index * 2],
-                        points[index * 2 + 1]
-                    )
-            }
             // new crop region
             cropRegion = determineRectF(keyPoints, bitmap.width, bitmap.height)
         }
-        lastInferenceTimeNanos =
-            SystemClock.elapsedRealtimeNanos() - inferenceStartTimeNanos
+        lastInferenceTimeNanos = SystemClock.elapsedRealtimeNanos() - inferenceStartTimeNanos
 
-
-//        // 큐에 넣기 위한 정규화 및 반전
-//        val adjustedKeyPoints = keyPoints.map { keyPoint ->
-//            val newCoordinate = PointF(
-//                (1 - ((keyPoint.coordinate.x + 80) / NORMALIZATION_FACTOR)),
-//                keyPoint.coordinate.y / NORMALIZATION_FACTOR
-//            )
-//            keyPoint.copy(coordinate = newCoordinate)
-//        }
-
-        // 큐에 넣기 위한 y축 기준 반전
-        val adjustedKeyPoints = keyPoints.map { keyPoint ->
+        // 정규화된 좌표를 그대로 사용
+        val flippedKeypoints = keyPoints.map { keyPoint ->
             val newCoordinate = PointF(
-                (1 - keyPoint.coordinate.x),
+                1 - keyPoint.coordinate.x,  // x 좌표만 반전
                 keyPoint.coordinate.y
             )
             keyPoint.copy(coordinate = newCoordinate)
         }
 
-        // 패딩된 관절을 imageQueue에 추가합니다.
         if (jointQueue.size < 70) {
-            // 큐의 길이가 70 미만이면 큐에 비트맵 추가
-            jointQueue.add(adjustedKeyPoints)
+            jointQueue.add(flippedKeypoints)
         } else {
-            // 큐의 길이가 70이면 맨 앞의 비트맵을 제거하고 새 비트맵을 추가
-            jointQueue.poll() // 큐의 맨 앞 요소 제거
-            jointQueue.add(adjustedKeyPoints) // 큐의 맨 뒤에 새 비트맵 추가
+            jointQueue.poll()
+            jointQueue.add(flippedKeypoints)
         }
-        // 함수가 끝나기 전에 flippedBitmap을 재활용
+
         flippedBitmap.recycle()
 
-        return Person(keyPoints = keyPoints, score = totalScore / numKeyPoints)
+        return Person(keyPoints = flippedKeypoints, score = totalScore / numKeyPoints)
     }
 
     override fun lastInferenceTimeNanos(): Long = lastInferenceTimeNanos

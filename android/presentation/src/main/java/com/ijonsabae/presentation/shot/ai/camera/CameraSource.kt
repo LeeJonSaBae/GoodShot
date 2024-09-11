@@ -17,30 +17,23 @@ limitations under the License.
 
 import PoseClassifier
 import PoseDetector
-import com.ijonsabae.presentation.shot.ai.utils.YuvToRgbConverter
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.ImageFormat
 import android.graphics.Matrix
 import android.graphics.Rect
 import android.hardware.camera2.CameraCaptureSession
-import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.media.ImageReader
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
-import android.view.Surface
 import android.view.SurfaceView
 import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
-import kotlinx.coroutines.suspendCancellableCoroutine
 
 import java.util.*
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 import kotlin.math.max
 
 class CameraSource(
@@ -52,8 +45,6 @@ class CameraSource(
     private val PREVIEW_HEIGHT = surfaceView.height
 
     companion object {
-        private const val TARGET_FPS = 24  // 추가된 부분
-
         /** Threshold for confidence score. */
         private const val MIN_CONFIDENCE = .2f
         private const val TAG = "Camera Source"
@@ -63,8 +54,6 @@ class CameraSource(
     private var detector: PoseDetector? = null
     private var classifier: PoseClassifier? = null
     private var isTrackerEnabled = false
-    private var yuvConverter: YuvToRgbConverter = YuvToRgbConverter(surfaceView.context)
-    private lateinit var imageBitmap: Bitmap
 
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
     private var fpsTimer: Timer? = null
@@ -94,59 +83,13 @@ class CameraSource(
 
     /** [Handler] corresponding to [imageReaderThread] */
     private var imageReaderHandler: Handler? = null
-    private var cameraId: String = ""
 
-    suspend fun initCamera() {
-        camera = openCamera(cameraManager, cameraId)
-        imageReader =
-            ImageReader.newInstance(PREVIEW_WIDTH, PREVIEW_HEIGHT, ImageFormat.YUV_420_888, 3)
-        imageReader?.setOnImageAvailableListener({ reader ->
-            val image = reader.acquireLatestImage()
-            if (image != null) {
-                if (!::imageBitmap.isInitialized) {
-                    imageBitmap =
-                        Bitmap.createBitmap(
-                            PREVIEW_WIDTH,
-                            PREVIEW_HEIGHT,
-                            Bitmap.Config.ARGB_8888
-                        )
-                }
-                yuvConverter.yuvToRgb(image, imageBitmap)
-                // Create rotated version for portrait display
-                val rotateMatrix = Matrix()
-                rotateMatrix.postRotate(270.0f)
-                rotateMatrix.postScale(-1f, 1f) // y축 기준으로 이미지를 뒤집음
-
-
-                val rotatedBitmap = Bitmap.createBitmap(
-                    imageBitmap, 0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT,
-                    rotateMatrix, false
-                )
-                processImage(rotatedBitmap)
-                image.close()
-            }
-        }, imageReaderHandler)
-
-        imageReader?.surface?.let { surface ->
-            session = createSession(listOf(surface))
-            val cameraRequest = camera?.createCaptureRequest(
-                CameraDevice.TEMPLATE_PREVIEW
-            )?.apply {
-                addTarget(surface)
-            }
-            cameraRequest?.build()?.let {
-                session?.setRepeatingRequest(it, null, null)
-            }
-        }
-    }
-
-    fun rotateBitmap(bitmap:Bitmap, self: Boolean): Bitmap{
+    fun rotateBitmap(bitmap: Bitmap, self: Boolean): Bitmap {
         val rotateMatrix = Matrix()
-        if(self){
+        if (self) {
             rotateMatrix.postRotate(270.0f)
             rotateMatrix.postScale(-1f, 1f) // y축 기준으로 이미지를 뒤집음
-        }
-        else{
+        } else {
             rotateMatrix.postRotate(90.0f)
             rotateMatrix.postScale(1f, 1f) // y축 기준으로 이미지를 뒤집음
         }
@@ -157,50 +100,6 @@ class CameraSource(
             rotateMatrix, false
         )
     }
-
-    private suspend fun createSession(targets: List<Surface>): CameraCaptureSession =
-        suspendCancellableCoroutine { cont ->
-            camera?.createCaptureSession(targets, object : CameraCaptureSession.StateCallback() {
-                override fun onConfigured(captureSession: CameraCaptureSession) =
-                    cont.resume(captureSession)
-
-                override fun onConfigureFailed(session: CameraCaptureSession) {
-                    cont.resumeWithException(Exception("Session error"))
-                }
-            }, null)
-        }
-
-    @SuppressLint("MissingPermission")
-    private suspend fun openCamera(manager: CameraManager, cameraId: String): CameraDevice =
-        suspendCancellableCoroutine { cont ->
-            manager.openCamera(cameraId, object : CameraDevice.StateCallback() {
-                override fun onOpened(camera: CameraDevice) = cont.resume(camera)
-
-                override fun onDisconnected(camera: CameraDevice) {
-                    camera.close()
-                }
-
-                override fun onError(camera: CameraDevice, error: Int) {
-                    if (cont.isActive) cont.resumeWithException(Exception("Camera error"))
-                }
-            }, imageReaderHandler)
-        }
-
-    fun prepareCamera() {
-        for (cameraId in cameraManager.cameraIdList) {
-            val characteristics = cameraManager.getCameraCharacteristics(cameraId)
-
-            // 전면 카메라를 사용하도록 변경
-            val cameraDirection = characteristics.get(CameraCharacteristics.LENS_FACING)
-            if (cameraDirection != null &&
-                cameraDirection == CameraCharacteristics.LENS_FACING_FRONT
-            ) {
-                this.cameraId = cameraId
-                break // 전면 카메라를 찾았으면 루프를 빠져나옵니다.
-            }
-        }
-    }
-
 
     fun setDetector(detector: PoseDetector) {
         synchronized(lock) {
@@ -275,7 +174,6 @@ class CameraSource(
             frameProcessedInOneSecondInterval++
             poseResult?.let {
                 listener.onDetectedInfo(it)
-                Log.d(TAG, "processImage: 사람 좌표 $it")
                 visualize(it, bitmap)
             }
         }
