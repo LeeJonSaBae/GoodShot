@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="BottomNavigation.ItemTextAppearance" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">@font/pretendard_semibold</item>
+    </style>
+</resources>

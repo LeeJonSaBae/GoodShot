@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_marginHorizontal="18dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".main.MainActivity">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cv_user_profile_img"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="15dp"
+        android:elevation="0dp"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        >
+        <ImageView
+            android:id="@+id/iv_user_profile_img"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/default_user_img"
+            android:scaleType="centerCrop"
+            />
+    </androidx.cardview.widget.CardView>
+
+    <android.widget.Button
+        android:id="@+id/btn_change_nickname"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="start|center_vertical"
+        android:text = "닉네임 변경"
+        android:drawableEnd="@drawable/forward"
+        app:layout_constraintTop_toBottomOf="@id/cv_user_profile_img"
+        />
+    <android.widget.Button
+        android:id="@+id/btn_change_password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="start|center_vertical"
+        android:text = "비밀번호 변경"
+        android:drawableEnd="@drawable/forward"
+        app:layout_constraintTop_toBottomOf="@id/btn_change_nickname"
+        />
+
+    <ImageView
+        android:id="@+id/btn_report"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:src="@drawable/report2"
+        android:background="@color/dark_green"
+        app:layout_constraintDimensionRatio="1.46:1"
+        app:layout_constraintTop_toBottomOf="@id/btn_change_password"
+        app:layout_constraintBottom_toBottomOf="parent"
+        />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+    
+

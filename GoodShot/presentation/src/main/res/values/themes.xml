@@ -1,0 +1,96 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="Base.Theme.GoodShot" parent="Theme.Material3.Light.NoActionBar">
+        <!--        버튼 등 위젯의 디폴트 컬러-->
+        <item name="colorPrimary">@color/dark_green</item>
+        <!--        버튼의 글자 색 적용-->
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorPrimaryDark">@color/black</item>
+
+        <!--        appbar 배경 컬러-->
+        <item name="colorSurface">@color/white</item>
+
+        <!--        꾹 눌러서 복사 범위 지정할 때 막대 바 색깔-->
+        <item name="colorSecondary">@color/white</item>
+        <item name="colorPrimaryVariant">@color/white</item>
+
+
+        <!--        기본 바탕 색-->
+        <item name="android:windowBackground">@color/white</item>
+        <item name="android:textColor">@color/black</item>
+        <!--        위에 상태 바 배경 컬러-->
+        <item name="android:statusBarColor">@color/white</item>
+        <!--        상태바의 아이콘 및 글자 컬러를 검은색으로-->
+        <item name="android:windowLightStatusBar">true</item>
+        <!--        폰트로 인한 불필요한 패딩 제거-->
+        <item name="android:includeFontPadding">false</item>
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+
+        <!--        <item name="colorOnPrimarySurface">@color/dark_green</item>-->
+        <!--        <item name="colorOnPrimaryContainer">@color/dark_green</item>-->
+
+        <!--        bottom navigation ripple color-->
+        <!--        <item name="colorSecondaryContainer">@android:color/holo_red_dark</item>-->
+
+        <!--        <item name="colorOnSecondaryContainer">@color/dark_green</item>-->
+
+        <!--        <item name="colorTertiary">@color/dark_green</item>-->
+        <!--        <item name="colorTertiaryContainer">@color/dark_green</item>-->
+        <!--        <item name="colorOnTertiary">@color/dark_green</item>-->
+        <!--        <item name="colorOnTertiaryContainer">@color/dark_green</item>-->
+
+        <!--        <item name="colorPrimarySurface">@color/dark_green</item>-->
+        <!--        <item name="colorOnSecondaryFixed">@color/dark_green</item>-->
+        <!--        <item name="colorSecondaryVariant">@color/dark_green</item>-->
+        <!--        <item name="color">@color/dark_green</item>-->
+        <!--        <item name="colorOutline">@color/dark_green</item>-->
+        <!--        <item name="colorOnBackground">@color/dark_green</item>-->
+        <!--        <item name="colorAccent">@color/dark_green</item>-->
+        <!--        <item name="android:backgroundTint">@color/dark_green</item>-->
+        <!--        <item name="colorOnSecondary">@color/dark_green</item>-->
+        <!--        <item name="colorOnSurface">@color/dark_green</item>-->
+
+    </style>
+
+    <style name="Theme.GoodShot" parent="Base.Theme.GoodShot"></style>
+
+    <style name="ToolBarStyle" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textSize">18sp</item>
+        <item name="android:fontFamily">@font/pretendard_medium</item>
+    </style>
+
+    <style name="LoginEditTextStyle" parent="Widget.Design.TextInputLayout">
+        <item name="colorControlNormal">@color/white</item>
+        // unFocus 상태일때 밑줄 색.
+        <item name="colorControlActivated">@color/white</item>
+        // Focus 상태일때 밑줄 색.
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textCursorDrawable">@color/white</item>
+        // cursor 색.
+    </style>
+
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@drawable/splash</item>
+        <item name="windowSplashScreenAnimatedIcon">@android:color/transparent</item>
+        <item name="postSplashScreenTheme">@style/Theme.GoodShot</item>
+    </style>
+
+    <style name="LoginCheckBox" parent="Widget.Material3.CompoundButton.CheckBox">
+        <item name="buttonTint">@color/white</item>
+        <item name="buttonIconTint">@android:color/darker_gray</item>
+    </style>
+
+    <!-- shot slider -->
+    <style name="tooltip" parent="Widget.MaterialComponents.Tooltip">
+        <item name="shapeAppearanceOverlay">@style/tooltipShOverylay</item>
+        <item name="backgroundTint">@color/dark_green</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="tooltipShOverylay">
+        <item name="cornerSize">50%</item>
+    </style>
+
+</resources>

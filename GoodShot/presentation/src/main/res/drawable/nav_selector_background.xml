@@ -1,0 +1,8 @@
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetTop="3dp"
+    android:insetBottom="3dp">
+    <shape >
+        <solid android:color="@android:color/holo_red_dark" />
+        <corners android:radius="80dp" />
+    </shape>
+</inset>

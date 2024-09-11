@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_navigation_graph"
+    app:startDestination="@id/home_tab"
+    >
+    <navigation
+        android:id="@+id/home_tab"
+        app:startDestination="@id/home">
+        <fragment
+            android:id="@+id/home"
+            android:name="com.ijonsabae.presentation.home.HomeFragment"
+            android:label="home"
+            tools:layout="@layout/fragment_home"
+            >
+        </fragment>
+    </navigation>
+    <navigation
+        android:id="@+id/shot_tab"
+        app:startDestination="@id/shot"
+        >
+        <fragment
+            android:id="@+id/shot"
+            android:name="com.ijonsabae.presentation.shot.ShotFragment"
+            android:label="shot"
+            tools:layout="@layout/fragment_shot"
+            >
+            <action
+                android:id="@+id/action_shot_to_camera"
+                app:destination="@id/camera"
+                app:popUpTo="@id/camera"
+                app:popUpToInclusive="true"
+                />
+        </fragment>
+
+        <fragment
+            android:id="@+id/camera"
+            android:name="com.ijonsabae.presentation.shot.CameraFragment"
+            android:label="camera"
+            tools:layout="@layout/fragment_camera"
+            >
+        </fragment>
+    </navigation>
+
+    <navigation
+        android:id="@+id/replay_tab"
+        app:startDestination="@id/replay">
+        <fragment
+            android:id="@+id/replay"
+            android:name="com.ijonsabae.presentation.replay.ReplayFragment"
+            android:label="replay"
+            tools:layout="@layout/fragment_replay"
+            >
+        </fragment>
+    </navigation>
+    <navigation
+        android:id="@+id/profile_tab"
+        app:startDestination="@id/profile">
+        <fragment
+            android:id="@+id/profile"
+            android:name="com.ijonsabae.presentation.profile.ProfileFragment"
+            android:label="profile"
+            tools:layout="@layout/fragment_profile"
+            >
+        </fragment>
+    </navigation>
+
+
+</navigation>

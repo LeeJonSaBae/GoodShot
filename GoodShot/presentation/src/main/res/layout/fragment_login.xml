@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layout_login"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/login_background"
+    >
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginHorizontal="20dp"
+        >
+        <TextView
+            android:id="@+id/tv_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="닉네임"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:fontFamily="@font/pretendard_regular"
+            app:layout_constraintBottom_toTopOf="@id/til_name"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="packed"
+            />
+        <EditText
+            android:id="@+id/til_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/white"
+            android:textSize="14sp"
+            android:fontFamily="@font/pretendard_regular"
+            android:textCursorDrawable="@drawable/cursor_white"
+            android:textColorHighlight="@color/white"
+            app:layout_constraintBottom_toTopOf="@id/tv_password"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_name"
+            />
+
+        <TextView
+            android:id="@+id/tv_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="패스워드"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:fontFamily="@font/pretendard_regular"
+            app:layout_constraintTop_toBottomOf="@id/til_name"
+            app:layout_constraintBottom_toTopOf="@id/et_password"
+            />
+
+        <EditText
+            android:id="@+id/et_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textCursorDrawable="@drawable/cursor_white"
+            android:fontFamily="@font/pretendard_regular"
+            android:inputType="textPassword"
+            android:backgroundTint="@color/white"
+
+            app:layout_constraintTop_toBottomOf="@id/tv_password"
+            app:layout_constraintBottom_toTopOf="@id/checkbox"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            />
+        <CheckBox
+            android:id="@+id/checkbox"
+            android:text="자동 로그인"
+            android:textSize="14sp"
+            android:textColor="@color/white"
+            android:fontFamily="@font/pretendard_regular"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/LoginCheckBox"
+            app:layout_constraintTop_toBottomOf="@id/et_password"
+            app:layout_constraintBottom_toTopOf="@id/btn_find_password"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <android.widget.Button
+            android:id="@+id/btn_login"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="로그인"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:fontFamily="@font/pretendard_regular"
+            android:gravity="center"
+            android:background="@drawable/round_login_button"
+            app:layout_constraintDimensionRatio="H,1:6.36"
+            app:layout_constraintTop_toBottomOf="@id/checkbox"
+            app:layout_constraintBottom_toTopOf="@id/btn_find_password"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            />
+
+        <android.widget.Button
+            android:id="@+id/btn_find_password"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="비밀번호를 잊어버리셨나요?"
+            android:textSize="14sp"
+            android:textColor="@color/dark_gray"
+            android:fontFamily="@font/pretendard_regular"
+            android:background="@android:color/transparent"
+            app:layout_constraintTop_toBottomOf="@id/btn_login"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            />
+
+        <android.widget.Button
+            android:id="@+id/btn_register"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="회원가입"
+            android:textSize="14sp"
+            android:textColor="@color/dark_gray"
+            android:fontFamily="@font/pretendard_regular"
+            android:background="@android:color/transparent"
+            app:layout_constraintTop_toBottomOf="@id/btn_login"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
