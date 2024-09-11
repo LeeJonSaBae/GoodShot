@@ -32,40 +32,40 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
-    buildFeatures{
+    buildFeatures {
         viewBinding = true
     }
 }
 
 dependencies {
     implementation(project(":domain"))
-    implementation ("androidx.window:window:1.3.0")
+    implementation("androidx.window:window:1.3.0")
 
     // navigation
-    implementation (libs.androidx.navigation.fragment.ktx)
-    implementation (libs.androidx.navigation.ui.ktx)
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
 
-    implementation (libs.androidx.core.splashscreen)
+    implementation(libs.androidx.core.splashscreen)
 
     // Timeline-View
-    implementation (libs.vipulasri.timelineview)
+    implementation(libs.vipulasri.timelineview)
     // Mp Android Chart
-    implementation (libs.mpandroidchart)
+    implementation(libs.mpandroidchart)
     // CameraX 세팅
     // CameraX core library using the camera2 implementation
     // The following line is optional, as the core library is included indirectly by camera-camera2
-    implementation (libs.androidx.camera.core)
-    implementation (libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
     // If you want to additionally use the CameraX Lifecycle library
-    implementation (libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.lifecycle)
     // If you want to additionally use the CameraX VideoCapture library
-    implementation (libs.androidx.camera.video)
+    implementation(libs.androidx.camera.video)
     // If you want to additionally use the CameraX View class
-    implementation (libs.androidx.camera.view)
+    implementation(libs.androidx.camera.view)
     // If you want to additionally add CameraX ML Kit Vision Integration
-    implementation (libs.androidx.camera.mlkit.vision)
+    implementation(libs.androidx.camera.mlkit.vision)
     // If you want to additionally use the CameraX Extensions library
-    implementation (libs.androidx.camera.extensions)
+    implementation(libs.androidx.camera.extensions)
     // Retrofit 관련 의존
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
