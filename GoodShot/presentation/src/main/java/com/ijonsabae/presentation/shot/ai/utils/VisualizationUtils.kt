@@ -87,8 +87,20 @@ object VisualizationUtils {
         persons.forEach { person ->
             // 눈, 코, 귀에 대한 선을 제외하고 나머지 부위만 그리기
             bodyJoints.forEach {
-                if (it.first !in listOf(BodyPart.NOSE, BodyPart.LEFT_EYE, BodyPart.RIGHT_EYE, BodyPart.LEFT_EAR, BodyPart.RIGHT_EAR) &&
-                    it.second !in listOf(BodyPart.NOSE, BodyPart.LEFT_EYE, BodyPart.RIGHT_EYE, BodyPart.LEFT_EAR, BodyPart.RIGHT_EAR)
+                if (it.first !in listOf(
+                        BodyPart.NOSE,
+                        BodyPart.LEFT_EYE,
+                        BodyPart.RIGHT_EYE,
+                        BodyPart.LEFT_EAR,
+                        BodyPart.RIGHT_EAR
+                    ) &&
+                    it.second !in listOf(
+                        BodyPart.NOSE,
+                        BodyPart.LEFT_EYE,
+                        BodyPart.RIGHT_EYE,
+                        BodyPart.LEFT_EAR,
+                        BodyPart.RIGHT_EAR
+                    )
                 ) {
                     val pointA = person.keyPoints[it.first.position].coordinate
                     val pointB = person.keyPoints[it.second.position].coordinate
@@ -102,7 +114,14 @@ object VisualizationUtils {
 
             // 눈, 코, 귀를 제외한 점만 그리기
             person.keyPoints.forEach { point ->
-                if (point.bodyPart !in listOf(BodyPart.NOSE, BodyPart.LEFT_EYE, BodyPart.RIGHT_EYE, BodyPart.LEFT_EAR, BodyPart.RIGHT_EAR)) {
+                if (point.bodyPart !in listOf(
+                        BodyPart.NOSE,
+                        BodyPart.LEFT_EYE,
+                        BodyPart.RIGHT_EYE,
+                        BodyPart.LEFT_EAR,
+                        BodyPart.RIGHT_EAR
+                    )
+                ) {
                     originalSizeCanvas.drawCircle(
                         width - point.coordinate.x,
                         point.coordinate.y,

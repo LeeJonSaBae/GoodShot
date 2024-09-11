@@ -99,7 +99,7 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
     }
 
 
-    override fun estimatePoses(bitmap: Bitmap): List<Person> {
+    override fun estimatePoses(bitmap: Bitmap): Person {
         val inferenceStartTimeNanos = SystemClock.elapsedRealtimeNanos()
 
         // 원본 Bitmap 크기 출력
@@ -171,8 +171,8 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
             )
             val inputTensor = processInputImage(detectBitmap, inputWidth, inputHeight)
             val outputTensor = TensorBuffer.createFixedSize(outputShape, DataType.FLOAT32)
-            val widthRatio = detectBitmap.width.toFloat() / inputWidth
-            val heightRatio = detectBitmap.height.toFloat() / inputHeight
+//            val widthRatio = detectBitmap.width.toFloat() / inputWidth
+//            val heightRatio = detectBitmap.height.toFloat() / inputHeight
 
             val positions = mutableListOf<Float>()
 
@@ -180,8 +180,10 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
                 interpreter.run(input.buffer, outputTensor.buffer.rewind())
                 val output = outputTensor.floatArray
                 for (idx in 0 until numKeyPoints) {
-                    val x = output[idx * 3 + 1] * inputWidth * widthRatio
-                    val y = output[idx * 3 + 0] * inputHeight * heightRatio
+//                    val x = output[idx * 3 + 1] * inputWidth * widthRatio
+//                    val y = output[idx * 3 + 0] * inputHeight * heightRatio
+                    val x = output[idx * 3 + 1]
+                    val y = output[idx * 3 + 0]
 
                     positions.add(x)
                     positions.add(y)
@@ -218,11 +220,20 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
             SystemClock.elapsedRealtimeNanos() - inferenceStartTimeNanos
 
 
-        // 큐에 넣기 위한 정규화 및 반전
+//        // 큐에 넣기 위한 정규화 및 반전
+//        val adjustedKeyPoints = keyPoints.map { keyPoint ->
+//            val newCoordinate = PointF(
+//                (1 - ((keyPoint.coordinate.x + 80) / NORMALIZATION_FACTOR)),
+//                keyPoint.coordinate.y / NORMALIZATION_FACTOR
+//            )
+//            keyPoint.copy(coordinate = newCoordinate)
+//        }
+
+        // 큐에 넣기 위한 y축 기준 반전
         val adjustedKeyPoints = keyPoints.map { keyPoint ->
             val newCoordinate = PointF(
-                (1 - ((keyPoint.coordinate.x + 80) / NORMALIZATION_FACTOR)),
-                keyPoint.coordinate.y / NORMALIZATION_FACTOR
+                (1 - keyPoint.coordinate.x),
+                keyPoint.coordinate.y
             )
             keyPoint.copy(coordinate = newCoordinate)
         }
@@ -239,7 +250,7 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
         // 함수가 끝나기 전에 flippedBitmap을 재활용
         flippedBitmap.recycle()
 
-        return listOf(Person(keyPoints = keyPoints, score = totalScore / numKeyPoints))
+        return Person(keyPoints = adjustedKeyPoints, score = totalScore / numKeyPoints)
     }
 
     override fun lastInferenceTimeNanos(): Long = lastInferenceTimeNanos

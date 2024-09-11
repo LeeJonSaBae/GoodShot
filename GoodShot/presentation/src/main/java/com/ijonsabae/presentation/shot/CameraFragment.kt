@@ -20,16 +20,12 @@ import android.util.Log
 import android.view.SurfaceView
 import android.view.View
 import android.view.WindowManager
-import android.widget.Button
-import android.widget.CompoundButton
-import android.widget.Spinner
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
@@ -37,8 +33,15 @@ import com.google.gson.GsonBuilder
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentCameraBinding
+import com.ijonsabae.presentation.shot.CameraState.ADDRESS
+import com.ijonsabae.presentation.shot.CameraState.POSITIONING
+import com.ijonsabae.presentation.shot.CameraState.RESULT
+import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.ai.camera.CameraSource
+import com.ijonsabae.presentation.shot.ai.data.BodyPart
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.*
 import com.ijonsabae.presentation.shot.ai.data.Device
+import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.vo.FrameData
 import com.ijonsabae.presentation.shot.ai.vo.VideoData
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +49,6 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
-import java.time.LocalDateTime
 import java.util.Date
 import java.util.Locale
 import kotlin.system.measureTimeMillis
@@ -54,10 +56,7 @@ import kotlin.system.measureTimeMillis
 class CameraFragment :
     BaseFragment<FragmentCameraBinding>(FragmentCameraBinding::bind, R.layout.fragment_camera) {
     private lateinit var navController: NavController
-
-    companion object {
-        private const val FRAGMENT_DIALOG = "dialog"
-    }
+    private val cameraViewModel by activityViewModels<CameraViewModel>()
 
     /** A [SurfaceView] for camera preview.   */
     private lateinit var surfaceView: SurfaceView
@@ -67,7 +66,7 @@ class CameraFragment :
     private lateinit var poseMatcher: PoseMatcher
     private var cameraSource: CameraSource? = null
     private var poseDetector: MoveNet? = null  // MoveNet 인스턴스를 저장할 변수 추가
-    private var isClassifyPose = false
+    private var isClassifyPose = true
     private val requestMultiplePermissionsLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             when {
@@ -84,11 +83,10 @@ class CameraFragment :
                 else -> {
                     // 하나 이상의 권한이 거부된 경우
                     ErrorDialog.newInstance("카메라 권한을 허용해주세요.")
-                        .show(requireActivity().supportFragmentManager, FRAGMENT_DIALOG)
+                        .show(requireActivity().supportFragmentManager, "dialog")
                 }
             }
         }
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -107,6 +105,22 @@ class CameraFragment :
 
         //자세 분류기
         poseMatcher = PoseMatcher(requireContext())
+
+        // 카메라 상태를 변경해주기 위해 옵저버 등록
+        initObservers()
+    }
+
+    private fun initObservers() {
+        cameraViewModel.currentState.observe(viewLifecycleOwner) { state ->
+            val text: String = when (state) {
+                CameraState.POSITIONING -> "전신이 모두 보이도록 조금 더 뒤로 가주세요!!"
+                CameraState.ADDRESS -> "어드레스 자세를 잡아주세요!"
+                CameraState.SWING -> "스윙해주세요!"
+                CameraState.ANALYZING -> "스윙 영상 분석중..."
+                CameraState.RESULT -> "스윙 분석 결과"
+            }
+            binding.tvTest.text = text
+        }
     }
 
     override fun onStart() {
@@ -173,7 +187,8 @@ class CameraFragment :
                         val keyPoints = jointData.getOrNull(index)
                         if (keyPoints != null) {
                             frameData.add(
-                                FrameData(imageTimestamp, keyPoints))
+                                FrameData(imageTimestamp, keyPoints)
+                            )
                         }
                     }
 
@@ -201,7 +216,12 @@ class CameraFragment :
                     uri?.let {
                         showToast("비디오가 갤러리에 저장되었습니다.")
                         Log.d("MainActivity_Capture", "비디오 URI: $it")
-                        MediaScannerConnection.scanFile(requireContext(), arrayOf(it.toString()), null, null)
+                        MediaScannerConnection.scanFile(
+                            requireContext(),
+                            arrayOf(it.toString()),
+                            null,
+                            null
+                        )
 
                         // JSON 파일로 관절 데이터 저장
                         saveKeyPointsToJson(videoFileName, frameData)
@@ -337,7 +357,10 @@ class CameraFragment :
         }
 
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q &&
-            ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            )
             != PackageManager.PERMISSION_GRANTED
         ) {
             permissionsToRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -381,16 +404,7 @@ class CameraFragment :
         if (isCameraPermissionGranted()) {
             if (cameraSource == null) {
                 cameraSource =
-                    CameraSource(surfaceView, object : CameraSource.CameraSourceListener {
-
-                        override fun onDetectedInfo(
-                            personScore: Float?,
-                            poseLabels: List<Pair<String, Float>>?
-                        ) {
-//                            showToast("포즈 디텍션 ${LocalDateTime.now()}")
-                        }
-
-                    }).apply {
+                    CameraSource(surfaceView, cameraListener).apply {
                         prepareCamera()
                     }
                 isPoseClassifier()
@@ -400,6 +414,62 @@ class CameraFragment :
             }
             createPoseEstimator()
         }
+    }
+
+    private var lastLogTime = 0L
+
+    private fun logWithThrottle(message: String) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastLogTime >= 1000) { // 1초 이상 지났는지 확인
+            Log.d("싸피", message)
+            lastLogTime = currentTime
+        }
+    }
+
+
+    // 이전 실행 시간으로부터 최소 1초 지나야 실행
+    private var lastExecutionTime = 0L
+    private val cameraListener = object : CameraSource.CameraSourceListener {
+        override fun onDetectedInfo(person: Person) {
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastExecutionTime >= 1000) {
+                lastExecutionTime = currentTime
+                processDetectedInfo(person)
+            }
+        }
+    }
+
+    private fun processDetectedInfo(person: Person) {
+        val point = person.keyPoints
+
+//        logWithThrottle(
+//            "코: ${point[NOSE.position].score}\n" +
+//                    "왼발목: ${point[LEFT_ANKLE.position].score}\n" +
+//                    "오른 발목: ${point[RIGHT_ANKLE.position].score}"
+//        )
+
+        logWithThrottle("name: ${point[LEFT_WRIST.position].bodyPart}, x: ${point[LEFT_WRIST.position].coordinate.x}, y: ${point[LEFT_ANKLE.position].coordinate.y}\n" +
+                "name: ${point[RIGHT_WRIST.position].bodyPart}, x: ${point[RIGHT_WRIST.position].coordinate.x}, y: ${point[RIGHT_ANKLE.position].coordinate.y}")
+
+//        // 1. 몸 전체가 카메라 화면에 들어오는지 체크
+//        if ((point[NOSE.position].score) < 0.3 ||
+//            (point[LEFT_ANKLE.position].score) < 0.3 ||
+//            (point[RIGHT_ANKLE.position].score < 0.3)
+//        ) {
+//            cameraViewModel.setCurrentState(POSITIONING)
+//        }
+//        // 2. 어드레스 자세 체크
+//        else if ((point[LEFT_ANKLE.position].coordinate.y > point[LEFT_SHOULDER.position].coordinate.y &&
+//                    point[RIGHT_ANKLE.position].coordinate.y > point[RIGHT_SHOULDER.position].coordinate.y &&
+//                    point[LEFT_ANKLE.position].coordinate.x >= point[LEFT_SHOULDER.position].coordinate.x &&
+//                    point[LEFT_ANKLE.position].coordinate.x <= point[RIGHT_SHOULDER.position].coordinate.x &&
+//                    point[RIGHT_ANKLE.position].coordinate.x <= point[RIGHT_SHOULDER.position].coordinate.x &&
+//                    point[RIGHT_ANKLE.position].coordinate.x >= point[LEFT_SHOULDER.position].coordinate.x).not()
+//        ) {
+//            cameraViewModel.setCurrentState(ADDRESS)
+//        } else {
+//            cameraViewModel.setCurrentState(SWING)
+//        }
     }
 
     /**

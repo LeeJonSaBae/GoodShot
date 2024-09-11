@@ -34,8 +34,14 @@ import android.os.HandlerThread
 import android.util.Log
 import android.view.Surface
 import android.view.SurfaceView
+import com.ijonsabae.presentation.shot.CameraState.POSITIONING
+import com.ijonsabae.presentation.shot.CameraViewModel
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ANKLE
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.NOSE
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_ANKLE
 import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
+import com.ijonsabae.presentation.shot.ai.vo.PersonWithScore
 import kotlinx.coroutines.suspendCancellableCoroutine
 
 import java.util.*
@@ -45,7 +51,7 @@ import kotlin.math.max
 
 class CameraSource(
     private val surfaceView: SurfaceView,
-    private val listener: CameraSourceListener? = null
+    private val listener: CameraSourceListener,
 ) {
 
     companion object {
@@ -57,6 +63,7 @@ class CameraSource(
         private const val MIN_CONFIDENCE = .2f
         private const val TAG = "Camera Source"
     }
+
     private val lock = Any()
     private var detector: PoseDetector? = null
     private var classifier: PoseClassifier? = null
@@ -203,7 +210,6 @@ class CameraSource(
     }
 
 
-
     fun resume() {
         imageReaderThread = HandlerThread("imageReaderThread").apply { start() }
         imageReaderHandler = Handler(imageReaderThread!!.looper)
@@ -237,47 +243,40 @@ class CameraSource(
         frameProcessedInOneSecondInterval = 0
         framesPerSecond = 0
     }
+
     private fun processImage(bitmap: Bitmap) {
         frameCount++
 
         // framesPerSecond가 0이거나 TARGET_FPS보다 작으면 모든 프레임을 처리합니다.
-        val shouldProcessFrame = framesPerSecond <= TARGET_FPS || frameCount % max(1, framesPerSecond / TARGET_FPS) == 0
+        val shouldProcessFrame =
+            framesPerSecond <= TARGET_FPS || frameCount % max(1, framesPerSecond / TARGET_FPS) == 0
 
         if (shouldProcessFrame) {
-            val persons = mutableListOf<Person>()
-            var classificationResult: List<Pair<String, Float>>? = null
+            var poseResult: Person?
 
             synchronized(lock) {
-                detector?.estimatePoses(bitmap)?.let {
-                    persons.addAll(it)
-
-                    if (persons.isNotEmpty()) {
-                        classifier?.run {
-                            classificationResult = classify(persons[0])
-                        }
-                    }
-                }
+                // estimatePoses 에서 각 관절의 이름과 좌표가 반환됨
+                poseResult = detector?.estimatePoses(bitmap)
             }
 
             frameProcessedInOneSecondInterval++
-            if (frameProcessedInOneSecondInterval == 1) {
-                listener?.onFPSListener(framesPerSecond)
+            poseResult?.let {
+                listener.onDetectedInfo(it)
+                visualize(it, bitmap)
             }
-
-            if (persons.isNotEmpty()) {
-                listener?.onDetectedInfo(persons[0].score, classificationResult)
-            }
-            visualize(persons, bitmap)
         }
     }
 
 
-    private fun visualize(persons: List<Person>, bitmap: Bitmap) {
+    private fun visualize(person: Person, bitmap: Bitmap) {
+        val personList = if (person.score > MIN_CONFIDENCE) listOf(person) else listOf()
 
         val outputBitmap = VisualizationUtils.drawBodyKeypoints(
             bitmap,
-            persons.filter { it.score > MIN_CONFIDENCE }, isTrackerEnabled
+            personList,
+            isTrackerEnabled
         )
+
 
         val holder = surfaceView.holder
         val surfaceCanvas = holder.lockCanvas()
@@ -323,8 +322,6 @@ class CameraSource(
     }
 
     interface CameraSourceListener {
-        fun onFPSListener(fps: Int)
-
-        fun onDetectedInfo(personScore: Float?, poseLabels: List<Pair<String, Float>>?)
+        fun onDetectedInfo(person: Person)
     }
 }
