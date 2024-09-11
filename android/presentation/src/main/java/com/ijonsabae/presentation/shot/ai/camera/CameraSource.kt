@@ -182,7 +182,7 @@ class CameraSource(
 
     private fun visualize(person: Person, bitmap: Bitmap) {
         val personList = if (person.score > MIN_CONFIDENCE) listOf(person) else listOf()
-        Log.d(TAG, "visualize: drawPersion: $personList")
+        Log.d(TAG, "visualize: drawPerson: $personList")
         val outputBitmap = VisualizationUtils.drawBodyKeypoints(
             bitmap,
             personList,
