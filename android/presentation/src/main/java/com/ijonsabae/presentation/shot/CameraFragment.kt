@@ -114,35 +114,18 @@ class CameraFragment :
         cameraProviderFuture.addListener({
             // 2. CameraProvier 사용 가능 여부 확인
             // 생명주기에 binding 할 수 있는 ProcessCameraProvider 객체 가져옴
+
+
             if (cameraSource == null) {
                 cameraSource =
                     CameraSource(surfaceView, cameraListener)
-                isPoseClassifier()
+                    isPoseClassifier()
 //                lifecycleScope.launch(Dispatchers.Main) {
 //                    cameraSource?.initCamera()
 //                }
             }
             createPoseEstimator()
             val cameraProvider = cameraProviderFuture.get()
-
-            // 3. 카메라를 선택하고 use case를 같이 생명주기에 binding
-
-            // 3-1. Preview를 생성 → Preview를 통해서 카메라 미리보기 화면을 구현.
-            // surfaceProvider는 데이터를 받을 준비가 되었다는 신호를 카메라에게 보내준다.
-            // setSurfaceProvider는 PreviewView에 SurfaceProvider를 제공해준다.
-            val preview = Preview.Builder().build().also {
-//                it.setSurfaceProvider { surfaceRequest ->
-//                    surfaceRequest.provideSurface(
-//                        surfaceView.holder.surface,
-//                        ContextCompat.getMainExecutor(fragmentContext)
-//                    ) { result -> surfaceRequest.willNotProvideSurface() }
-//                }
-            }
-//            preview.surfaceProvider = binding.camera.surfaceProvider
-            // 아래처럼 써도 됨
-//           val preview = Preview.Builder().build().also {
-//               it.setSurfaceProvider(mBinding.viewFinder.surfaceProvider)
-//           }
 
             // 3-2. 카메라 세팅을 한다. (useCase는 bindToLifecycle에서)
             // CameraSelector는 카메라 세팅을 맡는다.(전면, 후면 카메라)
@@ -152,6 +135,7 @@ class CameraFragment :
                 // binding 전에 binding 초기화
                 cameraProvider.unbindAll()
 
+                // 관절 트래킹이 더해진 View를 위한 ImageAnalysis
                 // 3-3. use case와 카메라를 생명 주기에 binding
                 val imageAnalyzer = ImageAnalysis
                     .Builder()
