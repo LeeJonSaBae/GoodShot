@@ -217,6 +217,7 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
 
         // 큐에 넣기 위한 y축 기준 반전
         val adjustedKeyPoints = keyPoints.map { keyPoint ->
+
             val newCoordinate = PointF(
                 (1 - ((keyPoint.coordinate.x - (widthPadding / 2)) / bitmap.height)),
                 keyPoint.coordinate.y / bitmap.height
