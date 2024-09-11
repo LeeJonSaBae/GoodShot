@@ -9,6 +9,8 @@
     <color name="dark_gray">#5D5D5D</color>
     <color name="highlight">#1C277A63</color>
     <color name="timeline_color">#8F8F8F</color>
+    <color name="like_yellow">#F1C903</color>
+
     <color name="yello_card">#99A70000</color>
     <color name="address_color">#B3277A63</color>
     <color name="swing_color">#B3085FC4</color>
