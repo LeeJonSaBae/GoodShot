@@ -1,7 +1,7 @@
 package com.ijonsabae.presentation.shot
 
 import MoveNet
-import PoseMatcher
+import com.ijonsabae.presentation.shot.ai.ml.PoseMatcher
 import VideoEncoder
 import android.Manifest
 import android.content.ContentValues
@@ -18,7 +18,6 @@ import android.util.Log
 import android.util.Size
 import android.view.SurfaceView
 import android.view.View
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -26,7 +25,6 @@ import androidx.camera.core.Camera
 import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -44,11 +42,11 @@ import com.ijonsabae.presentation.shot.ai.camera.CameraSource
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.*
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.Person
+import com.ijonsabae.presentation.shot.ai.ml.PoseClassifier
 import com.ijonsabae.presentation.shot.ai.vo.FrameData
 import com.ijonsabae.presentation.shot.ai.vo.VideoData
 import com.ijonsabae.presentation.shot.flex.FoldingStateActor
 import com.ijonsabae.presentation.util.PermissionChecker
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.nio.ByteBuffer
@@ -70,7 +68,7 @@ class CameraFragment :
     private var camera: Camera? = null
     private var cameraController: CameraControl? = null
 
-    private val cameraViewModel by activityViewModels<CameraViewModel>()
+    private val swingViewModel by activityViewModels<SwingViewModel>()
 
     /** A [SurfaceView] for camera preview.   */
     private lateinit var surfaceView: SurfaceView
@@ -81,6 +79,10 @@ class CameraFragment :
     private var cameraSource: CameraSource? = null
     private var poseDetector: MoveNet? = null  // MoveNet 인스턴스를 저장할 변수 추가
     private var isClassifyPose = true
+
+    /** 카메라 처리 간격을 조절하기 위한 변수 */
+    private val fpsInterval = 1000 / 24 // 24 FPS에 해당하는 프레임 간격 (밀리초)
+    private var lastAnalyzedTimestamp = 0L
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -150,10 +152,18 @@ class CameraFragment :
                     .build()
                     .also { analysis ->
                         analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
-                            cameraSource!!.processImage(
-                                cameraSource!!.rotateBitmap(image.toBitmap(),surfaceView.width, surfaceView.height, true)  // 이미지 처리 함수 호출
-                            )  // 이미지 처리 함수 호출
-
+                            val currentTimestamp = System.currentTimeMillis()
+                            if (currentTimestamp - lastAnalyzedTimestamp >= fpsInterval) {
+                                lastAnalyzedTimestamp = currentTimestamp
+                                cameraSource!!.processImage(
+                                    cameraSource!!.rotateBitmap(
+                                        image.toBitmap(),
+                                        surfaceView.width,
+                                        surfaceView.height,
+                                        true
+                                    )
+                                )
+                            }
                             image.close()
                         }
                     }
@@ -179,7 +189,7 @@ class CameraFragment :
     }
 
     private fun initObservers() {
-        cameraViewModel.currentState.observe(viewLifecycleOwner) { state ->
+        swingViewModel.currentState.observe(viewLifecycleOwner) { state ->
             val text: String = when (state) {
                 POSITIONING -> "전신이 모두 보이도록 조금 더 뒤로 가주세요!!"
                 ADDRESS -> "어드레스 자세를 잡아주세요!"
@@ -454,13 +464,27 @@ class CameraFragment :
         }
     }
 
+    /**
+     * TODO: 좌타일 경우 좌우 관절을 뒤집어야 합니다. 얼굴은 빼구요
+     * estimatePoses()에서 뒤집으면 그릴 때도 반대로 그려줘서 추론때만 반대로 써서 판단해야 해요
+     **/
     private fun processDetectedInfo(person: Person) {
         val point = person.keyPoints
 
-        // 스윙하는 동안은 안내 메세지 안변하도록 유지, 좌타 우타 모두 고려
-        if (cameraViewModel.currentState.value == SWING &&
+        // 스윙의 마지막 동작 체크 (손목 y변화 감지해서 변곡점이 스윙 마무리라고 판단)
+        if (swingViewModel.currentState.value == SWING &&
+            point[LEFT_WRIST.position].coordinate.x < point[LEFT_SHOULDER.position].coordinate.x &&
+            point[LEFT_WRIST.position].coordinate.x < point[LEFT_SHOULDER.position].coordinate.x &&
+            isIncreasing().not()
+        ) {
+            // 스윙의 마지막 동작이 판단되었다면 영상 추출 & 분석
+
+        }
+
+        // 스윙하는 동안은 안내 메세지 안변하도록 유지
+        if (swingViewModel.currentState.value == SWING &&
             ((point[LEFT_ELBOW.position].coordinate.x > point[LEFT_SHOULDER.position].coordinate.x) ||
-            (point[RIGHT_ELBOW.position].coordinate.x < point[RIGHT_SHOULDER.position].coordinate.x))
+                    (point[RIGHT_ELBOW.position].coordinate.x < point[RIGHT_SHOULDER.position].coordinate.x))
         ) return
 
         // 1. 몸 전체가 카메라 화면에 들어오는지 체크
@@ -468,7 +492,7 @@ class CameraFragment :
             (point[LEFT_ANKLE.position].score) < 0.3 ||
             (point[RIGHT_ANKLE.position].score < 0.3)
         ) {
-            cameraViewModel.setCurrentState(POSITIONING)
+            swingViewModel.setCurrentState(POSITIONING)
         }
         // 2. 어드레스 자세 체크
         else if ((point[LEFT_WRIST.position].coordinate.y > point[LEFT_ELBOW.position].coordinate.y &&
@@ -478,11 +502,21 @@ class CameraFragment :
                     point[RIGHT_WRIST.position].coordinate.x <= point[RIGHT_SHOULDER.position].coordinate.x &&
                     point[RIGHT_WRIST.position].coordinate.x >= point[LEFT_SHOULDER.position].coordinate.x).not()
         ) {
-            cameraViewModel.setCurrentState(ADDRESS)
+            swingViewModel.setCurrentState(ADDRESS)
         }
         // 3. 스윙해주세요!
         else {
-            cameraViewModel.setCurrentState(SWING)
+            swingViewModel.setCurrentState(SWING)
         }
+    }
+
+    // 손목의 y축 좌표가 상승하는 추세인지 보는 함수
+    private fun isIncreasing(): Boolean {
+        poseDetector?.let {
+            val (imagesWithTimestamps, jointData) = it.getQueuedData()
+            join
+        }
+
+
     }
 }
