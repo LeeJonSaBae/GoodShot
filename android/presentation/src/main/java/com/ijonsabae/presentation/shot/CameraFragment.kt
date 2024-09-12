@@ -219,6 +219,7 @@ class CameraFragment :
                 binding.camera,
                 binding.ivAlert,
                 binding.tvAlert,
+                binding.layoutCameraMenu,
                 binding.layoutAlert,
                 binding.layoutCamera
             )
