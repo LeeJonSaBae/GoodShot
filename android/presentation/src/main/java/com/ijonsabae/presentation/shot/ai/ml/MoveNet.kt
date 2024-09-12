@@ -219,7 +219,7 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
         val adjustedKeyPoints = keyPoints.map { keyPoint ->
 
             val newCoordinate = PointF(
-                (1 - ((keyPoint.coordinate.x - (widthPadding / 2)) / bitmap.height)),
+                (1 - ((keyPoint.coordinate.x) / bitmap.width)),
                 keyPoint.coordinate.y / bitmap.height
             )
             keyPoint.copy(coordinate = newCoordinate)
