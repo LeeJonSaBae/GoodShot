@@ -7,6 +7,7 @@ import android.Manifest
 import android.content.ContentValues
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
@@ -180,14 +181,32 @@ class CameraFragment :
 
     private fun initObservers() {
         cameraViewModel.currentState.observe(viewLifecycleOwner) { state ->
-            val text: String = when (state) {
-                POSITIONING -> "전신이 모두 보이도록 조금 더 뒤로 가주세요!!"
-                ADDRESS -> "어드레스 자세를 잡아주세요!"
-                SWING -> "스윙해주세요!"
-                ANALYZING -> "스윙 영상 분석중..."
-                RESULT -> "스윙 분석 결과"
+            var text: String
+            var color: Int
+             when (state) {
+                POSITIONING ->{
+                    text = "전신이 모두 보이도록 조금 더 뒤로 가주세요!!"
+                    color = ContextCompat.getColor(fragmentContext, R.color.yello_card)
+                }
+                ADDRESS -> {
+                    text = "어드레스 자세를 잡아주세요!"
+                    color = ContextCompat.getColor(fragmentContext, R.color.address_color)
+                }
+                SWING -> {
+                    text = "스윙해주세요!"
+                    color = ContextCompat.getColor(fragmentContext, R.color.swing_color)
+                }
+                ANALYZING -> {
+                    text = "스윙 영상 분석중..."
+                    color = ContextCompat.getColor(fragmentContext, R.color.black)
+                }
+                RESULT -> {
+                    text = "스윙 분석 결과"
+                    color = ContextCompat.getColor(fragmentContext, R.color.black)
+                }
             }
-            binding.tvTest.text = text
+            binding.tvAlert.text = text
+            binding.layoutAlert.setBackgroundColor(color)
         }
     }
 
@@ -198,6 +217,9 @@ class CameraFragment :
             foldingStateActor.checkFoldingState(
                 fragmentContext as AppCompatActivity,
                 binding.camera,
+                binding.ivAlert,
+                binding.tvAlert,
+                binding.layoutAlert,
                 binding.layoutCamera
             )
         }

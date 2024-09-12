@@ -55,7 +55,6 @@
 
     <SurfaceView
         android:id="@+id/camera"
-        android:background="@drawable/border_background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -63,18 +62,48 @@
         app:layout_constraintDimensionRatio="1:1"
         />
 
-    <TextView
-        android:id="@+id/tv_test"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_alert"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="테스트테스트"
-        android:textColor="#2EE235"
-        android:textSize="30sp"
-        android:layout_marginBottom="200dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:paddingVertical="35dp"
+        android:paddingHorizontal="22dp"
+        android:background="@color/yello_card"
         app:layout_constraintBottom_toBottomOf="parent"
-        />
+        app:layout_constraintStart_toStartOf="@id/layout_camera"
+        app:layout_constraintEnd_toEndOf="@id/layout_camera"
+        >
+
+        <ImageView
+            android:id="@+id/iv_alert"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/yellow_card"
+            android:layout_marginEnd="5dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tv_alert"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            />
+
+
+        <TextView
+            android:id="@+id/tv_alert"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="전신이 모두 보이도록 조금 더 뒤로 가주세요!"
+            android:textSize="23sp"
+            android:textColor="@color/white"
+            android:fontFamily="@font/pretendard_semibold"
+            android:gravity="center_horizontal|center_vertical"
+            app:layout_constraintStart_toEndOf="@id/iv_alert"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
     

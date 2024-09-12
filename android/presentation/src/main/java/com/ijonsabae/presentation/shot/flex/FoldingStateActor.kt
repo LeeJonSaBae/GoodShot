@@ -17,11 +17,10 @@
 package com.ijonsabae.presentation.shot.flex
 
 import android.util.Log
-import android.view.SurfaceView
 import android.view.View
-import android.view.ViewGroup.LayoutParams
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.view.PreviewView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
@@ -38,16 +37,19 @@ class FoldingStateActor @Inject constructor(private val windowInfoTracker: Windo
     suspend fun checkFoldingState(
         activity: AppCompatActivity,
         cameraViewfinder: View,
-        constraintLayout: ConstraintLayout
+        alertIcon: ImageView,
+        alertText: TextView,
+        alertConstraintLayout: ConstraintLayout,
+        rootConstraintLayout: ConstraintLayout
     ) {
         windowInfoTracker.windowLayoutInfo(activity)
             .collect { newLayoutInfo ->
                 activeWindowLayoutInfo = newLayoutInfo
-                updateLayoutByFoldingState(cameraViewfinder, constraintLayout)
+                updateLayoutByFoldingState(cameraViewfinder, alertIcon, alertText, alertConstraintLayout, rootConstraintLayout)
             }
     }
 
-    private fun updateLayoutByFoldingState(cameraViewfinder: View, constraintLayout: ConstraintLayout) {
+    private fun updateLayoutByFoldingState(cameraViewfinder: View, alertIcon: ImageView, alertText: TextView, alertConstraintLayout: ConstraintLayout, rootConstraintLayout: ConstraintLayout) {
         val foldingFeature = activeWindowLayoutInfo?.displayFeatures
             ?.firstOrNull { it is FoldingFeature } as FoldingFeature?
             ?: return
@@ -66,12 +68,12 @@ class FoldingStateActor @Inject constructor(private val windowInfoTracker: Windo
                 FoldingFeature.Orientation.HORIZONTAL -> {
                     /** Device is half open and kept horizontal, so it is in tabletop mode **/
                     Log.d(TAG, "updateLayoutByFoldingState: 폴드")
-                    cameraViewfinder.moveToTopOf(foldPosition, constraintLayout)
+                    cameraViewfinder.moveToTopOf(foldPosition, alertIcon, alertText, alertConstraintLayout, rootConstraintLayout)
                 }
             }
         } else {
             Log.d(TAG, "updateLayoutByFoldingState: restore")
-                cameraViewfinder.restore(foldPosition, constraintLayout)
+                cameraViewfinder.restore(foldPosition, alertIcon, alertText, alertConstraintLayout, rootConstraintLayout)
         }
     }
 }

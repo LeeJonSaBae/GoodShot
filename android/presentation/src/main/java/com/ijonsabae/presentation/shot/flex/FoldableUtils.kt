@@ -16,31 +16,19 @@
 package com.ijonsabae.presentation.shot.flex
 
 import android.animation.ValueAnimator
-import android.content.Context
 import android.graphics.Rect
-import android.os.Build
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.View
-import android.view.ViewGroup
-import android.view.ViewGroup.LayoutParams
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
-import android.view.WindowInsets
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.animation.doOnEnd
-import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.children
 import androidx.window.layout.DisplayFeature
-import com.ijonsabae.presentation.R
-import com.ijonsabae.presentation.config.Const
-import com.ijonsabae.presentation.main.MainActivity
-import com.ijonsabae.presentation.shot.flex.FoldableUtils.getStatusBarHeight
-import com.ijonsabae.presentation.shot.flex.FoldableUtils.moveToTopOf
-import com.ijonsabae.presentation.shot.flex.FoldableUtils.restore
-import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.runBlocking
 
 object FoldableUtils {
     private const val TAG = "FoldableUtils 싸피"
@@ -83,34 +71,70 @@ object FoldableUtils {
         }
     }
 
-    fun View.moveToTopOf(foldingFeatureRect: Rect, constraintLayout: ConstraintLayout) {
-        val height = this.height
-        val translationY = this.translationY
+    fun View.moveToTopOf(foldingFeatureRect: Rect, alertIcon: ImageView, alertText: TextView, alertConstraintLayout: ConstraintLayout, constraintLayout: ConstraintLayout) {
+        val cameraHeight = this.height
+        val cameraTranslationY = this.translationY
+        val alertHeight = alertConstraintLayout.height
+        val alertTranslationY = alertConstraintLayout.translationY
 // 목표 위치를 정의합니다.
-        val animator1 = ValueAnimator.ofFloat(0F, foldingFeatureRect.bottom.toFloat() - height).apply {
-            duration = 100 // 애니메이션 지속 시간 (밀리초)
+        val animator1 = ValueAnimator.ofFloat(0F, foldingFeatureRect.bottom.toFloat() - cameraHeight).apply {
+            duration = 500 // 애니메이션 지속 시간 (밀리초)
             interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
             addUpdateListener { valueAnimator ->
                 val animatedValue = valueAnimator.animatedValue as Float
-                this@moveToTopOf.layoutParams.height  = (height + animatedValue).toInt()
-
+                this@moveToTopOf.layoutParams.height  = (cameraHeight + animatedValue).toInt()
                 this@moveToTopOf.requestLayout()
-                this@moveToTopOf.invalidate()
                 // View의 위치를 설정합니다.
-                Log.d(TAG, "animation1 : y ${y}")
                 doOnEnd {
                     val animator = ValueAnimator.ofFloat(0F,y).apply {
-                        duration = 300 // 애니메이션 지속 시간 (밀리초)
+                        duration = 500 // 애니메이션 지속 시간 (밀리초)
                         interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
                         addUpdateListener { valueAnimator ->
                             val animatedValue = valueAnimator.animatedValue as Float
-                            Log.d(TAG, "animation: $animatedValue")
-                            this@moveToTopOf.translationY  = translationY - animatedValue
+                            this@moveToTopOf.translationY  = cameraTranslationY - animatedValue
                             // View의 위치를 설정합니다.
-                            Log.d(TAG, "animation : y ${y}")
-//                this@restore.translationY = animatedValue
-//                this@restore.layoutParams.height = height - animatedValue.toInt()
-//                this@restore.requestLayout()
+                        }
+                    }
+                    animator.start()
+                }
+            }
+        }
+
+        val animator2 = ValueAnimator.ofFloat(0F, (this@moveToTopOf.parent as View).bottom - foldingFeatureRect.bottom.toFloat() - alertHeight).apply {
+            duration = 500 // 애니메이션 지속 시간 (밀리초)
+            interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
+            addUpdateListener { valueAnimator ->
+                val animatedValue = valueAnimator.animatedValue as Float
+                alertConstraintLayout.layoutParams.height = (alertHeight + animatedValue).toInt()
+
+                // View의 위치를 설정합니다.
+                Log.d(TAG, "animation2 : y ${alertConstraintLayout.y}")
+                doOnEnd {
+                    // - alertConstraintLayout.y
+                    ConstraintSet().apply {
+                        clone(alertConstraintLayout)
+                        connect(alertIcon.id, ConstraintSet.TOP, alertConstraintLayout.id, ConstraintSet.TOP)
+                        connect(alertIcon.id, ConstraintSet.BOTTOM, alertText.id, ConstraintSet.TOP)
+                        connect(alertText.id, ConstraintSet.TOP, alertIcon.id, ConstraintSet.BOTTOM)
+                        connect(alertText.id, ConstraintSet.BOTTOM, alertConstraintLayout.id, ConstraintSet.BOTTOM)
+
+
+                        connect(alertIcon.id, ConstraintSet.START, alertConstraintLayout.id, ConstraintSet.START)
+                        connect(alertIcon.id, ConstraintSet.END, alertConstraintLayout.id, ConstraintSet.END)
+
+                        connect(alertText.id, ConstraintSet.START, alertConstraintLayout.id, ConstraintSet.START)
+                        connect(alertText.id, ConstraintSet.END, alertConstraintLayout.id, ConstraintSet.END)
+                        applyTo(alertConstraintLayout)
+                    }
+                    val animator = ValueAnimator.ofFloat(0F,alertConstraintLayout.y - foldingFeatureRect.bottom.toFloat() ).apply {
+                        duration = 500 // 애니메이션 지속 시간 (밀리초)
+                        interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
+                        addUpdateListener { valueAnimator ->
+                            val animatedValue = valueAnimator.animatedValue as Float
+                            Log.d(TAG, "animation2: $animatedValue")
+                            alertConstraintLayout.translationY  = alertTranslationY + animatedValue
+                            // View의 위치를 설정합니다.
+                            Log.d(TAG, "animation2 : y ${alertConstraintLayout.y}")
                         }
                     }
                     animator.start()
@@ -119,43 +143,51 @@ object FoldableUtils {
         }
 
         animator1.start()
+        animator2.start()
     }
 
-    fun px2dp(px: Int, context: Context) = px / ((context.resources.displayMetrics.densityDpi.toFloat()) / DisplayMetrics.DENSITY_DEFAULT)
-
-    fun View.getStatusBarHeight(): Int{
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val insets = WindowInsetsCompat.toWindowInsetsCompat(this.rootWindowInsets)
-            insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
-        } else {
-            // Legacy method for older versions
-            val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
-            if (resourceId > 0) {
-                resources.getDimensionPixelSize(resourceId)
-            } else {
-                0
-            }
-        }
-    }
-
-    fun View.restore(foldingFeatureRect: Rect, constraintLayout: ConstraintLayout) {
-
-
-        val translationY = this@restore.translationY
+    fun View.restore(foldingFeatureRect: Rect, alertIcon: ImageView, alertText: TextView, alertConstraintLayout: ConstraintLayout, constraintLayout: ConstraintLayout) {
+        val cameraTranslationY = this@restore.translationY
+        val alertTranslationY = alertConstraintLayout.translationY
 
         // 위치 이동
-        val animator = ValueAnimator.ofFloat(0F, translationY).apply {
+        val animator = ValueAnimator.ofFloat(0F, cameraTranslationY).apply {
             duration = 300 // 애니메이션 지속 시간 (밀리초)
             interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
             addUpdateListener { valueAnimator ->
                 val animatedValue = valueAnimator.animatedValue as Float
-                this@restore.translationY  = translationY - animatedValue
+                this@restore.translationY  = cameraTranslationY - animatedValue
+            }
+        }
+
+        val animator1 = ValueAnimator.ofFloat(0F, alertTranslationY).apply {
+            duration = 300 // 애니메이션 지속 시간 (밀리초)
+            interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
+            ConstraintSet().apply {
+                clone(alertConstraintLayout)
+                connect(alertIcon.id, ConstraintSet.TOP, alertConstraintLayout.id, ConstraintSet.TOP)
+                connect(alertIcon.id, ConstraintSet.BOTTOM, alertConstraintLayout.id, ConstraintSet.BOTTOM)
+                connect(alertIcon.id, ConstraintSet.START, alertConstraintLayout.id, ConstraintSet.START)
+                connect(alertIcon.id, ConstraintSet.END, alertText.id, ConstraintSet.START)
+
+                connect(alertText.id, ConstraintSet.TOP, alertConstraintLayout.id, ConstraintSet.TOP)
+                connect(alertText.id, ConstraintSet.BOTTOM, alertConstraintLayout.id, ConstraintSet.BOTTOM)
+                connect(alertText.id, ConstraintSet.START, alertIcon.id, ConstraintSet.END)
+                connect(alertText.id, ConstraintSet.END, alertConstraintLayout.id, ConstraintSet.END)
+                applyTo(alertConstraintLayout)
+            }
+            addUpdateListener { valueAnimator ->
+                val animatedValue = valueAnimator.animatedValue as Float
+                alertConstraintLayout.translationY  = alertTranslationY - animatedValue
             }
         }
         // 애니메이션 시작
         animator.start()
+        animator1.start()
 //        this.layoutParams.height = MATCH_CONSTRAINT
         this.layoutParams.height = MATCH_PARENT
+        alertConstraintLayout.layoutParams.height = WRAP_CONTENT
+        alertConstraintLayout.requestLayout()
         requestLayout()
     }
 }
