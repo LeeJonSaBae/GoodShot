@@ -26,7 +26,15 @@
                 app:destination="@id/camera"
                 app:popUpTo="@id/camera"
                 app:popUpToInclusive="true" />
+            <action
+                android:id="@+id/action_show_dialog_shot"
+                app:destination="@id/shot_dialog" />
         </fragment>
+        <dialog
+            android:id="@+id/shot_dialog"
+            android:name="com.ijonsabae.presentation.shot.ShotDialog"
+            android:label="shot dialog"
+            tools:layout="@layout/dialog_shot" />
 
         <fragment
             android:id="@+id/camera"

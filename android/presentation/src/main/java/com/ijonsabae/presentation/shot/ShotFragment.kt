@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
@@ -20,8 +21,10 @@ class ShotFragment :
         navController = Navigation.findNavController(binding.root)
         binding.cvBtnCamera.setOnClickListener {
 //            navController.navigate(R.id.action_shot_to_camera)
-            val bottomSheet = ShotBottomSheetDialog()
-            bottomSheet.show(parentFragmentManager, bottomSheet.tag)
+
+//            val shotDialog = ShotDialog()
+//            shotDialog.show(parentFragmentManager, shotDialog.tag)
+            findNavController().navigate(R.id.action_show_dialog_shot)
 
         }
         binding.btnCamera.setOnClickListener {
@@ -34,4 +37,5 @@ class ShotFragment :
             adapter = TimeLineAdapter(mDataList)
         }
     }
+
 }
