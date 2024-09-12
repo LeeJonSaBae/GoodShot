@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="dialog_shot_content_text_size">13sp</dimen>
+    <dimen name="dialog_shot_margin_top_between_options">20dp</dimen>
+</resources>

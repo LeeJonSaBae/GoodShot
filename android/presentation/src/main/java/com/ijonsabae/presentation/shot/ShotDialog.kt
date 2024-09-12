@@ -1,46 +1,40 @@
 package com.ijonsabae.presentation.shot
 
+import android.content.Context
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowInsets
+import android.view.WindowManager
 import android.widget.Button
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import androidx.fragment.app.DialogFragment
 import com.ijonsabae.presentation.R
-import com.ijonsabae.presentation.databinding.BottomSheetShotBinding
+import com.ijonsabae.presentation.databinding.DialogShotBinding
 
-class ShotBottomSheetDialog : BottomSheetDialogFragment() {
+class ShotDialog : DialogFragment() {
 
-    private var _binding: BottomSheetShotBinding? = null
+    private var _binding: DialogShotBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = BottomSheetShotBinding.inflate(inflater, container, false)
+        _binding = DialogShotBinding.inflate(inflater, container, false)
+        dialog?.window?.setBackgroundDrawableResource(R.drawable.rounded_dialog_background)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initBottomSheet()
         initButtons()
-
     }
 
-    private fun initBottomSheet() {
-        view?.viewTreeObserver?.addOnGlobalLayoutListener {
-            val bottomSheet =
-                dialog?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
-            bottomSheet?.let {
-                val behavior = BottomSheetBehavior.from(it)
-                behavior.state = BottomSheetBehavior.STATE_EXPANDED
-                behavior.skipCollapsed = true
-            }
-        }
+    private fun initButtons() {
         binding.btnOk.setOnClickListener {
             saveResult()
             dismiss()
@@ -48,9 +42,7 @@ class ShotBottomSheetDialog : BottomSheetDialogFragment() {
         binding.sbShotCnt.addOnChangeListener { slider, value, fromUser ->
             binding.tvSliderValue.text = "${value.toInt()} 회"
         }
-    }
 
-    private fun initButtons() {
         with(binding) {
             btnSwingPoseFront.setOnClickListener {
                 selectButton(btnSwingPoseFront)
@@ -85,7 +77,32 @@ class ShotBottomSheetDialog : BottomSheetDialogFragment() {
         val selectedSwingPose = if (binding.btnSwingPoseFront.isSelected) "정면" else "측면"
         val selectedGolfClub = if (binding.btnGolfClubIron.isSelected) "아이언" else "드라이버"
         val selectedShotCnt = if (binding.btnGolfClubIron.isSelected) "아이언" else "드라이버"
+    }
 
 
+    override fun onStart() {
+        super.onStart()
+        val displayMetrics = DisplayMetrics()
+        requireActivity().windowManager.defaultDisplay.getMetrics(displayMetrics)
+        val screenWidth = getScreenWidth(this.requireContext())
+
+        val newWidth = (screenWidth * 0.8).toInt()
+        val layoutParams = requireView().layoutParams
+        layoutParams.width = newWidth
+        requireView().layoutParams = layoutParams
+    }
+
+    private fun getScreenWidth(context: Context): Int {
+        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val windowMetrics = wm.currentWindowMetrics
+            val insets = windowMetrics.windowInsets
+                .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
+            windowMetrics.bounds.width() - insets.left - insets.right
+        } else {
+            val displayMetrics = DisplayMetrics()
+            wm.defaultDisplay.getMetrics(displayMetrics)
+            displayMetrics.widthPixels
+        }
     }
 }
