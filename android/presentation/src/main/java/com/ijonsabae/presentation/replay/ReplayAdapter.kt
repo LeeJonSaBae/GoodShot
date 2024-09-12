@@ -85,19 +85,18 @@ class ReplayAdapter(val context: Context) :
                         ContextCompat.getColor(context, R.color.like_yellow)
                     )
                     else ColorStateList.valueOf(ContextCompat.getColor(context, R.color.gray))
-                itemClickListener.onItemClick(replayItem)
+                itemClickListener.onLikeClick(replayItem, replayItem.like)
             }
 
-            // 뷰홀더 재사용 과정에서 isClamped 값에 맞지 않는 스와이프 상태가 보일 수 있으므로 아래와 같이 명시적으로 isClamped 값에 따라 스와이프 상태 지정
             if (replayItem.isClamped) binding.cvReplayItem.translationX =
                 binding.root.width * -1f / 10 * 3
             else binding.cvReplayItem.translationX = 0f
 
             binding.btnDelete.setOnClickListener {
-                showCustomDialog(replayItem, adapterPosition)
+                if (getClamped())
+                    showCustomDialog(replayItem, adapterPosition)
             }
         }
-
 
         fun setClamped(isClamped: Boolean) {
             getItem(adapterPosition).isClamped = isClamped
