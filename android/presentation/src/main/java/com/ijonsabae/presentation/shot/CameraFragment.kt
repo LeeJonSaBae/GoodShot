@@ -39,6 +39,7 @@ import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentCameraBinding
 import com.ijonsabae.presentation.shot.CameraState.*
 import com.ijonsabae.presentation.shot.ai.camera.CameraSource
+import com.ijonsabae.presentation.shot.ai.data.BodyPart
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.*
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.Person
@@ -478,7 +479,7 @@ class CameraFragment :
             isIncreasing().not()
         ) {
             // 스윙의 마지막 동작이 판단되었다면 영상 추출 & 분석
-
+            swingViewModel.setCurrentState(ANALYZING)
         }
 
         // 스윙하는 동안은 안내 메세지 안변하도록 유지
@@ -512,11 +513,30 @@ class CameraFragment :
 
     // 손목의 y축 좌표가 상승하는 추세인지 보는 함수
     private fun isIncreasing(): Boolean {
-        poseDetector?.let {
-            val (imagesWithTimestamps, jointData) = it.getQueuedData()
-            join
+        poseDetector?.let { detector ->
+            val (_, jointData) = detector.getQueuedData()
+
+            // 데이터가 20개 미만이면 추세를 판단할 수 없음
+            if (jointData.size < 20) {
+                return false
+            }
+
+            // 최대 20개의 최근 데이터 사용 <- 여기서 보는 데이터의 개수가 스윙 영상이 피니쉬의 어디까지 녹화될지 영향을 줌
+            val recentJointData = jointData.takeLast(20.coerceAtMost(jointData.size))
+
+            // 각 프레임에서 오른쪽 손목의 y 좌표를 추출
+            val wristYCoordinates = recentJointData.mapNotNull { frame ->
+                frame.find { it.bodyPart == RIGHT_WRIST }?.coordinate?.y
+            }
+
+            // y 좌표가 전반적으로 감소하는지 확인 (화면 상단으로 갈수록 y 값이 작아짐)
+            for (i in 1 until wristYCoordinates.size) {
+                if (wristYCoordinates[i] >= wristYCoordinates[i - 1]) {
+                    return false // 증가하거나 같은 경우가 있으면 상승 추세가 아님
+                }
+            }
+            return true // 모든 비교에서 감소했다면 상승 추세임
         }
-
-
+        return false // poseDetector가 null인 경우
     }
 }

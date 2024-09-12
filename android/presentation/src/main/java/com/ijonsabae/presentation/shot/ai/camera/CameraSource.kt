@@ -15,8 +15,8 @@ limitations under the License.
 */
 
 
-import PoseClassifier
-import PoseDetector
+import com.ijonsabae.presentation.shot.ai.ml.PoseClassifier
+import com.ijonsabae.presentation.shot.ai.ml.PoseDetector
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -58,7 +58,7 @@ class CameraSource(
     private var framesPerSecond = 1
 
     private var frameCount = 0
-    private val TARGET_FPS = 60
+    private val TARGET_FPS = 24
 
     /** Detects, characterizes, and connects to a CameraDevice (used for all camera operations) */
     private val cameraManager: CameraManager by lazy {
