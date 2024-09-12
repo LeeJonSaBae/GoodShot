@@ -36,6 +36,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.window.layout.WindowInfoTracker
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.gson.GsonBuilder
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
@@ -84,6 +85,10 @@ class CameraFragment :
     private var poseDetector: MoveNet? = null  // MoveNet 인스턴스를 저장할 변수 추가
     private var isClassifyPose = true
 
+    private lateinit var cameraProviderFuture : ListenableFuture<ProcessCameraProvider>
+    private lateinit var cameraProvider: ProcessCameraProvider
+    private var isSelf = true
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         navController = Navigation.findNavController(binding.root)
@@ -113,26 +118,22 @@ class CameraFragment :
 
         // 1. CameraProvider 요청
         // ProcessCameraProvider는 Camera의 생명주기를 LifeCycleOwner의 생명주기에 Binding 함
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(fragmentContext)
+        cameraProviderFuture = ProcessCameraProvider.getInstance(fragmentContext)
         cameraProviderFuture.addListener({
             // 2. CameraProvier 사용 가능 여부 확인
             // 생명주기에 binding 할 수 있는 ProcessCameraProvider 객체 가져옴
 
 
-            if (cameraSource == null) {
-                cameraSource =
-                    CameraSource(surfaceView, cameraListener)
-                isPoseClassifier()
-//                lifecycleScope.launch(Dispatchers.Main) {
-//                    cameraSource?.initCamera()
-//                }
-            }
-            createPoseEstimator()
-            val cameraProvider = cameraProviderFuture.get()
+            initAiSetting()
+            cameraProvider = cameraProviderFuture.get()
 
             // 3-2. 카메라 세팅을 한다. (useCase는 bindToLifecycle에서)
             // CameraSelector는 카메라 세팅을 맡는다.(전면, 후면 카메라)
-            val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+            val cameraSelector = if(isSelf){
+                CameraSelector.DEFAULT_FRONT_CAMERA
+            }else{
+                CameraSelector.DEFAULT_BACK_CAMERA
+            }
 
             try {
                 // binding 전에 binding 초기화
@@ -152,9 +153,11 @@ class CameraFragment :
                     .build()
                     .also { analysis ->
                         analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
-                            cameraSource!!.processImage(
-                                cameraSource!!.rotateBitmap(image.toBitmap(),surfaceView.width, surfaceView.height, true)  // 이미지 처리 함수 호출
-                            )  // 이미지 처리 함수 호출
+                            cameraSource?.let {
+                                it.processImage(
+                                    it.rotateBitmap(image.toBitmap(),surfaceView.width, surfaceView.height, isSelf)  // 이미지 처리 함수 호출
+                                )  // 이미지 처리 함수 호출
+                            }
 
                             image.close()
                         }
@@ -164,7 +167,6 @@ class CameraFragment :
                 camera = cameraProvider.bindToLifecycle(
                     this, cameraSelector, imageAnalyzer
                 )
-
                 cameraController = camera!!.cameraControl
                 cameraController!!.setZoomRatio(1F) // 1x Zoom
             } catch (exc: Exception) {
@@ -214,6 +216,9 @@ class CameraFragment :
     override fun onResume() {
         super.onResume()
         (fragmentContext as MainActivity).hideBottomNavBar()
+        initClickListener()
+        initAiSetting()
+        createPoseEstimator()
         cameraSource?.resume()
         lifecycleScope.launch {
             foldingStateActor.checkFoldingState(
@@ -236,7 +241,63 @@ class CameraFragment :
 
     override fun onDestroyView() {
         (fragmentContext as MainActivity).showBottomNavBar()
+        cameraProvider.unbindAll()
         super.onDestroyView()
+    }
+
+    private fun initClickListener(){
+        binding.btnCameraChange.setOnClickListener{
+            cameraProvider.unbindAll()
+
+            try {
+                // 새로운 카메라를 바인딩
+                isSelf = !isSelf
+                val cameraSelector = if(isSelf){
+                    CameraSelector.DEFAULT_FRONT_CAMERA
+                }else{
+                    CameraSelector.DEFAULT_BACK_CAMERA
+                }
+
+                val imageAnalyzer = ImageAnalysis
+                    .Builder()
+                    .setTargetResolution(
+                        Size(
+                            binding.camera.width,
+                            binding.camera.height
+                        )
+                    )// 원하는 해상도 설정
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+                    .also { analysis ->
+                        analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
+                            cameraSource?.let {
+                                it.processImage(
+                                    it.rotateBitmap(image.toBitmap(),surfaceView.width, surfaceView.height, isSelf)  // 이미지 처리 함수 호출
+                                )  // 이미지 처리 함수 호출
+                            }
+
+                            image.close()
+                        }
+                    }
+
+                camera = cameraProvider.bindToLifecycle(
+                    this, cameraSelector, imageAnalyzer
+                )
+            } catch (exc: Exception) {
+                Log.e("CameraSwitch", "Failed to bind camera use cases", exc)
+            }
+        }
+        binding.btnClose.setOnClickListener{
+            navController.navigate(R.id.action_camera_to_shot)
+        }
+    }
+
+    private fun initAiSetting(){
+        if (cameraSource == null) {
+            cameraSource = CameraSource(surfaceView, cameraListener)
+            isPoseClassifier()
+        }
+        createPoseEstimator()
     }
 
     private fun isPoseClassifier() {

@@ -39,7 +39,11 @@
             android:id="@+id/camera"
             android:name="com.ijonsabae.presentation.shot.CameraFragment"
             android:label="camera"
-            tools:layout="@layout/fragment_camera"></fragment>
+            tools:layout="@layout/fragment_camera">
+            <action
+                android:id="@+id/action_camera_to_shot"
+                app:destination="@id/shot" />
+        </fragment>
     </navigation>
 
     <navigation
