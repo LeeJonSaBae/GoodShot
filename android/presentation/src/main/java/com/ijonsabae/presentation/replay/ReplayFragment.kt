@@ -3,6 +3,7 @@ package com.ijonsabae.presentation.replay
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ijonsabae.presentation.R
@@ -18,7 +19,8 @@ class ReplayFragment :
             setItemClickListener(
                 object : ReplayAdapter.OnItemClickListener {
                     override fun onItemClick(item: ReplayDTO) {
-                        Toast.makeText(context, "${item.title} 클릭~!", Toast.LENGTH_SHORT).show()
+//                        Toast.makeText(context, "${item.title} 클릭~!", Toast.LENGTH_SHORT).show()
+                        findNavController().navigate(R.id.action_replay_to_replayReport)
                     }
 
                     override fun onLikeClick(item: ReplayDTO, check: Boolean) {

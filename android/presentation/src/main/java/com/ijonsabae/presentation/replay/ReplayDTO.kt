@@ -7,6 +7,5 @@ data class ReplayDTO(
     val swingPose: String, // 정면, 측면
     val golfClub: String, // 아이언, 드라이버
     val like: Boolean, // 즐겨찾기
-    var isClamped: Boolean = false,
-    var isCheckVisible: Boolean = false
+    var isClamped: Boolean = false
 )

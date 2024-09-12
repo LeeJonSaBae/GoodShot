@@ -71,7 +71,6 @@ class SwipeDeleteHelper : ItemTouchHelper.Callback() {
         )
     }
 
-
     private fun clampViewPositionHorizontal(
         view: View,
         dX: Float,
