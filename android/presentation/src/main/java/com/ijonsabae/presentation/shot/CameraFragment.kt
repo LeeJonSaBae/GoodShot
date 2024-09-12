@@ -39,6 +39,7 @@ import com.google.gson.GsonBuilder
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentCameraBinding
+import com.ijonsabae.presentation.shot.CameraState.*
 import com.ijonsabae.presentation.shot.ai.camera.CameraSource
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.*
 import com.ijonsabae.presentation.shot.ai.data.Device
@@ -139,12 +140,20 @@ class CameraFragment :
                 // 3-3. use case와 카메라를 생명 주기에 binding
                 val imageAnalyzer = ImageAnalysis
                     .Builder()
-
+                    .setTargetResolution(
+                        Size(
+                            binding.camera.width,
+                            binding.camera.height
+                        )
+                    )// 원하는 해상도 설정
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
                     .also { analysis ->
-                        analysis.setAnalyzer(Executors.newFixedThreadPool(4)) { image ->
-                            val bitmap = image.toBitmap()
-                            cameraSource!!.processImage(cameraSource!!.rotateBitmap(bitmap,surfaceView.width, surfaceView.height, true))  // 이미지 처리 함수 호출
+                        analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
+                            cameraSource!!.processImage(
+                                cameraSource!!.rotateBitmap(image.toBitmap(),surfaceView.width, surfaceView.height, true)  // 이미지 처리 함수 호출
+                            )  // 이미지 처리 함수 호출
+
                             image.close()
                         }
                     }
@@ -172,11 +181,11 @@ class CameraFragment :
     private fun initObservers() {
         cameraViewModel.currentState.observe(viewLifecycleOwner) { state ->
             val text: String = when (state) {
-                CameraState.POSITIONING -> "전신이 모두 보이도록 조금 더 뒤로 가주세요!!"
-                CameraState.ADDRESS -> "어드레스 자세를 잡아주세요!"
-                CameraState.SWING -> "스윙해주세요!"
-                CameraState.ANALYZING -> "스윙 영상 분석중..."
-                CameraState.RESULT -> "스윙 분석 결과"
+                POSITIONING -> "전신이 모두 보이도록 조금 더 뒤로 가주세요!!"
+                ADDRESS -> "어드레스 자세를 잡아주세요!"
+                SWING -> "스윙해주세요!"
+                ANALYZING -> "스윙 영상 분석중..."
+                RESULT -> "스윙 분석 결과"
             }
             binding.tvTest.text = text
         }
@@ -448,35 +457,32 @@ class CameraFragment :
     private fun processDetectedInfo(person: Person) {
         val point = person.keyPoints
 
-//        logWithThrottle(
-//            "코: ${point[NOSE.position].score}\n" +
-//                    "왼발목: ${point[LEFT_ANKLE.position].score}\n" +
-//                    "오른 발목: ${point[RIGHT_ANKLE.position].score}"
-//        )
+        // 스윙하는 동안은 안내 메세지 안변하도록 유지, 좌타 우타 모두 고려
+        if (cameraViewModel.currentState.value == SWING &&
+            ((point[LEFT_ELBOW.position].coordinate.x > point[LEFT_SHOULDER.position].coordinate.x) ||
+            (point[RIGHT_ELBOW.position].coordinate.x < point[RIGHT_SHOULDER.position].coordinate.x))
+        ) return
 
-        logWithThrottle(
-            "name: ${point[LEFT_WRIST.position].bodyPart}, x: ${point[LEFT_WRIST.position].coordinate.x}, y: ${point[LEFT_ANKLE.position].coordinate.y}\n" +
-                    "name: ${point[RIGHT_WRIST.position].bodyPart}, x: ${point[RIGHT_WRIST.position].coordinate.x}, y: ${point[RIGHT_ANKLE.position].coordinate.y}"
-        )
-
-//        // 1. 몸 전체가 카메라 화면에 들어오는지 체크
-//        if ((point[NOSE.position].score) < 0.3 ||
-//            (point[LEFT_ANKLE.position].score) < 0.3 ||
-//            (point[RIGHT_ANKLE.position].score < 0.3)
-//        ) {
-//            cameraViewModel.setCurrentState(POSITIONING)
-//        }
-//        // 2. 어드레스 자세 체크
-//        else if ((point[LEFT_ANKLE.position].coordinate.y > point[LEFT_SHOULDER.position].coordinate.y &&
-//                    point[RIGHT_ANKLE.position].coordinate.y > point[RIGHT_SHOULDER.position].coordinate.y &&
-//                    point[LEFT_ANKLE.position].coordinate.x >= point[LEFT_SHOULDER.position].coordinate.x &&
-//                    point[LEFT_ANKLE.position].coordinate.x <= point[RIGHT_SHOULDER.position].coordinate.x &&
-//                    point[RIGHT_ANKLE.position].coordinate.x <= point[RIGHT_SHOULDER.position].coordinate.x &&
-//                    point[RIGHT_ANKLE.position].coordinate.x >= point[LEFT_SHOULDER.position].coordinate.x).not()
-//        ) {
-//            cameraViewModel.setCurrentState(ADDRESS)
-//        } else {
-//            cameraViewModel.setCurrentState(SWING)
-//        }
+        // 1. 몸 전체가 카메라 화면에 들어오는지 체크
+        if ((point[NOSE.position].score) < 0.3 ||
+            (point[LEFT_ANKLE.position].score) < 0.3 ||
+            (point[RIGHT_ANKLE.position].score < 0.3)
+        ) {
+            cameraViewModel.setCurrentState(POSITIONING)
+        }
+        // 2. 어드레스 자세 체크
+        else if ((point[LEFT_WRIST.position].coordinate.y > point[LEFT_ELBOW.position].coordinate.y &&
+                    point[RIGHT_WRIST.position].coordinate.y > point[RIGHT_ELBOW.position].coordinate.y &&
+                    point[LEFT_WRIST.position].coordinate.x >= point[LEFT_SHOULDER.position].coordinate.x &&
+                    point[LEFT_WRIST.position].coordinate.x <= point[RIGHT_SHOULDER.position].coordinate.x &&
+                    point[RIGHT_WRIST.position].coordinate.x <= point[RIGHT_SHOULDER.position].coordinate.x &&
+                    point[RIGHT_WRIST.position].coordinate.x >= point[LEFT_SHOULDER.position].coordinate.x).not()
+        ) {
+            cameraViewModel.setCurrentState(ADDRESS)
+        }
+        // 3. 스윙해주세요!
+        else {
+            cameraViewModel.setCurrentState(SWING)
+        }
     }
 }

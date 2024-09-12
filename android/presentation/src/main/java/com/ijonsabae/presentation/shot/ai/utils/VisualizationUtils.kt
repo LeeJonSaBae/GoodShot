@@ -57,14 +57,13 @@ object VisualizationUtils {
         Pair(BodyPart.RIGHT_KNEE, BodyPart.RIGHT_ANKLE)
     )
 
-    // Draw line and point indicate body pose
-
     fun drawBodyKeypoints(
         input: Bitmap,
         persons: List<Person>,
         isTrackerEnabled: Boolean = false
     ): Bitmap {
         val width = input.width
+        val height = input.height
         val paintCircle = Paint().apply {
             strokeWidth = CIRCLE_RADIUS
             color = Color.RED
@@ -105,8 +104,8 @@ object VisualizationUtils {
                     val pointA = person.keyPoints[it.first.position].coordinate
                     val pointB = person.keyPoints[it.second.position].coordinate
                     originalSizeCanvas.drawLine(
-                        width - pointA.x, pointA.y,
-                        width - pointB.x, pointB.y,
+                        pointA.x * width, pointA.y * height,
+                        pointB.x * width, pointB.y * height,
                         paintLine
                     )
                 }
@@ -123,8 +122,8 @@ object VisualizationUtils {
                     )
                 ) {
                     originalSizeCanvas.drawCircle(
-                        width - point.coordinate.x,
-                        point.coordinate.y,
+                        point.coordinate.x * width,
+                        point.coordinate.y * height,
                         CIRCLE_RADIUS,
                         paintCircle
                     )
@@ -136,13 +135,13 @@ object VisualizationUtils {
             val leftEar = person.keyPoints[BodyPart.LEFT_EAR.position].coordinate
             val rightEar = person.keyPoints[BodyPart.RIGHT_EAR.position].coordinate
 
-            // 외접원의 중심과 반지름 계산 (X 좌표 반전)
-            val centerX = width - ((nose.x + leftEar.x + rightEar.x) / 3)
-            val centerY = (nose.y + leftEar.y + rightEar.y) / 3
+            // 외접원의 중심과 반지름 계산
+            val centerX = (nose.x + leftEar.x + rightEar.x) / 3 * width
+            val centerY = (nose.y + leftEar.y + rightEar.y) / 3 * height
             val radius = maxOf(
-                distance(width - nose.x, nose.y, centerX, centerY),
-                distance(width - leftEar.x, leftEar.y, centerX, centerY),
-                distance(width - rightEar.x, rightEar.y, centerX, centerY)
+                distance(nose.x * width, nose.y * height, centerX, centerY),
+                distance(leftEar.x * width, leftEar.y * height, centerX, centerY),
+                distance(rightEar.x * width, rightEar.y * height, centerX, centerY)
             )
 
             // 외접원 그리기
@@ -150,7 +149,6 @@ object VisualizationUtils {
         }
         return output
     }
-
     // 두 점 사이의 거리를 계산하는 함수 (X 좌표가 이미 반전된 상태로 전달됨)
     private fun distance(x1: Float, y1: Float, x2: Float, y2: Float): Float {
         return kotlin.math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))

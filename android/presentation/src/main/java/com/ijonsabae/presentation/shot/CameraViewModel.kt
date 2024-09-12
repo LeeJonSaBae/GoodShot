@@ -8,7 +8,8 @@ import com.ijonsabae.presentation.shot.CameraState.POSITIONING
 
 class CameraViewModel : ViewModel() {
     private val _currentState: MutableLiveData<CameraState> = MutableLiveData(POSITIONING)
-    val currentState: LiveData<CameraState> = _currentState
+    val currentState: LiveData<CameraState>
+        get() = _currentState
 
     fun setCurrentState(newState: CameraState) {
         if (isMainThread()) {

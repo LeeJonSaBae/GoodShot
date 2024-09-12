@@ -39,7 +39,6 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
         private const val MIN_CROP_KEYPOINT_SCORE = .2f
         private const val CPU_NUM_THREADS = 4
         private const val QUEUE_SIZE = 24 * 3 // 24fps * 3초 = 72
-        private const val NORMALIZATION_FACTOR = 640f
 
         // Parameters that control how large crop region should be expanded from previous frames'
         // body keypoints.
@@ -97,7 +96,6 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
         val joints = jointQueue.toList()
         return Pair(images, joints)
     }
-
 
     override fun estimatePoses(bitmap: Bitmap): Person {
         val inferenceStartTimeNanos = SystemClock.elapsedRealtimeNanos()
@@ -217,21 +215,12 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
         lastInferenceTimeNanos =
             SystemClock.elapsedRealtimeNanos() - inferenceStartTimeNanos
 
-
-//        // 큐에 넣기 위한 정규화 및 반전
-//        val adjustedKeyPoints = keyPoints.map { keyPoint ->
-//            val newCoordinate = PointF(
-//                (1 - ((keyPoint.coordinate.x + 80) / NORMALIZATION_FACTOR)),
-//                keyPoint.coordinate.y / NORMALIZATION_FACTOR
-//            )
-//            keyPoint.copy(coordinate = newCoordinate)
-//        }
-
         // 큐에 넣기 위한 y축 기준 반전
         val adjustedKeyPoints = keyPoints.map { keyPoint ->
+
             val newCoordinate = PointF(
-                (1 - keyPoint.coordinate.x),
-                keyPoint.coordinate.y
+                (1 - ((keyPoint.coordinate.x - (widthPadding / 2)) / bitmap.height)),
+                keyPoint.coordinate.y / bitmap.height
             )
             keyPoint.copy(coordinate = newCoordinate)
         }
@@ -248,7 +237,7 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
         // 함수가 끝나기 전에 flippedBitmap을 재활용
         flippedBitmap.recycle()
 
-        return Person(keyPoints = keyPoints, score = totalScore / numKeyPoints)
+        return Person(keyPoints = adjustedKeyPoints, score = totalScore / numKeyPoints)
     }
 
     override fun lastInferenceTimeNanos(): Long = lastInferenceTimeNanos
