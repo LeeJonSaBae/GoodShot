@@ -44,6 +44,14 @@ class ShotDialog : DialogFragment() {
         }
 
         with(binding) {
+            btnDirectionLeft.setOnClickListener {
+                selectButton(btnSwingPoseFront)
+                deselectButton(btnDirectionRight)
+            }
+            btnDirectionLeft.setOnClickListener {
+                selectButton(btnDirectionLeft)
+                deselectButton(btnDirectionRight)
+            }
             btnSwingPoseFront.setOnClickListener {
                 selectButton(btnSwingPoseFront)
                 deselectButton(btnSwingPoseSide)
