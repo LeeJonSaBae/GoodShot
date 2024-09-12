@@ -24,11 +24,11 @@ class ShotFragment :
 
 //            val shotDialog = ShotDialog()
 //            shotDialog.show(parentFragmentManager, shotDialog.tag)
-            findNavController().navigate(R.id.action_show_dialog_shot)
+            navController.navigate(R.id.action_shot_to_shot_dialog)
 
         }
         binding.btnCamera.setOnClickListener {
-            navController.navigate(R.id.action_shot_to_camera)
+            navController.navigate(R.id.action_shot_to_shot_dialog)
         }
 
         binding.rvTimeline.apply {

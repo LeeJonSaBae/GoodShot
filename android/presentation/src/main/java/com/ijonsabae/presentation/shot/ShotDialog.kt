@@ -12,6 +12,9 @@ import android.view.WindowInsets
 import android.view.WindowManager
 import android.widget.Button
 import androidx.fragment.app.DialogFragment
+import androidx.navigation.NavController
+import androidx.navigation.Navigation
+import androidx.navigation.fragment.findNavController
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.databinding.DialogShotBinding
 
@@ -19,6 +22,7 @@ class ShotDialog : DialogFragment() {
 
     private var _binding: DialogShotBinding? = null
     private val binding get() = _binding!!
+    private lateinit var navController: NavController
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -26,6 +30,7 @@ class ShotDialog : DialogFragment() {
     ): View {
         _binding = DialogShotBinding.inflate(inflater, container, false)
         dialog?.window?.setBackgroundDrawableResource(R.drawable.rounded_dialog_background)
+        navController = findNavController()
         return binding.root
     }
 
@@ -37,7 +42,7 @@ class ShotDialog : DialogFragment() {
     private fun initButtons() {
         binding.btnOk.setOnClickListener {
             saveResult()
-            dismiss()
+            navController.navigate(R.id.action_shot_dialog_to_camera)
         }
         binding.sbShotCnt.addOnChangeListener { slider, value, fromUser ->
             binding.tvSliderValue.text = "${value.toInt()} 회"

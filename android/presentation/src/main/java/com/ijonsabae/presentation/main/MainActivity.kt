@@ -39,24 +39,6 @@ class MainActivity: BaseActivity<ActivityMainBinding>(ActivityMainBinding::infla
             binding.mainToolbar.navigationIcon =
                 ContextCompat.getDrawable(this@MainActivity, R.drawable.back)
         }
-//        binding.navigation.setOnItemSelectedListener { item ->
-//            when(item.itemId){
-//                R.id.home -> {
-//                    navController.navigate(R.id.home)
-//                    true
-//                }
-//                R.id.shot -> {
-//
-//                }
-//                R.id.replay -> {
-//
-//                }
-//                R.id.profile -> {
-//
-//                }
-//                else -> false
-//            }
-//        }
     }
 
     fun showAppBar(title: String){
@@ -65,5 +47,12 @@ class MainActivity: BaseActivity<ActivityMainBinding>(ActivityMainBinding::infla
     }
     fun hideAppBar(){
         binding.layoutMainAppbar.visibility = View.GONE
+    }
+
+    fun showBottomNavBar(){
+        binding.navigation.visibility = View.VISIBLE
+    }
+    fun hideBottomNavBar(){
+        binding.navigation.visibility = View.GONE
     }
 }

@@ -40,6 +40,7 @@ import com.google.gson.GsonBuilder
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentCameraBinding
+import com.ijonsabae.presentation.main.MainActivity
 import com.ijonsabae.presentation.shot.CameraState.*
 import com.ijonsabae.presentation.shot.ai.camera.CameraSource
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.*
@@ -212,6 +213,7 @@ class CameraFragment :
 
     override fun onResume() {
         super.onResume()
+        (fragmentContext as MainActivity).hideBottomNavBar()
         cameraSource?.resume()
         lifecycleScope.launch {
             foldingStateActor.checkFoldingState(
@@ -230,6 +232,11 @@ class CameraFragment :
         cameraSource?.close()
         cameraSource = null
         super.onPause()
+    }
+
+    override fun onDestroyView() {
+        (fragmentContext as MainActivity).showBottomNavBar()
+        super.onDestroyView()
     }
 
     private fun isPoseClassifier() {
