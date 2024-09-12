@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_navigation_graph"
-    app:startDestination="@id/cameraFragment"
+    app:startDestination="@id/login"
     >
     <fragment
         android:id="@+id/login"
@@ -51,9 +51,5 @@
             app:popUpToInclusive="true"
             />
     </fragment>
-    <fragment
-        android:id="@+id/cameraFragment"
-        android:name="com.ijonsabae.presentation.shot.CameraFragment"
-        android:label="CameraFragment" />
 
 </navigation>
