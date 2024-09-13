@@ -9,7 +9,7 @@ import com.ijonsabae.presentation.shot.CameraState.POSITIONING
 import com.ijonsabae.presentation.shot.CameraState.RESULT
 
 class SwingViewModel : ViewModel() {
-    private val _currentState: MutableLiveData<CameraState> = MutableLiveData(POSITIONING)
+    private val _currentState: MutableLiveData<CameraState> = MutableLiveData(ANALYZING)
     val currentState: LiveData<CameraState>
         get() = _currentState
     val isRight = true

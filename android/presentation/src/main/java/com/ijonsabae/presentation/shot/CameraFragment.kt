@@ -1,5 +1,6 @@
 package com.ijonsabae.presentation.shot
 
+import ModelType
 import MoveNet
 import android.Manifest
 import android.graphics.LinearGradient
@@ -10,7 +11,6 @@ import android.text.SpannableString
 import android.text.style.CharacterStyle
 import android.text.style.StyleSpan
 import android.text.style.UpdateAppearance
-
 import android.util.Log
 import android.util.Size
 import android.view.SurfaceView
@@ -33,10 +33,13 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentCameraBinding
 import com.ijonsabae.presentation.main.MainActivity
-import com.ijonsabae.presentation.shot.CameraState.*
+import com.ijonsabae.presentation.shot.CameraState.ADDRESS
+import com.ijonsabae.presentation.shot.CameraState.ANALYZING
+import com.ijonsabae.presentation.shot.CameraState.POSITIONING
+import com.ijonsabae.presentation.shot.CameraState.RESULT
+import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.ai.camera.CameraSource
 import com.ijonsabae.presentation.shot.ai.data.Device
-import com.ijonsabae.presentation.shot.ai.ml.PoseClassifier
 import com.ijonsabae.presentation.shot.flex.FoldingStateActor
 import com.ijonsabae.presentation.util.PermissionChecker
 import kotlinx.coroutines.launch
@@ -63,7 +66,7 @@ class CameraFragment :
     private var device = Device.CPU
     private var cameraSource: CameraSource? = null
     private var poseDetector: MoveNet? = null  // MoveNet 인스턴스를 저장할 변수 추가
-    private var isClassifyPose = true
+
 
     /** 카메라 처리 간격을 조절하기 위한 변수 */
     private val fpsInterval = 1000 / 24 // 24 FPS에 해당하는 프레임 간격 (밀리초)
@@ -78,10 +81,9 @@ class CameraFragment :
         navController = Navigation.findNavController(binding.root)
         /******* AI 카메라 코드 시작 *******/
         // 카메라 상태를 변경해주기 위해 옵저버 등록
-        initObservers()
+//        initObservers()
         surfaceView = binding.camera
         /******* AI 카메라 코드 끝 *******/
-
         foldingStateActor = FoldingStateActor(WindowInfoTracker.getOrCreate(fragmentContext))
         permissionChecker = PermissionChecker(this)
         permissionChecker.setOnGrantedListener { //퍼미션 획득 성공일때
@@ -103,15 +105,12 @@ class CameraFragment :
         cameraProviderFuture.addListener({
             // 2. CameraProvier 사용 가능 여부 확인
             // 생명주기에 binding 할 수 있는 ProcessCameraProvider 객체 가져옴
-
             initAiSetting()
             cameraProvider = cameraProviderFuture.get()
             /** AI 세팅 */
             if (cameraSource == null) {
                 cameraSource = CameraSource(requireContext(), swingViewModel, surfaceView)
             }
-
-
             val cameraProvider = cameraProviderFuture.get()
             // 3-2. 카메라 세팅을 한다. (useCase는 bindToLifecycle에서)
             // CameraSelector는 카메라 세팅을 맡는다.(전면, 후면 카메라)
@@ -120,11 +119,9 @@ class CameraFragment :
             }else{
                 CameraSelector.DEFAULT_BACK_CAMERA
             }
-
             try {
                 // binding 전에 binding 초기화
                 cameraProvider.unbindAll()
-
                 // 관절 트래킹이 더해진 View를 위한 ImageAnalysis
                 // 3-3. use case와 카메라를 생명 주기에 binding
                 val imageAnalyzer = ImageAnalysis
@@ -139,14 +136,11 @@ class CameraFragment :
                     .build()
                     .also { analysis ->
                         analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
-
                             cameraSource?.let {
                                 it.processImage(
                                     it.rotateBitmap(image.toBitmap(),surfaceView.width, surfaceView.height, isSelf)  // 이미지 처리 함수 호출
                                 )  // 이미지 처리 함수 호출
                             }
-
-
                             val currentTimestamp = System.currentTimeMillis()
                             if (currentTimestamp - lastAnalyzedTimestamp >= fpsInterval) {
                                 lastAnalyzedTimestamp = currentTimestamp
@@ -182,11 +176,52 @@ class CameraFragment :
         }, ContextCompat.getMainExecutor(fragmentContext))
     }
 
+    override fun onResume() {
+        super.onResume()
+        (fragmentContext as MainActivity).hideBottomNavBar()
+        initClickListener()
+        initAiSetting()
+        createPoseEstimator()
+        cameraSource?.resume()
+
+        lifecycleScope.launch {
+            foldingStateActor.checkFoldingState(
+                fragmentContext as AppCompatActivity,
+                swingViewModel.currentState.value,
+                binding.progressTitle,
+                binding.tvResultHeader,
+                binding.tvResultSubHeader,
+                binding.camera,
+                binding.ivAlert,
+                binding.tvAlert,
+                binding.layoutCameraMenu,
+                binding.layoutAlert,
+                binding.layoutCamera
+            )
+        }
+    }
+
+    override fun onPause() {
+        cameraSource?.pause()
+        super.onPause()
+    }
+
+    override fun onDestroyView() {
+        (fragmentContext as MainActivity).showBottomNavBar()
+        cameraProvider.unbindAll()
+        super.onDestroyView()
+    }
+
+    override fun onDestroy() {
+        cameraSource?.destroy()
+        super.onDestroy()
+    }
+
     private fun initObservers() {
         swingViewModel.currentState.observe(viewLifecycleOwner) { state ->
             var text: String
             var color: Int
-             when (state) {
+            when (state) {
                 POSITIONING ->{
                     binding.tvAlert.visibility = View.VISIBLE
                     binding.ivAlert.visibility = View.VISIBLE
@@ -307,16 +342,6 @@ class CameraFragment :
                         isIndeterminate = true
                         show()
                     }
-
-                    // SpannableString에 그라디언트 Span 적용 (전체 텍스트에 적용)
-                    spannableText.apply {
-                        setSpan(
-                            GradientSpan(ContextCompat.getColor(fragmentContext, R.color.swing_inference_gradient_gray), ContextCompat.getColor(fragmentContext, R.color.swing_inference_gradient_mid_green), ContextCompat.getColor(fragmentContext, R.color.swing_inference_gradient_end_green)),
-                            0, spannableText.length, 0
-                        )
-                        setSpan(StyleSpan(Typeface.ITALIC), 0, this.length, 0)
-                        binding.progressTitle.text = this
-                    }
                 }
                 RESULT -> {
                     binding.tvAlert.visibility = View.GONE
@@ -344,42 +369,6 @@ class CameraFragment :
             binding.tvAlert.text = text
             binding.layoutAlert.setBackgroundColor(color)
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        (fragmentContext as MainActivity).hideBottomNavBar()
-        initClickListener()
-        initAiSetting()
-        createPoseEstimator()
-        cameraSource?.resume()
-
-        lifecycleScope.launch {
-            foldingStateActor.checkFoldingState(
-                fragmentContext as AppCompatActivity,
-                swingViewModel.currentState.value,
-                binding.progressTitle,
-                binding.tvResultHeader,
-                binding.tvResultSubHeader,
-                binding.camera,
-                binding.ivAlert,
-                binding.tvAlert,
-                binding.layoutCameraMenu,
-                binding.layoutAlert,
-                binding.layoutCamera
-            )
-        }
-    }
-
-    override fun onPause() {
-        cameraSource?.pause()
-        super.onPause()
-    }
-
-    override fun onDestroyView() {
-        (fragmentContext as MainActivity).showBottomNavBar()
-        cameraProvider.unbindAll()
-        super.onDestroyView()
     }
 
     private fun initClickListener(){
@@ -446,10 +435,4 @@ class CameraFragment :
             cameraSource?.setDetector(detector)
         }
     }
-
-    override fun onDestroy() {
-        cameraSource?.destroy()
-        super.onDestroy()
-    }
-
 }
