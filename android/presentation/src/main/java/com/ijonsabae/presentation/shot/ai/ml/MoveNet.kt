@@ -76,8 +76,6 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
                 ),
                 gpuDelegate
             )
-
-
             return moveNet
         }
 
@@ -176,6 +174,7 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
             val positions = mutableListOf<Float>()
 
             inputTensor?.let { input ->
+
                 interpreter.run(input.buffer, outputTensor.buffer.rewind())
                 val output = outputTensor.floatArray
                 for (idx in 0 until numKeyPoints) {

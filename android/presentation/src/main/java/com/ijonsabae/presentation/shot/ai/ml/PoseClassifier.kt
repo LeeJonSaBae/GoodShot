@@ -30,21 +30,19 @@ class PoseClassifier(
     private val output = interpreter.getOutputTensor(0).shape()
 
     companion object {
-        private const val MODEL_FILENAME = "classifier.tflite"
-        private const val LABELS_FILENAME = "labels.txt"
         private const val CPU_NUM_THREADS = 4
 
-        fun create(context: Context): PoseClassifier {
+        fun create(context: Context, modelFileName : String, labelsFileName : String): PoseClassifier {
             val options = Interpreter.Options().apply {
-                setNumThreads(CPU_NUM_THREADS)
+                numThreads = CPU_NUM_THREADS
             }
             return PoseClassifier(
                 Interpreter(
                     FileUtil.loadMappedFile(
-                        context, MODEL_FILENAME
+                        context, modelFileName
                     ), options
                 ),
-                FileUtil.loadLabels(context, LABELS_FILENAME)
+                FileUtil.loadLabels(context, labelsFileName)
             )
         }
     }
