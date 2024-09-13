@@ -4,7 +4,9 @@ import android.os.Looper
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.ijonsabae.presentation.shot.CameraState.ANALYZING
 import com.ijonsabae.presentation.shot.CameraState.POSITIONING
+import com.ijonsabae.presentation.shot.CameraState.RESULT
 
 class CameraViewModel : ViewModel() {
     private val _currentState: MutableLiveData<CameraState> = MutableLiveData(POSITIONING)

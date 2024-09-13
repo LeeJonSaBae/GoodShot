@@ -7,7 +7,9 @@ import android.Manifest
 import android.content.ContentValues
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.Color
+import android.graphics.LinearGradient
+import android.graphics.Shader
+import android.graphics.Typeface
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
@@ -15,11 +17,14 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Process
 import android.provider.MediaStore
+import android.text.SpannableString
+import android.text.style.CharacterStyle
+import android.text.style.StyleSpan
+import android.text.style.UpdateAppearance
 import android.util.Log
 import android.util.Size
 import android.view.SurfaceView
 import android.view.View
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -27,7 +32,6 @@ import androidx.camera.core.Camera
 import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -51,7 +55,6 @@ import com.ijonsabae.presentation.shot.ai.vo.FrameData
 import com.ijonsabae.presentation.shot.ai.vo.VideoData
 import com.ijonsabae.presentation.shot.flex.FoldingStateActor
 import com.ijonsabae.presentation.util.PermissionChecker
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.nio.ByteBuffer
@@ -188,22 +191,154 @@ class CameraFragment :
             var color: Int
              when (state) {
                 POSITIONING ->{
+                    binding.tvAlert.visibility = View.VISIBLE
+                    binding.ivAlert.visibility = View.VISIBLE
+
+                    binding.ivBar.visibility = View.GONE
+                    binding.tvCircleTempo.visibility = View.GONE
+                    binding.tvTitleTempo.visibility = View.GONE
+                    binding.tvCircleBackswing.visibility = View.GONE
+                    binding.tvTitleBackswing.visibility = View.GONE
+                    binding.tvCircleDownswing.visibility = View.GONE
+                    binding.tvTitleDownswing.visibility = View.GONE
+                    binding.tvResultHeader.visibility = View.GONE
+                    binding.tvResultSubHeader.visibility = View.GONE
+
+                    binding.tvAnalyzing.visibility = View.GONE
+                    binding.progressTitle.visibility = View.GONE
+                    binding.indicatorProgress.visibility = View.GONE
+
                     text = "전신이 모두 보이도록 조금 더 뒤로 가주세요!!"
                     color = ContextCompat.getColor(fragmentContext, R.color.yello_card)
                 }
                 ADDRESS -> {
+                    binding.tvAlert.visibility = View.VISIBLE
+                    binding.ivAlert.visibility = View.VISIBLE
+
+                    binding.ivBar.visibility = View.GONE
+                    binding.tvCircleTempo.visibility = View.GONE
+                    binding.tvTitleTempo.visibility = View.GONE
+                    binding.tvCircleBackswing.visibility = View.GONE
+                    binding.tvTitleBackswing.visibility = View.GONE
+                    binding.tvCircleDownswing.visibility = View.GONE
+                    binding.tvTitleDownswing.visibility = View.GONE
+                    binding.tvResultHeader.visibility = View.GONE
+                    binding.tvResultSubHeader.visibility = View.GONE
+
+                    binding.tvAnalyzing.visibility = View.GONE
+                    binding.progressTitle.visibility = View.GONE
+                    binding.indicatorProgress.visibility = View.GONE
+
                     text = "어드레스 자세를 잡아주세요!"
                     color = ContextCompat.getColor(fragmentContext, R.color.address_color)
                 }
                 SWING -> {
+                    binding.tvAlert.visibility = View.VISIBLE
+                    binding.ivAlert.visibility = View.VISIBLE
+
+                    binding.ivBar.visibility = View.GONE
+                    binding.ivBar.visibility = View.GONE
+                    binding.tvCircleTempo.visibility = View.GONE
+                    binding.tvTitleTempo.visibility = View.GONE
+                    binding.tvCircleBackswing.visibility = View.GONE
+                    binding.tvTitleBackswing.visibility = View.GONE
+                    binding.tvCircleDownswing.visibility = View.GONE
+                    binding.tvTitleDownswing.visibility = View.GONE
+                    binding.tvResultHeader.visibility = View.GONE
+                    binding.tvResultSubHeader.visibility = View.GONE
+
+                    binding.tvAnalyzing.visibility = View.GONE
+                    binding.progressTitle.visibility = View.GONE
+                    binding.indicatorProgress.visibility = View.GONE
+
                     text = "스윙해주세요!"
                     color = ContextCompat.getColor(fragmentContext, R.color.swing_color)
                 }
                 ANALYZING -> {
+                    binding.tvAlert.visibility = View.VISIBLE
+                    binding.ivAlert.visibility = View.GONE
+
+                    binding.ivBar.visibility = View.GONE
+                    binding.tvCircleTempo.visibility = View.GONE
+                    binding.tvTitleTempo.visibility = View.GONE
+                    binding.tvCircleBackswing.visibility = View.GONE
+                    binding.tvTitleBackswing.visibility = View.GONE
+                    binding.tvCircleDownswing.visibility = View.GONE
+                    binding.tvTitleDownswing.visibility = View.GONE
+                    binding.tvResultHeader.visibility = View.GONE
+                    binding.tvResultSubHeader.visibility = View.GONE
+
+                    binding.tvAnalyzing.visibility = View.GONE
+                    binding.progressTitle.visibility = View.VISIBLE
+                    binding.indicatorProgress.apply {
+                        setProgressCompat(90, true)
+                        isIndeterminate = true
+                        show()
+                        visibility = View.VISIBLE
+                    }
                     text = "스윙 영상 분석중..."
                     color = ContextCompat.getColor(fragmentContext, R.color.black)
+                    // 텍스트에 적용할 그라디언트 색상 설정
+                    val spannableText = SpannableString(binding.progressTitle.text)
+
+                    // 그라디언트 적용을 위한 Custom Span 클래스 생성
+                    class GradientSpan(private val startColor: Int, private val midColor: Int, private val endColor: Int) : CharacterStyle(),
+                        UpdateAppearance {
+                        override fun updateDrawState(textPaint: android.text.TextPaint) {
+                            val width = textPaint.measureText(spannableText.toString())
+                            textPaint.shader = LinearGradient(
+                                0f, 0f, width, binding.progressTitle.textSize,
+                                intArrayOf(startColor, midColor, endColor),
+                                floatArrayOf(0.30F, 0.80F, 1F), Shader.TileMode.CLAMP
+                            )
+                        }
+                    }
+
+                    // SpannableString에 그라디언트 Span 적용 (전체 텍스트에 적용)
+                    spannableText.apply {
+                        setSpan(
+                            GradientSpan(ContextCompat.getColor(fragmentContext, R.color.swing_inference_gradient_gray), ContextCompat.getColor(fragmentContext, R.color.swing_inference_gradient_mid_green), ContextCompat.getColor(fragmentContext, R.color.swing_inference_gradient_end_green)),
+                            0, spannableText.length, 0
+                        )
+                        setSpan(StyleSpan(Typeface.ITALIC), 0, this.length, 0)
+                        binding.progressTitle.text = this
+                    }
+
+                    binding.indicatorProgress.apply {
+                        setProgressCompat(90, true)
+                        isIndeterminate = true
+                        show()
+                    }
+
+                    // SpannableString에 그라디언트 Span 적용 (전체 텍스트에 적용)
+                    spannableText.apply {
+                        setSpan(
+                            GradientSpan(ContextCompat.getColor(fragmentContext, R.color.swing_inference_gradient_gray), ContextCompat.getColor(fragmentContext, R.color.swing_inference_gradient_mid_green), ContextCompat.getColor(fragmentContext, R.color.swing_inference_gradient_end_green)),
+                            0, spannableText.length, 0
+                        )
+                        setSpan(StyleSpan(Typeface.ITALIC), 0, this.length, 0)
+                        binding.progressTitle.text = this
+                    }
                 }
                 RESULT -> {
+                    binding.tvAlert.visibility = View.GONE
+                    binding.ivAlert.visibility = View.GONE
+
+                    binding.ivBar.visibility = View.VISIBLE
+                    binding.tvCircleTempo.visibility = View.VISIBLE
+                    binding.tvTitleTempo.visibility = View.VISIBLE
+                    binding.tvCircleBackswing.visibility = View.VISIBLE
+                    binding.tvTitleBackswing.visibility = View.VISIBLE
+                    binding.tvCircleDownswing.visibility = View.VISIBLE
+                    binding.tvTitleDownswing.visibility = View.VISIBLE
+                    binding.tvResultHeader.visibility = View.VISIBLE
+                    binding.tvResultSubHeader.visibility = View.VISIBLE
+
+                    binding.indicatorProgress.hide()
+                    binding.tvAnalyzing.visibility = View.GONE
+                    binding.progressTitle.visibility = View.GONE
+                    binding.indicatorProgress.visibility = View.GONE
+
                     text = "스윙 분석 결과"
                     color = ContextCompat.getColor(fragmentContext, R.color.black)
                 }
@@ -223,6 +358,10 @@ class CameraFragment :
         lifecycleScope.launch {
             foldingStateActor.checkFoldingState(
                 fragmentContext as AppCompatActivity,
+                cameraViewModel.currentState.value,
+                binding.progressTitle,
+                binding.tvResultHeader,
+                binding.tvResultSubHeader,
                 binding.camera,
                 binding.ivAlert,
                 binding.tvAlert,

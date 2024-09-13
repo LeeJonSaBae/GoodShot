@@ -27,9 +27,13 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.animation.doOnEnd
 import androidx.window.layout.DisplayFeature
+import com.ijonsabae.presentation.shot.CameraState
 
 object FoldableUtils {
     private const val TAG = "FoldableUtils 싸피"
+    lateinit var animator1: ValueAnimator
+    lateinit var animator2: ValueAnimator
+    lateinit var animator: ValueAnimator
     fun getFeaturePositionInViewRect(
         displayFeature: DisplayFeature,
         view: View,
@@ -69,11 +73,24 @@ object FoldableUtils {
         }
     }
 
-    fun View.moveToTopOf(foldingFeatureRect: Rect, alertIcon: ImageView, alertText: TextView, cameraMenuLayout: ConstraintLayout, alertConstraintLayout: ConstraintLayout, constraintLayout: ConstraintLayout) {
+    fun View.moveToTopOf(foldingFeatureRect: Rect, cameraState: CameraState?, progressTitle: TextView, resultHeader:TextView, resultSubHeader: TextView, alertIcon: ImageView, alertText: TextView, cameraMenuLayout: ConstraintLayout, alertConstraintLayout: ConstraintLayout, constraintLayout: ConstraintLayout) {
+        if(::animator.isInitialized){ animator.cancel() }
         val cameraHeight = this.height
         val alertHeight = alertConstraintLayout.height
+        if(cameraState == CameraState.RESULT){
+            resultHeader.visibility = View.VISIBLE
+            resultSubHeader.visibility = View.VISIBLE
+        }else{
+            resultHeader.visibility = View.GONE
+            resultSubHeader.visibility = View.GONE
+        }
+        if(cameraState == CameraState.ANALYZING){
+            progressTitle.visibility = View.VISIBLE
+        }else{
+            progressTitle.visibility = View.GONE
+        }
 // 목표 위치를 정의합니다.
-        val animator1 = ValueAnimator.ofFloat(0F, foldingFeatureRect.bottom.toFloat() - cameraHeight - cameraMenuLayout.height).apply {
+        animator1 = ValueAnimator.ofFloat(0F, foldingFeatureRect.bottom.toFloat() - cameraHeight - cameraMenuLayout.height).apply {
             duration = 300 // 애니메이션 지속 시간 (밀리초)
             interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
 
@@ -87,6 +104,7 @@ object FoldableUtils {
                 val animatedValue = valueAnimator.animatedValue as Float
                 this@moveToTopOf.layoutParams.height  = (cameraHeight + animatedValue).toInt()
                 this@moveToTopOf.requestLayout()
+
                 ConstraintSet().apply {
                     clone(alertConstraintLayout)
                     connect(this@moveToTopOf.id, ConstraintSet.TOP, cameraMenuLayout.id, ConstraintSet.BOTTOM)
@@ -106,9 +124,10 @@ object FoldableUtils {
             }
         }
 
-        val animator2 = ValueAnimator.ofFloat(0F, (this@moveToTopOf.parent as View).bottom - foldingFeatureRect.bottom.toFloat() - alertHeight).apply {
+        animator2 = ValueAnimator.ofFloat(0F, (this@moveToTopOf.parent as View).bottom - foldingFeatureRect.bottom.toFloat() - alertHeight).apply {
             duration = 300 // 애니메이션 지속 시간 (밀리초)
             interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
+
             addUpdateListener { valueAnimator ->
                 val animatedValue = valueAnimator.animatedValue as Float
                 alertConstraintLayout.layoutParams.height = (alertHeight + animatedValue).toInt()
@@ -116,7 +135,7 @@ object FoldableUtils {
                 // View의 위치를 설정합니다.
                 Log.d(TAG, "animation2 : y ${alertConstraintLayout.y}")
                 doOnEnd {
-                    alertConstraintLayout.requestLayout()
+//                    alertConstraintLayout.requestLayout()
                     ConstraintSet().apply {
                         clone(alertConstraintLayout)
                         connect(alertIcon.id, ConstraintSet.TOP, alertConstraintLayout.id, ConstraintSet.TOP)
@@ -140,9 +159,14 @@ object FoldableUtils {
         animator2.start()
     }
 
-    fun View.restore(foldingFeatureRect: Rect, alertIcon: ImageView, alertText: TextView, cameraMenuLayout: ConstraintLayout, alertConstraintLayout: ConstraintLayout, rootConstraintLayout: ConstraintLayout) {
+    fun View.restore(foldingFeatureRect: Rect, cameraState: CameraState?, progressTitle: TextView, resultHeader:TextView, resultSubHeader: TextView, alertIcon: ImageView, alertText: TextView, cameraMenuLayout: ConstraintLayout, alertConstraintLayout: ConstraintLayout, rootConstraintLayout: ConstraintLayout) {
+        if(::animator1.isInitialized){ animator1.cancel() }
+        if(::animator2.isInitialized){ animator2.cancel() }
+        resultHeader.visibility = View.GONE
+        resultSubHeader.visibility = View.GONE
+        progressTitle.visibility = View.GONE
         val height = this.height
-        val animator = ValueAnimator.ofFloat(0F, rootConstraintLayout.height - cameraMenuLayout.height - height.toFloat()).apply {
+        animator = ValueAnimator.ofFloat(0F, rootConstraintLayout.height - cameraMenuLayout.height - height.toFloat()).apply {
             duration = 300 // 애니메이션 지속 시간 (밀리초)
             interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
             addUpdateListener { valueAnimator ->
@@ -194,6 +218,6 @@ object FoldableUtils {
 //        this.layoutParams.height = MATCH_PARENT
         alertConstraintLayout.layoutParams.height = WRAP_CONTENT
         alertConstraintLayout.requestLayout()
-        requestLayout()
+//        requestLayout()
     }
 }

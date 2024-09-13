@@ -25,6 +25,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
+import com.ijonsabae.presentation.shot.CameraState
 import com.ijonsabae.presentation.shot.flex.FoldableUtils.moveToRightOf
 import com.ijonsabae.presentation.shot.flex.FoldableUtils.moveToTopOf
 import com.ijonsabae.presentation.shot.flex.FoldableUtils.restore
@@ -36,6 +37,10 @@ class FoldingStateActor @Inject constructor(private val windowInfoTracker: Windo
     private var activeWindowLayoutInfo: WindowLayoutInfo? = null
     suspend fun checkFoldingState(
         activity: AppCompatActivity,
+        cameraState: CameraState?,
+        progressTitle: TextView,
+        resultHeader: TextView,
+        resultSubHeader: TextView,
         cameraViewfinder: View,
         alertIcon: ImageView,
         alertText: TextView,
@@ -46,11 +51,11 @@ class FoldingStateActor @Inject constructor(private val windowInfoTracker: Windo
         windowInfoTracker.windowLayoutInfo(activity)
             .collect { newLayoutInfo ->
                 activeWindowLayoutInfo = newLayoutInfo
-                updateLayoutByFoldingState(cameraViewfinder, alertIcon, alertText, cameraMenuLayout, alertConstraintLayout, rootConstraintLayout)
+                updateLayoutByFoldingState(cameraState, progressTitle, resultHeader, resultSubHeader, cameraViewfinder, alertIcon, alertText, cameraMenuLayout, alertConstraintLayout, rootConstraintLayout)
             }
     }
 
-    private fun updateLayoutByFoldingState(cameraViewfinder: View, alertIcon: ImageView, alertText: TextView, cameraMenuLayout: ConstraintLayout, alertConstraintLayout: ConstraintLayout, rootConstraintLayout: ConstraintLayout) {
+    private fun updateLayoutByFoldingState(cameraState: CameraState?, progressTitle: TextView, resultHeader: TextView, resultSubHeader: TextView, cameraViewfinder: View, alertIcon: ImageView, alertText: TextView, cameraMenuLayout: ConstraintLayout, alertConstraintLayout: ConstraintLayout, rootConstraintLayout: ConstraintLayout) {
         val foldingFeature = activeWindowLayoutInfo?.displayFeatures
             ?.firstOrNull { it is FoldingFeature } as FoldingFeature?
             ?: return
@@ -69,12 +74,12 @@ class FoldingStateActor @Inject constructor(private val windowInfoTracker: Windo
                 FoldingFeature.Orientation.HORIZONTAL -> {
                     /** Device is half open and kept horizontal, so it is in tabletop mode **/
                     Log.d(TAG, "updateLayoutByFoldingState: 폴드")
-                    cameraViewfinder.moveToTopOf(foldPosition, alertIcon, alertText, cameraMenuLayout, alertConstraintLayout, rootConstraintLayout)
+                    cameraViewfinder.moveToTopOf(foldPosition, cameraState, progressTitle, resultHeader, resultSubHeader, alertIcon, alertText, cameraMenuLayout, alertConstraintLayout, rootConstraintLayout)
                 }
             }
         } else {
             Log.d(TAG, "updateLayoutByFoldingState: restore")
-                cameraViewfinder.restore(foldPosition, alertIcon, alertText, cameraMenuLayout, alertConstraintLayout, rootConstraintLayout)
+                cameraViewfinder.restore(foldPosition, cameraState, progressTitle, resultHeader, resultSubHeader, alertIcon, alertText, cameraMenuLayout, alertConstraintLayout, rootConstraintLayout)
         }
     }
 }

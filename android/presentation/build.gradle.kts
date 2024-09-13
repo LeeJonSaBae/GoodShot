@@ -39,7 +39,7 @@ android {
 
 dependencies {
     implementation(project(":domain"))
-    implementation("androidx.window:window:1.3.0")
+    implementation(libs.androidx.window)
 
     // navigation
     implementation(libs.androidx.navigation.fragment.ktx)
