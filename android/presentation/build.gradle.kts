@@ -106,8 +106,8 @@ dependencies {
     implementation(libs.tensorflow.lite.gpu)
     implementation(libs.tensorflow.lite.support)
 
-    // ExpoPlayer
-    implementation(libs.exoplayer.core)
-    implementation(libs.exoplayer.dash)
-    implementation(libs.exoplayer.ui)
+    // Media3 ExoPlayer
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.exoplayer.dash)
+    implementation(libs.androidx.media3.ui)
 }

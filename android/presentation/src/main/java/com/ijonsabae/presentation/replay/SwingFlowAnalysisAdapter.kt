@@ -1,0 +1,49 @@
+package com.ijonsabae.presentation.replay
+
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.ijonsabae.presentation.databinding.ItemSwingFlowAnalysisBinding
+
+class SwingFlowAnalysisAdapter :
+    ListAdapter<SwingFlowAnalysisDTO, SwingFlowAnalysisAdapter.SwingFlowAnalysisViewHolder>(
+        Comparator
+    ) {
+    companion object Comparator : DiffUtil.ItemCallback<SwingFlowAnalysisDTO>() {
+        override fun areItemsTheSame(
+            oldItem: SwingFlowAnalysisDTO,
+            newItem: SwingFlowAnalysisDTO
+        ): Boolean {
+            return System.identityHashCode(oldItem) == System.identityHashCode(newItem)
+        }
+
+        override fun areContentsTheSame(
+            oldItem: SwingFlowAnalysisDTO,
+            newItem: SwingFlowAnalysisDTO
+        ): Boolean {
+            return oldItem == newItem
+        }
+    }
+
+    inner class SwingFlowAnalysisViewHolder(private val binding: ItemSwingFlowAnalysisBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(position: Int) {
+            val item = getItem(position)
+            Glide.with(binding.root).load(item.checkedImg).into(binding.ivSwingFlowAnalysis)
+            binding.tvSwingFlowAnalysisDescription.text = item.description
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SwingFlowAnalysisViewHolder {
+        val binding =
+            ItemSwingFlowAnalysisBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return SwingFlowAnalysisViewHolder(binding)
+    }
+
+    override fun onBindViewHolder(holder: SwingFlowAnalysisViewHolder, position: Int) {
+        holder.bind(position)
+    }
+}
