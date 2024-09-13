@@ -8,10 +8,11 @@ import com.ijonsabae.presentation.shot.CameraState.ANALYZING
 import com.ijonsabae.presentation.shot.CameraState.POSITIONING
 import com.ijonsabae.presentation.shot.CameraState.RESULT
 
-class CameraViewModel : ViewModel() {
+class SwingViewModel : ViewModel() {
     private val _currentState: MutableLiveData<CameraState> = MutableLiveData(POSITIONING)
     val currentState: LiveData<CameraState>
         get() = _currentState
+    val isRight = true
 
     fun setCurrentState(newState: CameraState) {
         if (isMainThread()) {

@@ -7,6 +7,7 @@ import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.data.TorsoAndBodyDistance
+import com.ijonsabae.presentation.shot.ai.ml.PoseDetector
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.gpu.GpuDelegate
@@ -75,8 +76,6 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
                 ),
                 gpuDelegate
             )
-
-
             return moveNet
         }
 
@@ -175,6 +174,7 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
             val positions = mutableListOf<Float>()
 
             inputTensor?.let { input ->
+
                 interpreter.run(input.buffer, outputTensor.buffer.rewind())
                 val output = outputTensor.floatArray
                 for (idx in 0 until numKeyPoints) {
@@ -226,11 +226,11 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
         }
 
         // 패딩된 관절을 imageQueue에 추가합니다.
-        if (jointQueue.size < 70) {
-            // 큐의 길이가 70 미만이면 큐에 비트맵 추가
+        if (jointQueue.size < QUEUE_SIZE) {
+            // 큐의 길이가 QUEUE_SIZE 미만이면 큐에 비트맵 추가
             jointQueue.add(adjustedKeyPoints)
         } else {
-            // 큐의 길이가 70이면 맨 앞의 비트맵을 제거하고 새 비트맵을 추가
+            // 큐의 길이가 QUEUE_SIZE에 도달하면 맨 앞의 비트맵을 제거하고 새 비트맵을 추가
             jointQueue.poll() // 큐의 맨 앞 요소 제거
             jointQueue.add(adjustedKeyPoints) // 큐의 맨 뒤에 새 비트맵 추가
         }

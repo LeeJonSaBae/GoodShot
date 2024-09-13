@@ -15,20 +15,19 @@ limitations under the License.
 */
 
 
-import PoseClassifier
-import PoseDetector
+import com.ijonsabae.presentation.shot.ai.ml.PoseClassifier
+import com.ijonsabae.presentation.shot.ai.ml.PoseDetector
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.Rect
-import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraDevice
-import android.hardware.camera2.CameraManager
-import android.media.ImageReader
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
 import android.view.SurfaceView
+import com.ijonsabae.presentation.shot.SwingViewModel
+import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
 import java.util.Timer
@@ -37,20 +36,42 @@ import kotlin.math.max
 
 
 class CameraSource(
-    private val surfaceView: SurfaceView,
-    private val listener: CameraSourceListener,
+    private val context: Context,
+    private val swingViewModel: SwingViewModel,
+    private val surfaceView: SurfaceView
 ) {
+    private var listener: CameraSourceListener? = null
+    private var lock = Any()
+    private var classifier4: PoseClassifier? = null
+    private var classifier8: PoseClassifier? = null
+    private var detector: PoseDetector? = null
+    private var isTrackerEnabled = false
+
+    init {
+        // Detector
+        val poseDetector = MoveNet.create(context, Device.CPU, ModelType.Lightning)
+        setDetector(poseDetector)
+
+        // Classifier
+        val classifier4 = PoseClassifier.create(context, MODEL_FILENAME_4, LABELS_FILENAME_4)
+        val classifier8 = PoseClassifier.create(context, MODEL_FILENAME_8, LABELS_FILENAME_8)
+        setClassifier(classifier4, classifier8)
+
+        // CameraSourceListener
+        listener = CameraSourceListenerImpl(swingViewModel, poseDetector, classifier4, classifier8)
+    }
 
     companion object {
         /** Threshold for confidence score. */
         private const val MIN_CONFIDENCE = .2f
         private const val TAG = "Camera Source"
-    }
 
-    private val lock = Any()
-    private var detector: PoseDetector? = null
-    private var classifier: PoseClassifier? = null
-    private var isTrackerEnabled = false
+        /** Classifier */
+        private const val MODEL_FILENAME_4 = "pose_classifier_4.tflite"
+        private const val LABELS_FILENAME_4 = "labels4.txt"
+        private const val MODEL_FILENAME_8 = "pose_classifier_8.tflite"
+        private const val LABELS_FILENAME_8 = "labels8.txt"
+    }
 
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
     private var fpsTimer: Timer? = null
@@ -58,22 +79,17 @@ class CameraSource(
     private var framesPerSecond = 1
 
     private var frameCount = 0
-    private val TARGET_FPS = 60
+    private val TARGET_FPS = 24
 
-    /** Detects, characterizes, and connects to a CameraDevice (used for all camera operations) */
-    private val cameraManager: CameraManager by lazy {
-        val context = surfaceView.context
-        context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-    }
+//    /** Readers used as buffers for camera still shots */
+//    private var imageReader: ImageReader? = null
 
-    /** Readers used as buffers for camera still shots */
-    private var imageReader: ImageReader? = null
+    /*    */
+    /** The [CameraDevice] that will be opened in this fragment *//*
+    private var camera: CameraDevice? = null*/
 
-    /** The [CameraDevice] that will be opened in this fragment */
-    private var camera: CameraDevice? = null
-
-    /** Internal reference to the ongoing [CameraCaptureSession] configured with our parameters */
-    private var session: CameraCaptureSession? = null
+//    /** Internal reference to the ongoing [CameraCaptureSession] configured with our parameters */
+//    private var session: CameraCaptureSession? = null
 
     /** [HandlerThread] where all buffer reading operations run */
     private var imageReaderThread: HandlerThread? = null
@@ -81,21 +97,21 @@ class CameraSource(
     /** [Handler] corresponding to [imageReaderThread] */
     private var imageReaderHandler: Handler? = null
 
-    fun rotateBitmap(bitmap:Bitmap, width: Int, height: Int, self: Boolean): Bitmap{
+    fun rotateBitmap(bitmap: Bitmap, width: Int, height: Int, self: Boolean): Bitmap {
         val rotateMatrix = Matrix()
         //rotateMatrix.postScale(1F, 1F) // y축 기준으로 이미지를 뒤집음
-        Log.d(TAG, "rotateBitmap: bitmap ${bitmap.width} ${bitmap.height}")
+//        Log.d(TAG, "rotateBitmap: bitmap ${bitmap.width} ${bitmap.height}")
 
-        if(self){
+        if (self) {
             rotateMatrix.postRotate(270.0f)
             rotateMatrix.postScale(-1F, 1F)
-        }
-        else{
+        } else {
             rotateMatrix.postRotate(90.0f)
             rotateMatrix.postScale(1F, 1F)
         }
 
-        val rotateBitmap = Bitmap.createBitmap(bitmap, 0,0, bitmap.width, bitmap.height,rotateMatrix, false)
+        val rotateBitmap =
+            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, rotateMatrix, false)
 //        return rotateBitmap
         // Bitmap과 View의 비율 계산
         val bitmapRatio = rotateBitmap.width.toFloat() / rotateBitmap.height.toFloat()
@@ -108,14 +124,16 @@ class CameraSource(
             val newWidth = (rotateBitmap.height * viewRatio).toInt()
             val cropStartX = (rotateBitmap.width - newWidth) / 2
             // 가로를 자르고 중앙에 맞추기
-            croppedBitmap = Bitmap.createBitmap(rotateBitmap, cropStartX, 0, newWidth, rotateBitmap.height)
+            croppedBitmap =
+                Bitmap.createBitmap(rotateBitmap, cropStartX, 0, newWidth, rotateBitmap.height)
         }
         // Bitmap이 View보다 세로로 길 때 (비율에 맞게 세로를 자름)
         else if (bitmapRatio < viewRatio) {
             val newHeight = (rotateBitmap.width / viewRatio).toInt()
             val cropStartY = (rotateBitmap.height - newHeight) / 2
             // 세로를 자르고 중앙에 맞추기
-            croppedBitmap = Bitmap.createBitmap(rotateBitmap, 0, cropStartY, rotateBitmap.width, newHeight)
+            croppedBitmap =
+                Bitmap.createBitmap(rotateBitmap, 0, cropStartY, rotateBitmap.width, newHeight)
         }
 
         // 크기를 View의 크기에 맞게 확장
@@ -132,21 +150,27 @@ class CameraSource(
         }
     }
 
-    fun setClassifier(classifier: PoseClassifier?) {
+    fun setClassifier(classifier4: PoseClassifier, classifier8: PoseClassifier) {
         synchronized(lock) {
-            if (this.classifier != null) {
-                this.classifier?.close()
-                this.classifier = null
+            if (this.classifier4 != null) {
+                this.classifier4?.close()
+                this.classifier4 = null
             }
-            this.classifier = classifier
+            this.classifier4 = classifier4
+
+            if (this.classifier8 != null) {
+                this.classifier8?.close()
+                this.classifier8 = null
+            }
+            this.classifier8 = classifier8
         }
     }
-
 
     fun resume() {
         imageReaderThread = HandlerThread("imageReaderThread").apply { start() }
         imageReaderHandler = Handler(imageReaderThread!!.looper)
         fpsTimer = Timer()
+
         fpsTimer?.scheduleAtFixedRate(
             object : TimerTask() {
                 override fun run() {
@@ -159,22 +183,21 @@ class CameraSource(
         )
     }
 
-    fun close() {
-        session?.close()
-        session = null
-        camera?.close()
-        camera = null
-        imageReader?.close()
-        imageReader = null
+    fun pause() {
         stopImageReaderThread()
-        detector?.close()
-        detector = null
-        classifier?.close()
-        classifier = null
         fpsTimer?.cancel()
         fpsTimer = null
         frameProcessedInOneSecondInterval = 0
         framesPerSecond = 0
+    }
+
+    fun destroy(){
+        detector?.close()
+        detector = null
+        classifier4?.close()
+        classifier4 = null
+        classifier8?.close()
+        classifier8 = null
     }
 
     fun processImage(bitmap: Bitmap) {
@@ -194,11 +217,12 @@ class CameraSource(
 
             frameProcessedInOneSecondInterval++
             poseResult?.let {
-                listener.onDetectedInfo(it)
+                listener?.onDetectedInfo(it)
                 visualize(it, bitmap)
             }
-        }else{
-            Log.d(TAG, "processImage: 처리 안함")}
+        } else {
+            Log.d(TAG, "processImage: 처리 안함")
+        }
     }
 
 
@@ -253,9 +277,5 @@ class CameraSource(
         } catch (e: InterruptedException) {
             Log.d(TAG, e.message.toString())
         }
-    }
-
-    interface CameraSourceListener {
-        fun onDetectedInfo(person: Person)
     }
 }
