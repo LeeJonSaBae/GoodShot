@@ -81,7 +81,7 @@ class CameraFragment :
         navController = Navigation.findNavController(binding.root)
         /******* AI 카메라 코드 시작 *******/
         // 카메라 상태를 변경해주기 위해 옵저버 등록
-//        initObservers()
+        initObservers()
         surfaceView = binding.camera
         /******* AI 카메라 코드 끝 *******/
         foldingStateActor = FoldingStateActor(WindowInfoTracker.getOrCreate(fragmentContext))

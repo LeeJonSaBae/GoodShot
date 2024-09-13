@@ -174,6 +174,13 @@ object FoldableUtils {
                 this@restore.layoutParams.height = height + animatedValue.toInt()
                 this@restore.requestLayout()
             }
+            doOnEnd {
+                ConstraintSet().apply {
+                    clone(rootConstraintLayout)
+                    connect(this@restore.id, ConstraintSet.BOTTOM, rootConstraintLayout.id, ConstraintSet.BOTTOM)
+                    applyTo(rootConstraintLayout)
+                }
+            }
         }
 
         animator.start()
@@ -182,7 +189,7 @@ object FoldableUtils {
             clone(rootConstraintLayout)
             connect(cameraMenuLayout.id, ConstraintSet.TOP, rootConstraintLayout.id, ConstraintSet.TOP)
             connect(this@restore.id, ConstraintSet.TOP, cameraMenuLayout.id, ConstraintSet.BOTTOM)
-            connect(this@restore.id, ConstraintSet.BOTTOM, rootConstraintLayout.id, ConstraintSet.BOTTOM)
+            clear(this@restore.id, ConstraintSet.BOTTOM)
             applyTo(rootConstraintLayout)
         }
 
