@@ -58,7 +58,7 @@ class CameraSource(
         setClassifier(classifier4, classifier8)
 
         // CameraSourceListener
-        listener = CameraSourceListenerImpl(swingViewModel, poseDetector)
+        listener = CameraSourceListenerImpl(swingViewModel, poseDetector, classifier4, classifier8)
     }
 
     companion object {
@@ -171,22 +171,6 @@ class CameraSource(
         imageReaderHandler = Handler(imageReaderThread!!.looper)
         fpsTimer = Timer()
 
-        // Detector
-        if (detector == null) {
-            val poseDetector = MoveNet.create(context, Device.CPU, ModelType.Lightning)
-            setDetector(poseDetector)
-
-            // CameraSourceListener
-            listener = CameraSourceListenerImpl(swingViewModel, poseDetector)
-        }
-
-        // Classifier
-        if (classifier4 == null || classifier8 == null) {
-            val classifier4 = PoseClassifier.create(context, MODEL_FILENAME_4, LABELS_FILENAME_4)
-            val classifier8 = PoseClassifier.create(context, MODEL_FILENAME_8, LABELS_FILENAME_8)
-            setClassifier(classifier4, classifier8)
-        }
-
         fpsTimer?.scheduleAtFixedRate(
             object : TimerTask() {
                 override fun run() {
@@ -200,13 +184,6 @@ class CameraSource(
     }
 
     fun pause() {
-//        session?.close()
-//        session = null
-//        camera?.close()
-//        camera = null
-//        imageReader?.close()
-//        imageReader = null
-
         stopImageReaderThread()
         fpsTimer?.cancel()
         fpsTimer = null
@@ -214,7 +191,7 @@ class CameraSource(
         framesPerSecond = 0
     }
 
-    fun stop(){
+    fun destroy(){
         detector?.close()
         detector = null
         classifier4?.close()

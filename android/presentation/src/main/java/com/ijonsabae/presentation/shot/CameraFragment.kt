@@ -76,7 +76,6 @@ class CameraFragment :
             Log.d(TAG, "onViewCreated: 권한 부족")
             permissionChecker.requestPermissionLauncher.launch(permissionList) // 권한없으면 창 띄움
         }
-
     }
 
     private fun startCamera() {
@@ -183,7 +182,7 @@ class CameraFragment :
     }
 
     override fun onDestroy() {
-        cameraSource?.stop()
+        cameraSource?.destroy()
         super.onDestroy()
     }
 

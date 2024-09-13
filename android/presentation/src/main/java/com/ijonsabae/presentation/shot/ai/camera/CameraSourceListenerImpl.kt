@@ -17,10 +17,13 @@ import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_ELBOW
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_SHOULDER
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_WRIST
 import com.ijonsabae.presentation.shot.ai.data.Person
+import com.ijonsabae.presentation.shot.ai.ml.PoseClassifier
 
 class CameraSourceListenerImpl(
     private val swingViewModel: SwingViewModel,
-    private val poseDetector: MoveNet?
+    private val poseDetector: MoveNet?,
+    private val classifier4: PoseClassifier?,
+    private val classifier8: PoseClassifier?
 ) : CameraSourceListener {
 
     // 이전 실행 시간으로부터 최소 1초 지나야 실행
@@ -58,7 +61,23 @@ class CameraSourceListenerImpl(
             isIncreasing().not()
         ) {
             swingViewModel.setCurrentState(ANALYZING)
-            extractSwing()
+            val swingData = extractSwing()
+
+            if (swingData != null) {
+                // TODO: 8개 프레임 분석하기
+
+                // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
+
+                // TODO: 영상 메모리에 올리기
+
+                // TODO: 영상 서버에 저장하기 (비동기)
+
+                // TODO: 스윙 분석 결과 표시 (일정시간)
+
+            } else {
+                // TODO: 다시 스윙해주세요 표시 (일정시간)
+
+            }
         }
 
         // 4. 스윙하는 동안은 안내 메세지 안변하도록 유지
@@ -90,11 +109,30 @@ class CameraSourceListenerImpl(
         }
     }
 
-    private fun extractSwing() {
+    /**
+     * (스윙 영상 + 영상에 그려줄 관절 좌표)와 8동작의 프레임을 반환
+     */
+    private fun extractSwing(): Unit? {
         val queuedData = poseDetector?.getQueuedData()
-        val imagesWithTimestamps = queuedData?.first
-        val jointData = queuedData?.second
 
+        // 큐에는 최대 72개의 데이터가 들어있음 -> 최대 24fps 제한이므로 3초 이상의 데이터임
+        val imagesWithTimestampList = queuedData?.first?.reversed()
+        val jointDataList = queuedData?.second?.reversed()
+
+        if (imagesWithTimestampList == null || jointDataList == null) {
+            return null
+        }
+
+        // 1. 대표적인 8개의 프레임 뽑기
+        for (joint in jointDataList) {
+//            classifier4.classify()
+        }
+
+        // TODO: 8개 프레임이 안뽑힐 경우 null 반환
+
+        // 2. 영상 만들기
+
+        return null
     }
 
     // 손목의 y축 좌표가 상승하는 추세인지 보는 함수
