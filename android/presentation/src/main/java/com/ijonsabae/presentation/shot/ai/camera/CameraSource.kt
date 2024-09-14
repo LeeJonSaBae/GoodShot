@@ -71,7 +71,6 @@ class CameraSource(
 
     companion object {
         /** Threshold for confidence score. */
-        private const val MIN_CONFIDENCE = .2f
         private const val TAG = "Camera Source"
 
         /** Classifier */
@@ -116,15 +115,11 @@ class CameraSource(
         classifier8 = null
     }
 
-    fun processImage(bitmap: Bitmap) {
-        var poseResult: Person?
-
+    fun processImage(bitmap: Bitmap): Person? {
         synchronized(lock) {
             // estimatePoses 에서 각 관절의 이름과 좌표가 반환됨
-            poseResult = detector?.estimatePoses(bitmap)
+            return detector?.estimatePoses(bitmap)
         }
-
-        logWithThrottle("${poseResult?.keyPoints?.get(BodyPart.LEFT_WRIST.position)?.coordinate}")
 
 //        poseResult?.let {
 //            listener?.onDetectedInfo(it)

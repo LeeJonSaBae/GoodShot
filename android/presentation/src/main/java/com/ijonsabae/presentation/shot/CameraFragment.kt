@@ -4,6 +4,7 @@ import android.Manifest
 import android.graphics.Bitmap
 import android.graphics.LinearGradient
 import android.graphics.Matrix
+import android.graphics.Rect
 import android.graphics.Shader
 import android.graphics.Typeface
 import android.os.Bundle
@@ -16,6 +17,8 @@ import android.util.Log
 import android.util.Size
 import android.view.View
 import android.view.ViewGroup.LayoutParams
+import android.widget.ImageView
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraControl
@@ -36,9 +39,13 @@ import com.ijonsabae.presentation.databinding.FragmentCameraBinding
 import com.ijonsabae.presentation.main.MainActivity
 import com.ijonsabae.presentation.shot.CameraState.*
 import com.ijonsabae.presentation.shot.ai.camera.CameraSource
+import com.ijonsabae.presentation.shot.ai.data.Person
+import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
 import com.ijonsabae.presentation.shot.flex.FoldingStateActor
 import com.ijonsabae.presentation.util.PermissionChecker
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 
 private const val TAG = "CameraFragment_싸피"
@@ -60,6 +67,10 @@ class CameraFragment :
     private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
     private lateinit var cameraProvider: ProcessCameraProvider
     private var isSelf = true
+
+    companion object {
+        private const val MIN_CONFIDENCE = .2f
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -120,16 +131,29 @@ class CameraFragment :
                 .build()
                 .also { analysis ->
                     analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
-
-                        cameraSource?.processImage(
-                            getRotateBitmap(
-                                image.toBitmap(),
-                                binding.previewView.width,
-                                binding.previewView.height,
-                                isSelf
-                            )
+                        val rotatedBitmap = getRotateBitmap(
+                            image.toBitmap(),
+                            binding.previewView.width,
+                            binding.previewView.height,
+                            isSelf
                         )
 
+                        lifecycleScope.launch(Dispatchers.Default) {
+                            val person = cameraSource?.processImage(rotatedBitmap)
+                            person?.let {
+                                val outputBitmap = VisualizationUtils.drawBodyKeypoints(
+                                    Bitmap.createBitmap(
+                                        binding.layoutCanvas.width,
+                                        binding.layoutCanvas.height,
+                                        Bitmap.Config.ARGB_8888
+                                    ),
+                                    listOf(it)
+                                )
+                                withContext(Dispatchers.Main) {
+                                    updateCanvasWithBitmap(outputBitmap)
+                                }
+                            }
+                        }
                         image.close()
                     }
                 }
@@ -151,6 +175,19 @@ class CameraFragment :
             Log.d(TAG, "startCamera: 에러 $exc")
         }
     }
+
+    private fun updateCanvasWithBitmap(bitmap: Bitmap) {
+        val imageView = binding.layoutCanvas.getChildAt(0) as? ImageView ?: ImageView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
+            )
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            binding.layoutCanvas.addView(this)
+        }
+        imageView.setImageBitmap(bitmap)
+    }
+
 
     private fun getRotateBitmap(bitmap: Bitmap, width: Int, height: Int, self: Boolean): Bitmap {
         val rotateMatrix = Matrix()
