@@ -120,14 +120,16 @@ class CameraFragment :
                 .build()
                 .also { analysis ->
                     analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
+                        
                         cameraSource?.processImage(
-                            rotateBitmap(
+                            getRotateBitmap(
                                 image.toBitmap(),
                                 binding.previewView.width,
                                 binding.previewView.height,
-                                true
+                                isSelf
                             )
                         )
+
                         image.close()
                     }
                 }
@@ -150,10 +152,8 @@ class CameraFragment :
         }
     }
 
-    private fun rotateBitmap(bitmap: Bitmap, width: Int, height: Int, self: Boolean): Bitmap {
+    private fun getRotateBitmap(bitmap: Bitmap, width: Int, height: Int, self: Boolean): Bitmap {
         val rotateMatrix = Matrix()
-        //rotateMatrix.postScale(1F, 1F) // y축 기준으로 이미지를 뒤집음
-//        Log.d(TAG, "rotateBitmap: bitmap ${bitmap.width} ${bitmap.height}")
 
         if (self) {
             rotateMatrix.postRotate(270.0f)
@@ -163,9 +163,8 @@ class CameraFragment :
             rotateMatrix.postScale(1F, 1F)
         }
 
-        val rotateBitmap =
-            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, rotateMatrix, false)
-//        return rotateBitmap
+        val rotateBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, rotateMatrix, false)
+
         // Bitmap과 View의 비율 계산
         val bitmapRatio = rotateBitmap.width.toFloat() / rotateBitmap.height.toFloat()
         val viewRatio = width.toFloat() / height.toFloat()
