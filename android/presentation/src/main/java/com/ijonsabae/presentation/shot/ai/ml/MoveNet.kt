@@ -102,20 +102,11 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
         // 원본 Bitmap 크기 출력
         Log.d("BitmapSize", "Original Bitmap: width = ${bitmap.width}, height = ${bitmap.height}")
 
-        // Bitmap을 Y축 기준으로 뒤집기
-        val matrix = Matrix().apply {
-            preScale(-1f, 1f)
-        }
-        val flippedBitmap =
-            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-
-        // 이후의 코드에서 bitmap 대신 flippedBitmap을 사용
-
         // 세로 길이를 기준으로 가로에 패딩을 추가해 1:1 비율로 만듭니다.
-        val targetSize = maxOf(flippedBitmap.width, flippedBitmap.height)
+        val targetSize = maxOf(bitmap.width, bitmap.height)
 
         // 가로 패딩 계산 (세로 길이에 맞춰 가로에 패딩을 추가)
-        val widthPadding = maxOf(0, flippedBitmap.height - flippedBitmap.width)
+        val widthPadding = maxOf(0, bitmap.height - bitmap.width)
 
         // 새로운 비트맵을 생성하고 패딩을 추가
         val paddedBitmap = Bitmap.createBitmap(targetSize, targetSize, Bitmap.Config.ARGB_8888)
@@ -125,18 +116,18 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
 
         canvas.drawRect(0f, 0f, targetSize.toFloat(), targetSize.toFloat(), paint)
         canvas.drawBitmap(
-            flippedBitmap,
+            bitmap,
             (widthPadding / 2).toFloat(), // 가로 중앙에 배치
             0f, // 세로는 그대로
             null
         )
+
         // 패딩된 비트맵을 imageQueue에 추가
         val currentTime = System.currentTimeMillis()
         if (imageQueue.size >= QUEUE_SIZE) {
             imageQueue.poll()
         }
         imageQueue.offer(TimestampedData(paddedBitmap, currentTime))
-
 
         if (cropRegion == null) {
             cropRegion = initRectF(bitmap.width, bitmap.height)
@@ -161,7 +152,7 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
             )
 
             Canvas(detectBitmap).drawBitmap(
-                flippedBitmap,
+                bitmap,
                 -rect.left,
                 -rect.top,
                 null
@@ -174,7 +165,6 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
             val positions = mutableListOf<Float>()
 
             inputTensor?.let { input ->
-
                 interpreter.run(input.buffer, outputTensor.buffer.rewind())
                 val output = outputTensor.floatArray
                 for (idx in 0 until numKeyPoints) {
@@ -215,27 +205,22 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
         lastInferenceTimeNanos =
             SystemClock.elapsedRealtimeNanos() - inferenceStartTimeNanos
 
-        // 큐에 넣기 위한 y축 기준 반전
+        // 전면, 후면 모두 반전 필요
         val adjustedKeyPoints = keyPoints.map { keyPoint ->
-
             val newCoordinate = PointF(
-                (1 - ((keyPoint.coordinate.x) / bitmap.width)),
+                1 - (keyPoint.coordinate.x / bitmap.width),
                 keyPoint.coordinate.y / bitmap.height
             )
             keyPoint.copy(coordinate = newCoordinate)
         }
 
-        // 패딩된 관절을 imageQueue에 추가합니다.
+        // 정규화된 관절을 jointQueue에 추가합니다.
         if (jointQueue.size < QUEUE_SIZE) {
-            // 큐의 길이가 QUEUE_SIZE 미만이면 큐에 비트맵 추가
             jointQueue.add(adjustedKeyPoints)
         } else {
-            // 큐의 길이가 QUEUE_SIZE에 도달하면 맨 앞의 비트맵을 제거하고 새 비트맵을 추가
-            jointQueue.poll() // 큐의 맨 앞 요소 제거
-            jointQueue.add(adjustedKeyPoints) // 큐의 맨 뒤에 새 비트맵 추가
+            jointQueue.poll()
+            jointQueue.add(adjustedKeyPoints)
         }
-        // 함수가 끝나기 전에 flippedBitmap을 재활용
-        flippedBitmap.recycle()
 
         return Person(keyPoints = adjustedKeyPoints, score = totalScore / numKeyPoints)
     }

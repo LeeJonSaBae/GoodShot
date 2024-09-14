@@ -31,6 +31,7 @@ import com.ijonsabae.presentation.shot.CameraState.ANALYZING
 import com.ijonsabae.presentation.shot.CameraState.POSITIONING
 import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.SwingViewModel
+import com.ijonsabae.presentation.shot.ai.data.BodyPart
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ANKLE
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ELBOW
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_SHOULDER
@@ -123,6 +124,8 @@ class CameraSource(
             poseResult = detector?.estimatePoses(bitmap)
         }
 
+        logWithThrottle("${poseResult?.keyPoints?.get(BodyPart.LEFT_WRIST.position)?.coordinate}")
+
 //        poseResult?.let {
 //            listener?.onDetectedInfo(it)
 //        }
@@ -133,8 +136,8 @@ class CameraSource(
     /****************************************************/
     /****************************************************/
 
-
-//// 여기서
+//    private var lastExecutionTime = 0L
+//
 //    fun onDetectedInfo(person: Person) {
 //        val currentTime = System.currentTimeMillis()
 //        if (currentTime - lastExecutionTime >= 1000) {
@@ -143,15 +146,15 @@ class CameraSource(
 //        }
 //    }
 //
-//    private var lastLogTime = 0L
-//
-//    private fun logWithThrottle(message: String) {
-//        val currentTime = System.currentTimeMillis()
-//        if (currentTime - lastLogTime >= 1000) { // 1초 이상 지났는지 확인
-//            Log.d("싸피", message)
-//            lastLogTime = currentTime
-//        }
-//    }
+    private var lastLogTime = 0L
+
+    private fun logWithThrottle(message: String) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastLogTime >= 1000) { // 1초 이상 지났는지 확인
+            Log.d("싸피", message)
+            lastLogTime = currentTime
+        }
+    }
 //
 //    /**
 //     * TODO: 좌타일 경우 좌우 관절을 뒤집어야 합니다. 얼굴은 빼구요

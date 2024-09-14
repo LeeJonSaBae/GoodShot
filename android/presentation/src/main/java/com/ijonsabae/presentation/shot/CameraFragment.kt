@@ -120,7 +120,7 @@ class CameraFragment :
                 .build()
                 .also { analysis ->
                     analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
-                        
+
                         cameraSource?.processImage(
                             getRotateBitmap(
                                 image.toBitmap(),
@@ -157,13 +157,14 @@ class CameraFragment :
 
         if (self) {
             rotateMatrix.postRotate(270.0f)
-            rotateMatrix.postScale(-1F, 1F)
+            // 전면 카메라 화면은 좌우 반전 되서 들어와서 좌우 반전 필요, but estimatePoses 수행시 한번 더 뒤집어야 하기 때문에 반전 불필요
+            // rotateMatrix.postScale(-1F, 1F)
         } else {
             rotateMatrix.postRotate(90.0f)
-            rotateMatrix.postScale(1F, 1F)
         }
 
-        val rotateBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, rotateMatrix, false)
+        val rotateBitmap =
+            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, rotateMatrix, false)
 
         // Bitmap과 View의 비율 계산
         val bitmapRatio = rotateBitmap.width.toFloat() / rotateBitmap.height.toFloat()
