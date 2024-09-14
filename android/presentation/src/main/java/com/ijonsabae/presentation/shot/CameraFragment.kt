@@ -59,11 +59,7 @@ class CameraFragment :
     /** A [SurfaceView] for camera preview.   */
     private lateinit var surfaceView: SurfaceView
 
-    /** Default device is CPU */
-    private var device = Device.CPU
     private var cameraSource: CameraSource? = null
-    private var poseDetector: MoveNet? = null  // MoveNet 인스턴스를 저장할 변수 추가
-    private var isClassifyPose = true
 
     /** 카메라 처리 간격을 조절하기 위한 변수 */
     private val fpsInterval = 1000 / 24 // 24 FPS에 해당하는 프레임 간격 (밀리초)
@@ -110,7 +106,6 @@ class CameraFragment :
             if (cameraSource == null) {
                 cameraSource = CameraSource(requireContext(), swingViewModel, surfaceView)
             }
-
 
             val cameraProvider = cameraProviderFuture.get()
             // 3-2. 카메라 세팅을 한다. (useCase는 bindToLifecycle에서)
@@ -351,7 +346,6 @@ class CameraFragment :
         (fragmentContext as MainActivity).hideBottomNavBar()
         initClickListener()
         initAiSetting()
-        createPoseEstimator()
         cameraSource?.resume()
 
         lifecycleScope.launch {
@@ -432,18 +426,6 @@ class CameraFragment :
     private fun initAiSetting(){
         if (cameraSource == null) {
             cameraSource = CameraSource(fragmentContext, swingViewModel, surfaceView)
-        }
-        createPoseEstimator()
-    }
-
-    private fun createPoseEstimator() {
-        // For MoveNet MultiPose, hide score and disable pose classifier as the model returns
-        // multiple Person instances.
-        val poseDetector = MoveNet.create(requireContext(), device, ModelType.Lightning)
-
-        poseDetector.let { detector ->
-            this.poseDetector = detector as? MoveNet  // MoveNet 인스턴스 저장
-            cameraSource?.setDetector(detector)
         }
     }
 
