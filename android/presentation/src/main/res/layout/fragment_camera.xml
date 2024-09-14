@@ -6,290 +6,296 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".main.MainActivity">
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_camera_menu"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
         android:background="@color/black"
-        >
+        app:layout_constraintTop_toTopOf="parent">
+
         <android.widget.Button
             android:id="@+id/btn_close"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="종료"
-            android:textSize="20sp"
-            android:textColor="@color/white"
-            android:fontFamily="@font/pretendard_semibold"
             android:background="@android:color/transparent"
+            android:fontFamily="@font/pretendard_semibold"
             android:minWidth="0dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/tv_camera_title"
-            app:layout_constraintTop_toTopOf="parent"
+            android:text="종료"
+            android:textColor="@color/white"
+            android:textSize="20sp"
             app:layout_constraintBottom_toBottomOf="parent"
-            />
+            app:layout_constraintEnd_toStartOf="@id/tv_camera_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <TextView
             android:id="@+id/tv_camera_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:fontFamily="@font/pretendard_medium"
             android:gravity="center"
             android:text="스윙 촬영"
-            android:textSize="18sp"
-            android:textColor="@color/white"
-            android:fontFamily="@font/pretendard_medium"
             android:textAlignment="center"
-            app:layout_constraintStart_toEndOf="@id/btn_close"
-            app:layout_constraintEnd_toStartOf="@id/btn_camera_change"
-            app:layout_constraintTop_toTopOf="parent"
+            android:textColor="@color/white"
+            android:textSize="18sp"
             app:layout_constraintBottom_toBottomOf="parent"
-            />
+            app:layout_constraintEnd_toStartOf="@id/btn_camera_change"
+            app:layout_constraintStart_toEndOf="@id/btn_close"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <ImageButton
             android:id="@+id/btn_camera_change"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/camera_change"
             android:background="@android:color/transparent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            android:src="@drawable/camera_change"
             app:layout_constraintBottom_toBottomOf="parent"
-            />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <SurfaceView
-        android:id="@+id/camera"
+    <FrameLayout
+        android:id="@+id/layout_frame"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/layout_camera_menu"
         app:layout_constraintBottom_toBottomOf="parent"
-        />
+        app:layout_constraintTop_toBottomOf="@id/layout_camera_menu">
+
+        <SurfaceView
+            android:id="@+id/surface_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            />
+
+        <androidx.camera.view.PreviewView
+            android:id="@+id/preview_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_alert"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:paddingVertical="35dp"
-        android:paddingHorizontal="22dp"
         android:background="@color/yello_card"
+        android:paddingHorizontal="22dp"
+        android:paddingVertical="35dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="@id/layout_camera"
         app:layout_constraintEnd_toEndOf="@id/layout_camera"
-        >
+        app:layout_constraintStart_toStartOf="@id/layout_camera">
+
         <TextView
             android:id="@+id/tv_analyzing"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="스윙 영상 분석중..."
-            android:textSize="24sp"
-            android:textColor="@color/white"
             android:fontFamily="@font/pretendard_medium"
             android:gravity="center"
-            app:layout_constraintTop_toBottomOf="@id/progress_title"
+            android:text="스윙 영상 분석중..."
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:visibility="gone"/>
+            app:layout_constraintTop_toBottomOf="@id/progress_title" />
 
         <TextView
             android:id="@+id/progress_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Good-Shot"
-            android:textSize="50sp"
             android:fontFamily="@font/pretendard_semibold"
             android:gravity="center_horizontal"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/tv_alert"
+            android:text="Good-Shot"
+            android:textSize="50sp"
             android:visibility="gone"
-            />
+            app:layout_constraintBottom_toTopOf="@id/tv_alert"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/indicator_progress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/tv_analyzing"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             android:visibility="gone"
-            />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_analyzing" />
 
         <ImageView
             android:id="@+id/iv_bar"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:src="@drawable/bar"
-            app:layout_constraintTop_toTopOf="@id/tv_result_header"
-            app:layout_constraintBottom_toBottomOf="@id/tv_result_sub_header"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/tv_result_header"
             android:visibility="gone"
-            />
+            app:layout_constraintBottom_toBottomOf="@id/tv_result_sub_header"
+            app:layout_constraintEnd_toStartOf="@id/tv_result_header"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tv_result_header" />
 
         <TextView
             android:id="@+id/tv_result_header"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="스윙 분석 결과"
-            android:textSize="20sp"
-            android:textColor="@color/white"
-            android:fontFamily="@font/pretendard_semibold"
             android:layout_marginStart="17dp"
-            app:layout_constraintStart_toEndOf="@id/iv_bar"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            android:fontFamily="@font/pretendard_semibold"
+            android:text="스윙 분석 결과"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:visibility="gone"
             app:layout_constraintBottom_toTopOf="@id/tv_result_sub_header"
-            android:visibility="gone"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/iv_bar"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <TextView
             android:id="@+id/tv_result_sub_header"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="백스윙이 조금 빨라요"
-            android:textSize="25sp"
-            android:textColor="@color/white"
-            android:fontFamily="@font/pretendard_semibold"
             android:layout_marginStart="17dp"
             android:layout_marginBottom="54dp"
-            app:layout_constraintStart_toEndOf="@id/iv_bar"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_result_header"
-            app:layout_constraintBottom_toTopOf="@id/tv_circle_tempo"
+            android:fontFamily="@font/pretendard_semibold"
+            android:text="백스윙이 조금 빨라요"
+            android:textColor="@color/white"
+            android:textSize="25sp"
             android:visibility="gone"
-            />
+            app:layout_constraintBottom_toTopOf="@id/tv_circle_tempo"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/iv_bar"
+            app:layout_constraintTop_toBottomOf="@id/tv_result_header" />
+
         <TextView
             android:id="@+id/tv_circle_tempo"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
-            android:text="1.67초"
-            android:textSize="15sp"
-            android:textColor="@color/white"
-            android:gravity="center_horizontal|center_vertical"
-            android:fontFamily="@font/pretendard_semibold"
             android:background="@drawable/radius_circle_button"
             android:backgroundTint="@color/tempo_color"
+            android:fontFamily="@font/pretendard_semibold"
+            android:gravity="center_horizontal|center_vertical"
             android:padding="25dp"
-            app:layout_constraintTop_toBottomOf="@id/tv_result_sub_header"
-            app:layout_constraintBottom_toTopOf="@id/tv_title_tempo"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/tv_circle_backswing"
-            app:layout_constraintHorizontal_weight="1"
-            app:layout_constraintDimensionRatio="1:1"
-            app:layout_constraintHorizontal_chainStyle="spread_inside"
+            android:text="1.67초"
+            android:textColor="@color/white"
+            android:textSize="15sp"
             android:visibility="gone"
-            />
+            app:layout_constraintBottom_toTopOf="@id/tv_title_tempo"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toStartOf="@id/tv_circle_backswing"
+            app:layout_constraintHorizontal_chainStyle="spread_inside"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_result_sub_header" />
+
         <TextView
             android:id="@+id/tv_circle_backswing"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
-            android:text="0.67초"
-            android:textSize="15sp"
-            android:gravity="center_horizontal|center_vertical"
-            android:fontFamily="@font/pretendard_semibold"
             android:background="@drawable/radius_circle_button"
             android:backgroundTint="@color/back_swing_color"
+            android:fontFamily="@font/pretendard_semibold"
+            android:gravity="center_horizontal|center_vertical"
             android:padding="25dp"
-            app:layout_constraintTop_toTopOf="@id/tv_circle_tempo"
+            android:text="0.67초"
+            android:textSize="15sp"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@id/tv_circle_tempo"
-            app:layout_constraintStart_toEndOf="@id/tv_circle_tempo"
+            app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintEnd_toStartOf="@id/tv_circle_downswing"
             app:layout_constraintHorizontal_weight="1"
-            app:layout_constraintDimensionRatio="1:1"
-            android:visibility="gone"
-            />
+            app:layout_constraintStart_toEndOf="@id/tv_circle_tempo"
+            app:layout_constraintTop_toTopOf="@id/tv_circle_tempo" />
+
         <TextView
             android:id="@+id/tv_circle_downswing"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
-            android:text="0.40초"
-            android:textSize="15sp"
-            android:gravity="center_horizontal|center_vertical"
-            android:fontFamily="@font/pretendard_semibold"
             android:background="@drawable/radius_circle_button"
             android:backgroundTint="@color/down_swing_color"
+            android:fontFamily="@font/pretendard_semibold"
+            android:gravity="center_horizontal|center_vertical"
             android:padding="25dp"
-            app:layout_constraintTop_toTopOf="@id/tv_circle_tempo"
-            app:layout_constraintBottom_toBottomOf="@id/tv_circle_tempo"
-            app:layout_constraintStart_toEndOf="@id/tv_circle_backswing"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintDimensionRatio="1:1"
-            app:layout_constraintHorizontal_weight="1"
+            android:text="0.40초"
+            android:textSize="15sp"
             android:visibility="gone"
-            />
+            app:layout_constraintBottom_toBottomOf="@id/tv_circle_tempo"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintStart_toEndOf="@id/tv_circle_backswing"
+            app:layout_constraintTop_toTopOf="@id/tv_circle_tempo" />
 
         <TextView
             android:id="@+id/tv_title_tempo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="템포"
-            android:textSize="14sp"
-            android:textColor="@color/white"
+            android:layout_marginTop="15dp"
             android:fontFamily="@font/pretendard_semibold"
             android:gravity="center"
-            app:layout_constraintStart_toStartOf="@id/tv_circle_tempo"
-            app:layout_constraintEnd_toEndOf="@id/tv_circle_tempo"
-            app:layout_constraintTop_toBottomOf="@id/tv_circle_tempo"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginTop="15dp"
+            android:text="템포"
+            android:textColor="@color/white"
+            android:textSize="14sp"
             android:visibility="gone"
-            />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/tv_circle_tempo"
+            app:layout_constraintStart_toStartOf="@id/tv_circle_tempo"
+            app:layout_constraintTop_toBottomOf="@id/tv_circle_tempo" />
+
         <TextView
             android:id="@+id/tv_title_backswing"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="백스윙"
-            android:textSize="14sp"
-            android:textColor="@color/white"
             android:fontFamily="@font/pretendard_semibold"
             android:gravity="center"
-            app:layout_constraintStart_toStartOf="@id/tv_circle_backswing"
-            app:layout_constraintEnd_toEndOf="@id/tv_circle_backswing"
-            app:layout_constraintTop_toTopOf="@id/tv_title_tempo"
-            app:layout_constraintBottom_toBottomOf="@id/tv_title_tempo"
+            android:text="백스윙"
+            android:textColor="@color/white"
+            android:textSize="14sp"
             android:visibility="gone"
-            />
+            app:layout_constraintBottom_toBottomOf="@id/tv_title_tempo"
+            app:layout_constraintEnd_toEndOf="@id/tv_circle_backswing"
+            app:layout_constraintStart_toStartOf="@id/tv_circle_backswing"
+            app:layout_constraintTop_toTopOf="@id/tv_title_tempo" />
+
         <TextView
             android:id="@+id/tv_title_downswing"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="다운스윙"
-            android:textSize="14sp"
-            android:textColor="@color/white"
             android:fontFamily="@font/pretendard_semibold"
             android:gravity="center"
-            app:layout_constraintStart_toStartOf="@id/tv_circle_downswing"
-            app:layout_constraintEnd_toEndOf="@id/tv_circle_downswing"
-            app:layout_constraintTop_toTopOf="@id/tv_title_tempo"
-            app:layout_constraintBottom_toBottomOf="@id/tv_title_tempo"
+            android:text="다운스윙"
+            android:textColor="@color/white"
+            android:textSize="14sp"
             android:visibility="gone"
-            />
+            app:layout_constraintBottom_toBottomOf="@id/tv_title_tempo"
+            app:layout_constraintEnd_toEndOf="@id/tv_circle_downswing"
+            app:layout_constraintStart_toStartOf="@id/tv_circle_downswing"
+            app:layout_constraintTop_toTopOf="@id/tv_title_tempo" />
 
         <ImageView
             android:id="@+id/iv_alert"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/yellow_card"
             android:layout_marginEnd="5dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/tv_alert"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:src="@drawable/yellow_card"
             android:visibility="gone"
-            />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tv_alert"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
 
         <TextView
             android:id="@+id/tv_alert"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="전신이 모두 보이도록 조금 더 뒤로 가주세요!"
-            android:textSize="23sp"
-            android:textColor="@color/white"
             android:fontFamily="@font/pretendard_semibold"
             android:gravity="center_horizontal|center_vertical"
-            app:layout_constraintStart_toEndOf="@id/iv_alert"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:text="전신이 모두 보이도록 조금 더 뒤로 가주세요!"
+            android:textColor="@color/white"
+            android:textSize="23sp"
             android:visibility="gone"
-            />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/iv_alert"
+            app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

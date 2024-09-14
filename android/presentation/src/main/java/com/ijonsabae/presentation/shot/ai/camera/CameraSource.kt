@@ -26,7 +26,20 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
 import android.view.SurfaceView
+import com.ijonsabae.presentation.shot.CameraState.ADDRESS
+import com.ijonsabae.presentation.shot.CameraState.ANALYZING
+import com.ijonsabae.presentation.shot.CameraState.POSITIONING
+import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.SwingViewModel
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ANKLE
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ELBOW
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_SHOULDER
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_WRIST
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.NOSE
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_ANKLE
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_ELBOW
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_SHOULDER
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_WRIST
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
@@ -38,14 +51,11 @@ import kotlin.math.max
 class CameraSource(
     private val context: Context,
     private val swingViewModel: SwingViewModel,
-    private val surfaceView: SurfaceView
 ) {
-    private var listener: CameraSourceListener? = null
     private var lock = Any()
     private var classifier4: PoseClassifier? = null
     private var classifier8: PoseClassifier? = null
     private var detector: PoseDetector? = null
-    private var isTrackerEnabled = false
 
     init {
         // Detector
@@ -56,9 +66,6 @@ class CameraSource(
         val classifier4 = PoseClassifier.create(context, MODEL_FILENAME_4, LABELS_FILENAME_4)
         val classifier8 = PoseClassifier.create(context, MODEL_FILENAME_8, LABELS_FILENAME_8)
         setClassifier(classifier4, classifier8)
-
-        // CameraSourceListener
-        listener = CameraSourceListenerImpl(swingViewModel, poseDetector, classifier4, classifier8)
     }
 
     companion object {
@@ -73,74 +80,7 @@ class CameraSource(
         private const val LABELS_FILENAME_8 = "labels8.txt"
     }
 
-    /** Frame count that have been processed so far in an one second interval to calculate FPS. */
-    private var fpsTimer: Timer? = null
-    private var frameProcessedInOneSecondInterval = 0
-    private var framesPerSecond = 1
-
-    private var frameCount = 0
-    private val TARGET_FPS = 24
-
-//    /** Readers used as buffers for camera still shots */
-//    private var imageReader: ImageReader? = null
-
-    /*    */
-    /** The [CameraDevice] that will be opened in this fragment *//*
-    private var camera: CameraDevice? = null*/
-
-//    /** Internal reference to the ongoing [CameraCaptureSession] configured with our parameters */
-//    private var session: CameraCaptureSession? = null
-
-    /** [HandlerThread] where all buffer reading operations run */
-    private var imageReaderThread: HandlerThread? = null
-
-    /** [Handler] corresponding to [imageReaderThread] */
-    private var imageReaderHandler: Handler? = null
-
-    fun rotateBitmap(bitmap: Bitmap, width: Int, height: Int, self: Boolean): Bitmap {
-        val rotateMatrix = Matrix()
-        //rotateMatrix.postScale(1F, 1F) // y축 기준으로 이미지를 뒤집음
-//        Log.d(TAG, "rotateBitmap: bitmap ${bitmap.width} ${bitmap.height}")
-
-        if (self) {
-            rotateMatrix.postRotate(270.0f)
-            rotateMatrix.postScale(-1F, 1F)
-        } else {
-            rotateMatrix.postRotate(90.0f)
-            rotateMatrix.postScale(1F, 1F)
-        }
-
-        val rotateBitmap =
-            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, rotateMatrix, false)
-//        return rotateBitmap
-        // Bitmap과 View의 비율 계산
-        val bitmapRatio = rotateBitmap.width.toFloat() / rotateBitmap.height.toFloat()
-        val viewRatio = width.toFloat() / height.toFloat()
-
-        var croppedBitmap = rotateBitmap
-
-        // Bitmap이 View보다 가로로 길 때 (비율에 맞게 가로를 자름)
-        if (bitmapRatio > viewRatio) {
-            val newWidth = (rotateBitmap.height * viewRatio).toInt()
-            val cropStartX = (rotateBitmap.width - newWidth) / 2
-            // 가로를 자르고 중앙에 맞추기
-            croppedBitmap =
-                Bitmap.createBitmap(rotateBitmap, cropStartX, 0, newWidth, rotateBitmap.height)
-        }
-        // Bitmap이 View보다 세로로 길 때 (비율에 맞게 세로를 자름)
-        else if (bitmapRatio < viewRatio) {
-            val newHeight = (rotateBitmap.width / viewRatio).toInt()
-            val cropStartY = (rotateBitmap.height - newHeight) / 2
-            // 세로를 자르고 중앙에 맞추기
-            croppedBitmap =
-                Bitmap.createBitmap(rotateBitmap, 0, cropStartY, rotateBitmap.width, newHeight)
-        }
-
-        // 크기를 View의 크기에 맞게 확장
-        return Bitmap.createScaledBitmap(croppedBitmap, width, height, false)
-    }
-
-    fun setDetector(detector: PoseDetector) {
+    private fun setDetector(detector: PoseDetector) {
         synchronized(lock) {
             if (this.detector != null) {
                 this.detector?.close()
@@ -150,7 +90,7 @@ class CameraSource(
         }
     }
 
-    fun setClassifier(classifier4: PoseClassifier, classifier8: PoseClassifier) {
+    private fun setClassifier(classifier4: PoseClassifier, classifier8: PoseClassifier) {
         synchronized(lock) {
             if (this.classifier4 != null) {
                 this.classifier4?.close()
@@ -166,32 +106,7 @@ class CameraSource(
         }
     }
 
-    fun resume() {
-        imageReaderThread = HandlerThread("imageReaderThread").apply { start() }
-        imageReaderHandler = Handler(imageReaderThread!!.looper)
-        fpsTimer = Timer()
-
-        fpsTimer?.scheduleAtFixedRate(
-            object : TimerTask() {
-                override fun run() {
-                    framesPerSecond = frameProcessedInOneSecondInterval
-                    frameProcessedInOneSecondInterval = 0
-                }
-            },
-            0,
-            1000
-        )
-    }
-
-    fun pause() {
-        stopImageReaderThread()
-        fpsTimer?.cancel()
-        fpsTimer = null
-        frameProcessedInOneSecondInterval = 0
-        framesPerSecond = 0
-    }
-
-    fun destroy(){
+    fun destroy() {
         detector?.close()
         detector = null
         classifier4?.close()
@@ -201,81 +116,158 @@ class CameraSource(
     }
 
     fun processImage(bitmap: Bitmap) {
-        frameCount++
+        var poseResult: Person?
 
-        // framesPerSecond가 0이거나 TARGET_FPS보다 작으면 모든 프레임을 처리합니다.
-        val shouldProcessFrame =
-            framesPerSecond <= TARGET_FPS || frameCount % max(1, framesPerSecond / TARGET_FPS) == 0
-
-        if (shouldProcessFrame) {
-            var poseResult: Person?
-
-            synchronized(lock) {
-                // estimatePoses 에서 각 관절의 이름과 좌표가 반환됨
-                poseResult = detector?.estimatePoses(bitmap)
-            }
-
-            frameProcessedInOneSecondInterval++
-            poseResult?.let {
-                listener?.onDetectedInfo(it)
-                visualize(it, bitmap)
-            }
-        } else {
-            Log.d(TAG, "processImage: 처리 안함")
+        synchronized(lock) {
+            // estimatePoses 에서 각 관절의 이름과 좌표가 반환됨
+            poseResult = detector?.estimatePoses(bitmap)
         }
+
+//        poseResult?.let {
+//            listener?.onDetectedInfo(it)
+//        }
     }
 
-
-    private fun visualize(person: Person, bitmap: Bitmap) {
-        val personList = if (person.score > MIN_CONFIDENCE) listOf(person) else listOf()
-        Log.d(TAG, "visualize: drawPerson: $personList")
-        val outputBitmap = VisualizationUtils.drawBodyKeypoints(
-            bitmap,
-            personList,
-            isTrackerEnabled
-        )
+    /****************************************************/
+    /****************************************************/
+    /****************************************************/
+    /****************************************************/
 
 
-        val holder = surfaceView.holder
-        val surfaceCanvas = holder.lockCanvas()
-        surfaceCanvas?.let { canvas ->
-            val screenWidth: Int
-            val screenHeight: Int
-            val left: Int
-            val top: Int
-
-            if (canvas.height > canvas.width) {
-                val ratio = outputBitmap.height.toFloat() / outputBitmap.width
-                screenWidth = canvas.width
-                left = 0
-                screenHeight = (canvas.width * ratio).toInt()
-                top = (canvas.height - screenHeight) / 2
-            } else {
-                val ratio = outputBitmap.width.toFloat() / outputBitmap.height
-                screenHeight = canvas.height
-                top = 0
-                screenWidth = (canvas.height * ratio).toInt()
-                left = (canvas.width - screenWidth) / 2
-            }
-            val right: Int = left + screenWidth
-            val bottom: Int = top + screenHeight
-
-            canvas.drawBitmap(
-                outputBitmap, Rect(0, 0, outputBitmap.width, outputBitmap.height),
-                Rect(0, 0, right, bottom), null
-            )
-            surfaceView.holder.unlockCanvasAndPost(canvas)
-        }
-    }
-
-    private fun stopImageReaderThread() {
-        imageReaderThread?.quitSafely()
-        try {
-            imageReaderThread?.join()
-            imageReaderThread = null
-            imageReaderHandler = null
-        } catch (e: InterruptedException) {
-            Log.d(TAG, e.message.toString())
-        }
-    }
+//// 여기서
+//    fun onDetectedInfo(person: Person) {
+//        val currentTime = System.currentTimeMillis()
+//        if (currentTime - lastExecutionTime >= 1000) {
+//            lastExecutionTime = currentTime
+//            processDetectedInfo(person)
+//        }
+//    }
+//
+//    private var lastLogTime = 0L
+//
+//    private fun logWithThrottle(message: String) {
+//        val currentTime = System.currentTimeMillis()
+//        if (currentTime - lastLogTime >= 1000) { // 1초 이상 지났는지 확인
+//            Log.d("싸피", message)
+//            lastLogTime = currentTime
+//        }
+//    }
+//
+//    /**
+//     * TODO: 좌타일 경우 좌우 관절을 뒤집어야 합니다. 얼굴은 빼구요
+//     * estimatePoses()에서 뒤집으면 그릴 때도 반대로 그려줘서 추론때만 반대로 써서 판단해야 해요
+//     **/
+//    private fun processDetectedInfo(person: Person) {
+//        val point = person.keyPoints
+//
+//        // 5. 스윙의 마지막 동작 체크 (손목 y변화 감지해서 변곡점이 스윙 마무리라고 판단)
+//        if (swingViewModel.currentState.value == SWING &&
+//            point[LEFT_WRIST.position].coordinate.x < point[LEFT_SHOULDER.position].coordinate.x &&
+//            point[LEFT_WRIST.position].coordinate.x < point[LEFT_SHOULDER.position].coordinate.x &&
+//            isIncreasing().not()
+//        ) {
+//            swingViewModel.setCurrentState(ANALYZING)
+//            val swingData = extractSwing()
+//
+//            if (swingData != null) {
+//                // TODO: 8개 프레임 분석하기
+//
+//                // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
+//
+//                // TODO: 영상 메모리에 올리기
+//
+//                // TODO: 영상 서버에 저장하기 (비동기)
+//
+//                // TODO: 스윙 분석 결과 표시 (일정시간)
+//
+//            } else {
+//                // TODO: 다시 스윙해주세요 표시 (일정시간)
+//
+//            }
+//        }
+//
+//        // 4. 스윙하는 동안은 안내 메세지 안변하도록 유지
+//        if (swingViewModel.currentState.value == SWING &&
+//            ((point[LEFT_ELBOW.position].coordinate.x > point[LEFT_SHOULDER.position].coordinate.x) ||
+//                    (point[RIGHT_ELBOW.position].coordinate.x < point[RIGHT_SHOULDER.position].coordinate.x))
+//        ) return
+//
+//        // 1. 몸 전체가 카메라 화면에 들어오는지 체크
+//        if ((point[NOSE.position].score) < 0.3 ||
+//            (point[LEFT_ANKLE.position].score) < 0.3 ||
+//            (point[RIGHT_ANKLE.position].score < 0.3)
+//        ) {
+//            swingViewModel.setCurrentState(POSITIONING)
+//        }
+//        // 2. 어드레스 자세 체크
+//        else if ((point[LEFT_WRIST.position].coordinate.y > point[LEFT_ELBOW.position].coordinate.y &&
+//                    point[RIGHT_WRIST.position].coordinate.y > point[RIGHT_ELBOW.position].coordinate.y &&
+//                    point[LEFT_WRIST.position].coordinate.x >= point[LEFT_SHOULDER.position].coordinate.x &&
+//                    point[LEFT_WRIST.position].coordinate.x <= point[RIGHT_SHOULDER.position].coordinate.x &&
+//                    point[RIGHT_WRIST.position].coordinate.x <= point[RIGHT_SHOULDER.position].coordinate.x &&
+//                    point[RIGHT_WRIST.position].coordinate.x >= point[LEFT_SHOULDER.position].coordinate.x).not()
+//        ) {
+//            swingViewModel.setCurrentState(ADDRESS)
+//        }
+//        // 3. 스윙해주세요!
+//        else {
+//            swingViewModel.setCurrentState(SWING)
+//        }
+//    }
+//
+//    /**
+//     * (스윙 영상 + 영상에 그려줄 관절 좌표)와 8동작의 프레임을 반환
+//     */
+//    private fun extractSwing(): Unit? {
+//        val queuedData = poseDetector?.getQueuedData()
+//
+//        // 큐에는 최대 72개의 데이터가 들어있음 -> 최대 24fps 제한이므로 3초 이상의 데이터임
+//        val imagesWithTimestampList = queuedData?.first?.reversed()
+//        val jointDataList = queuedData?.second?.reversed()
+//
+//        if (imagesWithTimestampList == null || jointDataList == null) {
+//            return null
+//        }
+//
+//        // 1. 대표적인 8개의 프레임 뽑기
+//        for (joint in jointDataList) {
+////            classifier4.classify()
+//        }
+//
+//        // TODO: 8개 프레임이 안뽑힐 경우 null 반환
+//
+//        // 2. 영상 만들기
+//
+//        return null
+//    }
+//
+//    // 손목의 y축 좌표가 상승하는 추세인지 보는 함수
+//    private fun isIncreasing(): Boolean {
+//        poseDetector?.let { detector ->
+//            val (_, jointData) = detector.getQueuedData()
+//
+//            // 데이터가 20개 미만이면 추세를 판단할 수 없음
+//            if (jointData.size < 20) {
+//                return false
+//            }
+//
+//            // 최대 20개의 최근 데이터 사용 <- 여기서 보는 데이터의 개수가 스윙 영상이 피니쉬의 어디까지 녹화될지 영향을 줌
+//            val recentJointData = jointData.takeLast(20.coerceAtMost(jointData.size))
+//
+//            // 각 프레임에서 오른쪽 손목의 y 좌표를 추출
+//            val wristYCoordinates = recentJointData.mapNotNull { frame ->
+//                frame.find { it.bodyPart == RIGHT_WRIST }?.coordinate?.y
+//            }
+//
+//            // y 좌표가 전반적으로 감소하는지 확인 (화면 상단으로 갈수록 y 값이 작아짐)
+//            for (i in 1 until wristYCoordinates.size) {
+//                if (wristYCoordinates[i] >= wristYCoordinates[i - 1]) {
+//                    return false // 증가하거나 같은 경우가 있으면 상승 추세가 아님
+//                }
+//            }
+//            return true // 모든 비교에서 감소했다면 상승 추세임
+//        }
+//        return false // poseDetector가 null인 경우
+//
+//    }
 }
