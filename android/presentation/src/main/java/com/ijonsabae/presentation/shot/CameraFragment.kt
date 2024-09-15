@@ -141,21 +141,30 @@ class CameraFragment :
                         lifecycleScope.launch(Dispatchers.Default) {
                             val person = cameraSource?.processImage(rotatedBitmap)
                             person?.let {
-                                val outputBitmap = VisualizationUtils.drawBodyKeypoints(
-                                    Bitmap.createBitmap(
-                                        binding.layoutCanvas.width,
-                                        binding.layoutCanvas.height,
-                                        Bitmap.Config.ARGB_8888
-                                    ),
-                                    listOf(it)
-                                )
-                                withContext(Dispatchers.Main) {
-                                    updateCanvasWithBitmap(outputBitmap)
+                                if (it.score > MIN_CONFIDENCE) {
+                                    val outputBitmap = VisualizationUtils.drawBodyKeypoints(
+                                        Bitmap.createBitmap(
+                                            binding.layoutCanvas.width,
+                                            binding.layoutCanvas.height,
+                                            Bitmap.Config.ARGB_8888
+                                        ),
+                                        listOf(it)
+                                    )
+                                    withContext(Dispatchers.Main) {
+                                        updateCanvasWithBitmap(outputBitmap)
+                                    }
+                                } else {
+                                    requireActivity().runOnUiThread {
+                                        // binding.layoutCanvas에 관절 아무것도 그리지 말기
+                                        binding.layoutCanvas.removeAllViews()
+                                        binding.layoutCanvas.invalidate()
+                                    }
                                 }
                             }
                         }
                         image.close()
                     }
+
                 }
 
             camera = cameraProvider.bindToLifecycle(
@@ -177,14 +186,15 @@ class CameraFragment :
     }
 
     private fun updateCanvasWithBitmap(bitmap: Bitmap) {
-        val imageView = binding.layoutCanvas.getChildAt(0) as? ImageView ?: ImageView(context).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT
-            )
-            scaleType = ImageView.ScaleType.FIT_CENTER
-            binding.layoutCanvas.addView(this)
-        }
+        val imageView =
+            binding.layoutCanvas.getChildAt(0) as? ImageView ?: ImageView(context).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT
+                )
+                scaleType = ImageView.ScaleType.FIT_CENTER
+                binding.layoutCanvas.addView(this)
+            }
         imageView.setImageBitmap(bitmap)
     }
 
