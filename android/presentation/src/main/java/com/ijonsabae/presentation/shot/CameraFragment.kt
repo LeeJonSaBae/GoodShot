@@ -121,20 +121,13 @@ class CameraFragment :
 
             val imageAnalyzer = ImageAnalysis
                 .Builder()
-                .setTargetResolution(
-                    Size(
-                        binding.previewView.width,
-                        binding.previewView.height
-                    )
-                )// 원하는 해상도 설정
+                .setTargetResolution(Size(480, 640)) // 원하는 해상도 설정
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
                 .also { analysis ->
                     analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
                         val rotatedBitmap = getRotateBitmap(
                             image.toBitmap(),
-                            binding.previewView.width,
-                            binding.previewView.height,
                             isSelf
                         )
 
@@ -198,47 +191,22 @@ class CameraFragment :
         imageView.setImageBitmap(bitmap)
     }
 
-
-    private fun getRotateBitmap(bitmap: Bitmap, width: Int, height: Int, self: Boolean): Bitmap {
+    private fun getRotateBitmap(bitmap: Bitmap, self: Boolean): Bitmap {
         val rotateMatrix = Matrix()
 
+        // 회전 설정
         if (self) {
             rotateMatrix.postRotate(270.0f)
-            // 전면 카메라 화면은 좌우 반전 되서 들어와서 좌우 반전 필요, but estimatePoses 수행시 한번 더 뒤집어야 하기 때문에 반전 불필요
-            // rotateMatrix.postScale(-1F, 1F)
         } else {
             rotateMatrix.postRotate(90.0f)
         }
 
-        val rotateBitmap =
-            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, rotateMatrix, false)
-
-        // Bitmap과 View의 비율 계산
-        val bitmapRatio = rotateBitmap.width.toFloat() / rotateBitmap.height.toFloat()
-        val viewRatio = width.toFloat() / height.toFloat()
-
-        var croppedBitmap = rotateBitmap
-
-        // Bitmap이 View보다 가로로 길 때 (비율에 맞게 가로를 자름)
-        if (bitmapRatio > viewRatio) {
-            val newWidth = (rotateBitmap.height * viewRatio).toInt()
-            val cropStartX = (rotateBitmap.width - newWidth) / 2
-            // 가로를 자르고 중앙에 맞추기
-            croppedBitmap =
-                Bitmap.createBitmap(rotateBitmap, cropStartX, 0, newWidth, rotateBitmap.height)
-        }
-        // Bitmap이 View보다 세로로 길 때 (비율에 맞게 세로를 자름)
-        else if (bitmapRatio < viewRatio) {
-            val newHeight = (rotateBitmap.width / viewRatio).toInt()
-            val cropStartY = (rotateBitmap.height - newHeight) / 2
-            // 세로를 자르고 중앙에 맞추기
-            croppedBitmap =
-                Bitmap.createBitmap(rotateBitmap, 0, cropStartY, rotateBitmap.width, newHeight)
-        }
-
-        // 크기를 View의 크기에 맞게 확장
-        return Bitmap.createScaledBitmap(croppedBitmap, width, height, false)
+        // 비트맵 회전
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, rotateMatrix, false)
     }
+
+
+
 
     private fun initObservers() {
         swingViewModel.currentState.observe(viewLifecycleOwner) { state ->

@@ -222,6 +222,7 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
             jointQueue.add(adjustedKeyPoints)
         }
 
+//        Log.d("NoseCoord", "NoseCood x =${adjustedKeyPoints.get(0).coordinate.x} , y = ${adjustedKeyPoints.get(0).coordinate.y}")
         return Person(keyPoints = adjustedKeyPoints, score = totalScore / numKeyPoints)
     }
 
