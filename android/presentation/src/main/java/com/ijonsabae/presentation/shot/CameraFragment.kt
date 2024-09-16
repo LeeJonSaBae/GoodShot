@@ -25,6 +25,9 @@ import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
@@ -47,6 +50,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.math.roundToInt
 
 private const val TAG = "CameraFragment_싸피"
 
@@ -61,6 +66,7 @@ class CameraFragment :
     private var cameraController: CameraControl? = null
 
     private val swingViewModel by activityViewModels<SwingViewModel>()
+    private val lastAnalysisTimestamp = AtomicLong(0L)
 
     private var cameraSource: CameraSource? = null
 
@@ -119,13 +125,31 @@ class CameraFragment :
                 CameraSelector.DEFAULT_BACK_CAMERA
             }
 
-            val imageAnalyzer = ImageAnalysis
-                .Builder()
-                .setTargetResolution(Size(480, 640)) // 원하는 해상도 설정
+            val imageAnalyzer = ImageAnalysis.Builder()
+                .setResolutionSelector(
+                    ResolutionSelector.Builder()
+                        .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+                        .setResolutionStrategy(
+                            ResolutionStrategy(
+                                Size(480, 640),
+                                ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER
+                            )
+                        )
+                        .build()
+                )
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
                 .also { analysis ->
                     analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
+                        // 성능 분석 로깅
+                        val currentTimestamp = System.currentTimeMillis()
+                        val lastTimestamp = lastAnalysisTimestamp.getAndSet(currentTimestamp)
+                        if (lastTimestamp != 0L) {
+                            val deltaTime = currentTimestamp - lastTimestamp
+                            val fps = 1000.0 / deltaTime
+                            Log.d("CameraAnalyzer", "Current FPS: ${fps.roundToInt()}")
+                        }
+
                         val rotatedBitmap = getRotateBitmap(
                             image.toBitmap(),
                             isSelf
@@ -157,7 +181,6 @@ class CameraFragment :
                         }
                         image.close()
                     }
-
                 }
 
             camera = cameraProvider.bindToLifecycle(
@@ -204,8 +227,6 @@ class CameraFragment :
         // 비트맵 회전
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, rotateMatrix, false)
     }
-
-
 
 
     private fun initObservers() {
