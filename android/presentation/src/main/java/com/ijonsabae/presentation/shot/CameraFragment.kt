@@ -7,6 +7,7 @@ import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.Shader
 import android.graphics.Typeface
+import android.hardware.camera2.CaptureRequest
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.style.CharacterStyle
@@ -14,12 +15,16 @@ import android.text.style.StyleSpan
 import android.text.style.UpdateAppearance
 
 import android.util.Log
+import android.util.Range
 import android.util.Size
 import android.view.View
 import android.view.ViewGroup.LayoutParams
 import android.widget.ImageView
 import android.widget.LinearLayout
+import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.camera2.interop.Camera2Interop
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
@@ -113,11 +118,23 @@ class CameraFragment :
         }, ContextCompat.getMainExecutor(fragmentContext))
     }
 
+    @OptIn(ExperimentalCamera2Interop::class)
     private fun cameraSetting() {
         try {
             cameraProvider.unbindAll()
 
-            val preview = Preview.Builder().build()
+            // 카메라 30 프레임 고정
+            val preview = Preview.Builder()
+                .let { builder ->
+                    Camera2Interop.Extender(builder).apply {
+                        setCaptureRequestOption(
+                            CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,
+                            Range(30, 30)
+                        )
+                    }
+                    builder
+                }
+                .build()
 
             val cameraSelector = if (isSelf) {
                 CameraSelector.DEFAULT_FRONT_CAMERA
