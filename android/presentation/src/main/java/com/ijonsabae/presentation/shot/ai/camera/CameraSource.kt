@@ -32,15 +32,8 @@ import com.ijonsabae.presentation.shot.CameraState.ANALYZING
 import com.ijonsabae.presentation.shot.CameraState.POSITIONING
 import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.SwingViewModel
-import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ANKLE
-import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ELBOW
-import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_SHOULDER
-import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_WRIST
-import com.ijonsabae.presentation.shot.ai.data.BodyPart.NOSE
-import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_ANKLE
-import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_ELBOW
-import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_SHOULDER
-import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_WRIST
+import com.ijonsabae.presentation.shot.ai.data.BodyPart
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.*
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
@@ -169,7 +162,7 @@ class CameraSource(
             var poseResult: Person?
 
             synchronized(lock) {
-                poseResult = detector?.estimatePoses(bitmap, isSelf)
+                poseResult = detector?.estimatePoses(bitmap)
             }
 
             frameProcessedInOneSecondInterval++
@@ -251,9 +244,9 @@ class CameraSource(
     private fun processDetectedInfo(
         person: Person,
         isSelf: Boolean = true,
-        isLeft: Boolean = false
+        isLeft: Boolean = true
     ) {
-        val keyPoints = if (isSelf != isLeft) {
+        val keyPoints = if (isSelf!= isLeft) {
             mirrorKeyPoints(person.keyPoints)
         } else {
             person.keyPoints
@@ -261,7 +254,7 @@ class CameraSource(
 
         // 5. 스윙의 마지막 동작 체크 (손목 y변화 감지해서 변곡점이 스윙 마무리라고 판단)
         if (swingViewModel.currentState.value == SWING &&
-            keyPoints[LEFT_WRIST.position].coordinate.x < keyPoints[LEFT_SHOULDER.position].coordinate.x &&
+            keyPoints[LEFT_WRIST.position].coordinate.x > keyPoints[LEFT_SHOULDER.position].coordinate.x &&
             isIncreasing().not()
         ) {
             swingViewModel.setCurrentState(ANALYZING)
@@ -287,8 +280,8 @@ class CameraSource(
 
         // 4. 스윙하는 동안은 안내 메세지 안변하도록 유지
         if (swingViewModel.currentState.value == SWING &&
-            ((keyPoints[LEFT_ELBOW.position].coordinate.x > keyPoints[LEFT_SHOULDER.position].coordinate.x) ||
-                    (keyPoints[RIGHT_ELBOW.position].coordinate.x < keyPoints[RIGHT_SHOULDER.position].coordinate.x))
+            ((keyPoints[LEFT_ELBOW.position].coordinate.x < keyPoints[LEFT_SHOULDER.position].coordinate.x) ||
+                    (keyPoints[RIGHT_ELBOW.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x))
         ) return
 
         // 1. 몸 전체가 카메라 화면에 들어오는지 체크
@@ -301,10 +294,10 @@ class CameraSource(
         // 2. 어드레스 자세 체크
         else if ((keyPoints[LEFT_WRIST.position].coordinate.y > keyPoints[LEFT_ELBOW.position].coordinate.y &&
                     keyPoints[RIGHT_WRIST.position].coordinate.y > keyPoints[RIGHT_ELBOW.position].coordinate.y &&
-                    keyPoints[LEFT_WRIST.position].coordinate.x >= keyPoints[LEFT_SHOULDER.position].coordinate.x &&
-                    keyPoints[LEFT_WRIST.position].coordinate.x <= keyPoints[RIGHT_SHOULDER.position].coordinate.x &&
-                    keyPoints[RIGHT_WRIST.position].coordinate.x <= keyPoints[RIGHT_SHOULDER.position].coordinate.x &&
-                    keyPoints[RIGHT_WRIST.position].coordinate.x >= keyPoints[LEFT_SHOULDER.position].coordinate.x).not()
+                    keyPoints[LEFT_WRIST.position].coordinate.x <= keyPoints[LEFT_SHOULDER.position].coordinate.x &&
+                    keyPoints[LEFT_WRIST.position].coordinate.x >= keyPoints[RIGHT_SHOULDER.position].coordinate.x &&
+                    keyPoints[RIGHT_WRIST.position].coordinate.x >= keyPoints[RIGHT_SHOULDER.position].coordinate.x &&
+                    keyPoints[RIGHT_WRIST.position].coordinate.x <= keyPoints[LEFT_SHOULDER.position].coordinate.x).not()
         ) {
             swingViewModel.setCurrentState(ADDRESS)
         }
@@ -316,10 +309,31 @@ class CameraSource(
 
     fun mirrorKeyPoints(keyPoints: List<KeyPoint>): List<KeyPoint> {
         return keyPoints.map { keyPoint ->
-            keyPoint.copy(
-                coordinate = PointF(1f - keyPoint.coordinate.x, keyPoint.coordinate.y)
+            val mirroredBodyPart = when (keyPoint.bodyPart) {
+                LEFT_EYE -> RIGHT_EYE
+                RIGHT_EYE -> LEFT_EYE
+                LEFT_EAR -> RIGHT_EAR
+                RIGHT_EAR -> LEFT_EAR
+                LEFT_SHOULDER -> RIGHT_SHOULDER
+                RIGHT_SHOULDER -> LEFT_SHOULDER
+                LEFT_ELBOW -> RIGHT_ELBOW
+                RIGHT_ELBOW -> LEFT_ELBOW
+                LEFT_WRIST -> RIGHT_WRIST
+                RIGHT_WRIST -> LEFT_WRIST
+                LEFT_HIP -> RIGHT_HIP
+                RIGHT_HIP -> LEFT_HIP
+                LEFT_KNEE -> RIGHT_KNEE
+                RIGHT_KNEE -> LEFT_KNEE
+                LEFT_ANKLE -> RIGHT_ANKLE
+                RIGHT_ANKLE -> LEFT_ANKLE
+                else -> keyPoint.bodyPart // NOSE는 그대로 유지
+            }
+            KeyPoint(
+                bodyPart = mirroredBodyPart,
+                coordinate = PointF(1f - keyPoint.coordinate.x, keyPoint.coordinate.y),
+                score = keyPoint.score
             )
-        }
+        }.sortedBy { it.bodyPart.position }
     }
 
     /**
@@ -328,7 +342,6 @@ class CameraSource(
     private fun extractSwing(): Unit? {
         val queuedData = (detector as? MoveNet)?.getQueuedData()
 
-        // 큐에는 최대 72개의 데이터가 들어있음 -> 최대 24fps 제한이므로 3초 이상의 데이터임
         val imagesWithTimestampList = queuedData?.first?.reversed()
         val jointDataList = queuedData?.second?.reversed()
 
@@ -376,4 +389,16 @@ class CameraSource(
         }
         return false // poseDetector가 null인 경우
     }
+
+    private var lastLogTime = 0L
+
+    private fun logWithThrottle(message: String) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastLogTime >= 1000) { // 1초 이상 지났는지 확인
+            Log.d("싸피", message)
+            lastLogTime = currentTime
+        }
+    }
+
+
 }

@@ -85,7 +85,6 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
     }
 
     private var cropRegion: RectF? = null
-    private var lastInferenceTimeNanos: Long = -1
     private val inputWidth = interpreter.getInputTensor(0).shape()[1]
     private val inputHeight = interpreter.getInputTensor(0).shape()[2]
     private var outputShape: IntArray = interpreter.getOutputTensor(0).shape()
@@ -96,7 +95,7 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
         return Pair(images, joints)
     }
 
-    override fun estimatePoses(bitmap: Bitmap, isSelf: Boolean): Person {
+    override fun estimatePoses(bitmap: Bitmap): Person {
         val inferenceStartTimeNanos = SystemClock.elapsedRealtimeNanos()
 
         // 원본 Bitmap 크기 출력
@@ -203,8 +202,6 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
             // new crop region
             cropRegion = determineRectF(keyPoints, bitmap.width, bitmap.height)
         }
-        lastInferenceTimeNanos =
-            SystemClock.elapsedRealtimeNanos() - inferenceStartTimeNanos
 
         // 큐에 넣기 위한 y축 기준 반전
         var adjustedKeyPoints = keyPoints.map { keyPoint ->
@@ -214,10 +211,6 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
                 keyPoint.coordinate.y / bitmap.height
             )
             keyPoint.copy(coordinate = newCoordinate)
-        }
-
-        if(isSelf){
-            adjustedKeyPoints = swapLeftRight(adjustedKeyPoints)
         }
 
         // 패딩된 관절을 imageQueue에 추가합니다.
@@ -233,35 +226,6 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
 
         return Person(keyPoints = adjustedKeyPoints, score = totalScore / numKeyPoints)
     }
-
-    private fun swapLeftRight(keyPoints: List<KeyPoint>): List<KeyPoint> {
-        val swappedKeyPoints = MutableList(keyPoints.size) { KeyPoint(BodyPart.NOSE, PointF(), 0f) }
-
-        // NOSE는 그대로 유지
-        swappedKeyPoints[BodyPart.NOSE.position] = keyPoints[BodyPart.NOSE.position]
-
-        // 왼쪽과 오른쪽을 서로 바꿔서 할당
-        swappedKeyPoints[BodyPart.LEFT_EYE.position] = keyPoints[BodyPart.RIGHT_EYE.position]
-        swappedKeyPoints[BodyPart.RIGHT_EYE.position] = keyPoints[BodyPart.LEFT_EYE.position]
-        swappedKeyPoints[BodyPart.LEFT_EAR.position] = keyPoints[BodyPart.RIGHT_EAR.position]
-        swappedKeyPoints[BodyPart.RIGHT_EAR.position] = keyPoints[BodyPart.LEFT_EAR.position]
-        swappedKeyPoints[BodyPart.LEFT_SHOULDER.position] = keyPoints[BodyPart.RIGHT_SHOULDER.position]
-        swappedKeyPoints[BodyPart.RIGHT_SHOULDER.position] = keyPoints[BodyPart.LEFT_SHOULDER.position]
-        swappedKeyPoints[BodyPart.LEFT_ELBOW.position] = keyPoints[BodyPart.RIGHT_ELBOW.position]
-        swappedKeyPoints[BodyPart.RIGHT_ELBOW.position] = keyPoints[BodyPart.LEFT_ELBOW.position]
-        swappedKeyPoints[BodyPart.LEFT_WRIST.position] = keyPoints[BodyPart.RIGHT_WRIST.position]
-        swappedKeyPoints[BodyPart.RIGHT_WRIST.position] = keyPoints[BodyPart.LEFT_WRIST.position]
-        swappedKeyPoints[BodyPart.LEFT_HIP.position] = keyPoints[BodyPart.RIGHT_HIP.position]
-        swappedKeyPoints[BodyPart.RIGHT_HIP.position] = keyPoints[BodyPart.LEFT_HIP.position]
-        swappedKeyPoints[BodyPart.LEFT_KNEE.position] = keyPoints[BodyPart.RIGHT_KNEE.position]
-        swappedKeyPoints[BodyPart.RIGHT_KNEE.position] = keyPoints[BodyPart.LEFT_KNEE.position]
-        swappedKeyPoints[BodyPart.LEFT_ANKLE.position] = keyPoints[BodyPart.RIGHT_ANKLE.position]
-        swappedKeyPoints[BodyPart.RIGHT_ANKLE.position] = keyPoints[BodyPart.LEFT_ANKLE.position]
-
-        return swappedKeyPoints
-    }
-
-    override fun lastInferenceTimeNanos(): Long = lastInferenceTimeNanos
 
     override fun close() {
         gpuDelegate?.close()
