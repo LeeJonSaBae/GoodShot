@@ -17,6 +17,7 @@ limitations under the License.
 
 import MoveNet
 import TimestampedData
+import android.content.ContentValues
 import com.ijonsabae.presentation.shot.ai.ml.PoseClassifier
 import com.ijonsabae.presentation.shot.ai.ml.PoseDetector
 import android.content.Context
@@ -25,10 +26,18 @@ import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.PointF
 import android.graphics.Rect
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
+import android.os.Looper
+import android.provider.MediaStore
 import android.util.Log
+import android.view.PixelCopy
 import android.view.SurfaceView
+import android.view.View
+import androidx.annotation.RequiresApi
 import com.ijonsabae.presentation.shot.CameraState.ADDRESS
 import com.ijonsabae.presentation.shot.CameraState.ANALYZING
 import com.ijonsabae.presentation.shot.CameraState.POSITIONING
@@ -39,8 +48,10 @@ import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
+import java.io.OutputStream
 import java.util.LinkedList
 import java.util.Queue
+import java.util.concurrent.CountDownLatch
 import kotlin.math.max
 
 
@@ -80,7 +91,7 @@ class CameraSource(
         private const val MODEL_FILENAME_8 = "pose_classifier_8.tflite"
         private const val LABELS_FILENAME_8 = "labels8.txt"
 
-        private const val QUEUE_SIZE = 24 * 3 // 24fps * 3초 = 72
+        private const val QUEUE_SIZE = 100
     }
 
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
@@ -182,12 +193,14 @@ class CameraSource(
                         visualize(it, bitmap)
 
                         // 관절 그러진 비트맵 큐에 넣기
-                        val capturedBitmap = captureSurfaceViewToBitmap(surfaceView)
-                        val currentTime = System.currentTimeMillis()
-                        if (imageQueue.size >= QUEUE_SIZE) {
-                            imageQueue.poll()
+                        val capturedBitmap = captureSurfaceView(surfaceView)
+                        capturedBitmap?.let {
+                            val currentTime = System.currentTimeMillis()
+                            if (imageQueue.size >= QUEUE_SIZE) {
+                                imageQueue.poll()
+                            }
+                            imageQueue.offer(TimestampedData(capturedBitmap, currentTime))
                         }
-                        imageQueue.offer(TimestampedData(capturedBitmap, currentTime))
 
                         // 패딩된 관절을 imageQueue에 추가합니다.
                         if (jointQueue.size >= QUEUE_SIZE) {
@@ -206,18 +219,26 @@ class CameraSource(
         }
     }
 
-    private fun captureSurfaceViewToBitmap(surfaceView: SurfaceView): Bitmap {
-        // SurfaceView의 크기와 같은 Bitmap 생성
-        val bitmap = Bitmap.createBitmap(
-            surfaceView.width,
-            surfaceView.height,
-            Bitmap.Config.ARGB_8888
-        )
-        // Canvas 객체 생성 및 Bitmap에 연결
-        val canvas = Canvas(bitmap)
-        // SurfaceView의 내용을 Canvas에 그림
-        surfaceView.draw(canvas)
-        return bitmap
+    private fun captureSurfaceView(surfaceView: SurfaceView): Bitmap? {
+        val bitmap =
+            Bitmap.createBitmap(surfaceView.width, surfaceView.height, Bitmap.Config.ARGB_8888)
+        return try {
+            // Use a synchronous approach with a CountDownLatch
+            val latch = CountDownLatch(1)
+            var success = false
+
+            PixelCopy.request(surfaceView, bitmap, { copyResult ->
+                success = (copyResult == PixelCopy.SUCCESS)
+                latch.countDown()
+            }, Handler(Looper.getMainLooper()))
+
+            // Wait for the PixelCopy request to complete
+            latch.await()
+
+            if (success) bitmap else null
+        } catch (e: Exception) {
+            null
+        }
     }
 
     private fun visualize(person: Person, bitmap: Bitmap) {
@@ -304,7 +325,16 @@ class CameraSource(
             val swingData = extractSwing()
 
             if (swingData.size == 8) {
-                // TODO: 8개 프레임 분석하기
+                Log.d("싸피", "@@ 프레임 분석 완료")
+
+                // 8개의 비트맵을 갤러리에 저장
+                swingData.forEachIndexed { index, (imageData, _) ->
+                    val fileName = "swing_pose_${index + 1}.jpg"
+                    val uri = saveBitmapToGallery(context, imageData.data, fileName)
+                    uri?.let {
+                        Log.d("싸피", "Saved image $fileName at $it")
+                    }
+                }
 
                 // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
 
@@ -316,6 +346,7 @@ class CameraSource(
 
             } else {
                 // TODO: 다시 스윙해주세요 표시 (일정시간)
+                Log.d("싸피", "@@ 다시 스윙해주세요, ${swingData.size}")
 
             }
         }
@@ -347,6 +378,36 @@ class CameraSource(
         else {
             swingViewModel.setCurrentState(SWING)
         }
+    }
+
+
+    private fun saveBitmapToGallery(context: Context, bitmap: Bitmap, fileName: String): Uri? {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+            put(
+                MediaStore.MediaColumns.RELATIVE_PATH,
+                Environment.DIRECTORY_PICTURES + "/SwingAnalysis"
+            )
+        }
+
+        var uri: Uri? = null
+        try {
+            uri = context.contentResolver.insert(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                contentValues
+            )
+            uri?.let {
+                val outputStream: OutputStream? = context.contentResolver.openOutputStream(it)
+                outputStream?.use { stream ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("싸피", "Error saving bitmap: ${e.message}")
+        }
+
+        return uri
     }
 
     private fun mirrorKeyPoints(keyPoints: List<KeyPoint>): List<KeyPoint> {
@@ -381,15 +442,72 @@ class CameraSource(
     /**
      * 8동작의 비트맵과 관절 좌표를 반환
      */
-    private fun extractSwing(): MutableList<Pair<TimestampedData<Bitmap>, KeyPoint>> {
-        val bitmapAndKeyPoint = mutableListOf<Pair<TimestampedData<Bitmap>, KeyPoint>>()
-        val jointDataList = jointQueue.reversed()
+    private fun extractSwing(): MutableList<Pair<TimestampedData<Bitmap>, List<KeyPoint>>> {
+        val bitmapAndKeyPoint = mutableListOf<Pair<TimestampedData<Bitmap>, List<KeyPoint>>>()
+        val imageDataList = imageQueue.toList().reversed()
+        val jointDataList = jointQueue.toList().reversed()
 
-        // 대표적인 8개의 프레임 뽑기
-        for (joint in jointDataList) {
+        // 8가지 자세 리스트 (finish부터 address까지 역순)
+        val poseLabels = listOf(
+            "finish",
+            "mid-follow-through",
+            "impact",
+            "mid-downswing",
+            "top",
+            "mid-backswing",
+            "toe-up",
+            "address"
+        )
+
+        var currentPoseIndex = 0
+        var bestFrameForCurrentPose: Pair<TimestampedData<Bitmap>, List<KeyPoint>>? = null
+        var lastScore = 0f
+        var isIncreasing = true
+
+        imageDataList.zip(jointDataList).forEach { (imageData, jointData) ->
+            if (currentPoseIndex >= poseLabels.size) return@forEach
+
+            val currentLabel = poseLabels[currentPoseIndex]
+            val classifier = if (currentPoseIndex < 4) classifier8 else classifier4
+
+            val classificationResult = classifier?.classify(jointData)
+            classificationResult?.forEach {
+                if(it.first == poseLabels[currentPoseIndex])
+                Log.d("싸피", "${it.first}, ${it.second}")
+            }
+            val scoreForCurrentPose =
+                classificationResult?.find { it.first == currentLabel }?.second ?: 0f
+
+            if (scoreForCurrentPose > lastScore) {
+                bestFrameForCurrentPose = Pair(imageData, jointData)
+                lastScore = scoreForCurrentPose
+                isIncreasing = true
+            } else if (scoreForCurrentPose < lastScore && isIncreasing) {
+                if (scoreForCurrentPose > 0.3) {  // 임계값 체크
+                bestFrameForCurrentPose?.let {
+                    bitmapAndKeyPoint.add(it)
+                    currentPoseIndex++
+                    bestFrameForCurrentPose = null
+                    lastScore = 0f  // 다음 포즈를 위해 lastScore 초기화
+                    isIncreasing = true  // 다음 포즈를 위해 isIncreasing 초기화
+//                    continue@forEach  // 다음 포즈로 즉시 넘어감
+                }
+                } else {
+                    // 임계값을 넘지 못했다면 isIncreasing만 false로 설정하고 계속 진행
+                    isIncreasing = false
+                }
+            }
+
+            // 마지막 프레임에 도달했을 때 최고 스코어 담기
+            if (imageData == imageDataList.last()) {
+                if (lastScore > 0.3) {
+                    bestFrameForCurrentPose?.let { bitmapAndKeyPoint.add(it) }
+                }
+            }
         }
 
-        return bitmapAndKeyPoint
+        // 리스트를 뒤집어서 반환 (address부터 finish 순서로)
+        return bitmapAndKeyPoint.asReversed()
     }
 
     // 손목의 y축 좌표가 상승하는 추세인지 보는 함수

@@ -17,8 +17,9 @@ limitations under the License.
 */
 
 import android.content.Context
+import android.util.Log
+import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
-import com.ijonsabae.presentation.shot.ai.vo.PersonWithScore
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.support.common.FileUtil
 
@@ -32,7 +33,11 @@ class PoseClassifier(
     companion object {
         private const val CPU_NUM_THREADS = 4
 
-        fun create(context: Context, modelFileName : String, labelsFileName : String): PoseClassifier {
+        fun create(
+            context: Context,
+            modelFileName: String,
+            labelsFileName: String
+        ): PoseClassifier {
             val options = Interpreter.Options().apply {
                 numThreads = CPU_NUM_THREADS
             }
@@ -47,25 +52,22 @@ class PoseClassifier(
         }
     }
 
-    // 8개 포즈와의 유사도와 관절 좌표들을 함께 반환하도록 바꾸어야 합니다.
-    fun classify(person: Person): PersonWithScore? {
-//        // Preprocess the pose estimation result to a flat array
-//        val inputVector = FloatArray(input[1])
-//        person?.keyPoints?.forEachIndexed { index, keyPoint ->
-//            inputVector[index * 3] = keyPoint.coordinate.y
-//            inputVector[index * 3 + 1] = keyPoint.coordinate.x
-//            inputVector[index * 3 + 2] = keyPoint.score
-//        }
-//
-//        // Postprocess the model output to human readable class names
-//        val outputTensor = FloatArray(output[1])
-//        interpreter.run(arrayOf(inputVector), arrayOf(outputTensor))
-//        val output = mutableListOf<Pair<String, Float>>()
-//        outputTensor.forEachIndexed { index, score ->
-//            output.add(Pair(labels[index], score))
-//        }
-//        return output
-        return null
+    fun classify(keyPoints: List<KeyPoint>): MutableList<Pair<String, Float>> {
+        // Preprocess the pose estimation result to a flat array
+        val inputVector = FloatArray(input[1])
+        keyPoints.forEachIndexed { index, keyPoint ->
+            inputVector[index * 2] = keyPoint.coordinate.x
+            inputVector[index * 2 + 1] = keyPoint.coordinate.y
+        }
+
+        // Postprocess the model output to human readable class names
+        val outputTensor = FloatArray(output[1])
+        interpreter.run(arrayOf(inputVector), arrayOf(outputTensor))
+        val output = mutableListOf<Pair<String, Float>>()
+        outputTensor.forEachIndexed { index, score ->
+            output.add(Pair(labels[index], score))
+        }
+        return output
     }
 
     fun close() {
