@@ -230,19 +230,8 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
             jointQueue.add(adjustedKeyPoints) // 큐의 맨 뒤에 새 비트맵 추가
         }
 
-        logWithThrottle("${adjustedKeyPoints[BodyPart.LEFT_WRIST.position].coordinate}")
 
         return Person(keyPoints = adjustedKeyPoints, score = totalScore / numKeyPoints)
-    }
-
-    private var lastLogTime = 0L
-
-    private fun logWithThrottle(message: String) {
-        val currentTime = System.currentTimeMillis()
-        if (currentTime - lastLogTime >= 1000) { // 1초 이상 지났는지 확인
-            Log.d("싸피", message)
-            lastLogTime = currentTime
-        }
     }
 
     private fun swapLeftRight(keyPoints: List<KeyPoint>): List<KeyPoint> {
