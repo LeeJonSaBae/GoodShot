@@ -16,10 +16,12 @@ limitations under the License.
 
 
 import MoveNet
+import TimestampedData
 import com.ijonsabae.presentation.shot.ai.ml.PoseClassifier
 import com.ijonsabae.presentation.shot.ai.ml.PoseDetector
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.PointF
 import android.graphics.Rect
@@ -32,12 +34,13 @@ import com.ijonsabae.presentation.shot.CameraState.ANALYZING
 import com.ijonsabae.presentation.shot.CameraState.POSITIONING
 import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.SwingViewModel
-import com.ijonsabae.presentation.shot.ai.data.BodyPart
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.*
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
+import java.util.LinkedList
+import java.util.Queue
 import kotlin.math.max
 
 
@@ -50,6 +53,9 @@ class CameraSource(
     private var classifier4: PoseClassifier? = null
     private var classifier8: PoseClassifier? = null
     private var detector: PoseDetector? = null
+
+    val imageQueue: Queue<TimestampedData<Bitmap>> = LinkedList()
+    val jointQueue: Queue<List<KeyPoint>> = LinkedList()
 
     init {
         // Detector
@@ -73,6 +79,8 @@ class CameraSource(
         private const val LABELS_FILENAME_4 = "labels4.txt"
         private const val MODEL_FILENAME_8 = "pose_classifier_8.tflite"
         private const val LABELS_FILENAME_8 = "labels8.txt"
+
+        private const val QUEUE_SIZE = 24 * 3 // 24fps * 3초 = 72
     }
 
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
@@ -90,6 +98,12 @@ class CameraSource(
 
     // 이전 실행 시간으로부터 최소 1초 지나야 실행
     private var lastExecutionTime = 0L
+
+    fun getQueuedData(): Pair<List<Pair<Bitmap, Long>>, List<List<KeyPoint>>> {
+        val images = imageQueue.toList().map { Pair(it.data, it.timestamp) }
+        val joints = jointQueue.toList()
+        return Pair(images, joints)
+    }
 
     fun getRotateBitmap(bitmap: Bitmap, self: Boolean): Bitmap {
         val rotateMatrix = Matrix()
@@ -163,24 +177,53 @@ class CameraSource(
 
             synchronized(lock) {
                 poseResult = detector?.estimatePoses(bitmap)
+                poseResult?.let {
+                    if (it.score > MIN_CONFIDENCE) {
+                        visualize(it, bitmap)
+
+                        // 관절 그러진 비트맵 큐에 넣기
+                        val capturedBitmap = captureSurfaceViewToBitmap(surfaceView)
+                        val currentTime = System.currentTimeMillis()
+                        if (imageQueue.size >= QUEUE_SIZE) {
+                            imageQueue.poll()
+                        }
+                        imageQueue.offer(TimestampedData(capturedBitmap, currentTime))
+
+                        // 패딩된 관절을 imageQueue에 추가합니다.
+                        if (jointQueue.size >= QUEUE_SIZE) {
+                            jointQueue.poll()
+                        }
+                        jointQueue.offer(it.keyPoints) // 큐의 맨 뒤에 새 비트맵 추가
+
+                        onDetectedInfo(it)
+                    }
+                }
             }
 
             frameProcessedInOneSecondInterval++
-            poseResult?.let {
-                visualize(it, bitmap)
-                onDetectedInfo(it)
-            }
         } else {
             Log.d(TAG, "processImage: 처리 안함")
         }
     }
 
+    private fun captureSurfaceViewToBitmap(surfaceView: SurfaceView): Bitmap {
+        // SurfaceView의 크기와 같은 Bitmap 생성
+        val bitmap = Bitmap.createBitmap(
+            surfaceView.width,
+            surfaceView.height,
+            Bitmap.Config.ARGB_8888
+        )
+        // Canvas 객체 생성 및 Bitmap에 연결
+        val canvas = Canvas(bitmap)
+        // SurfaceView의 내용을 Canvas에 그림
+        surfaceView.draw(canvas)
+        return bitmap
+    }
+
     private fun visualize(person: Person, bitmap: Bitmap) {
-        val personList = if (person.score > MIN_CONFIDENCE) listOf(person) else listOf()
-        Log.d(TAG, "visualize: drawPerson: $personList")
         val outputBitmap = VisualizationUtils.drawBodyKeypoints(
             bitmap,
-            personList,
+            listOf(person),
         )
 
         val holder = surfaceView.holder
@@ -244,9 +287,9 @@ class CameraSource(
     private fun processDetectedInfo(
         person: Person,
         isSelf: Boolean = true,
-        isLeft: Boolean = true
+        isLeft: Boolean = false
     ) {
-        val keyPoints = if (isSelf!= isLeft) {
+        val keyPoints = if (isSelf != isLeft) {
             mirrorKeyPoints(person.keyPoints)
         } else {
             person.keyPoints
@@ -258,10 +301,9 @@ class CameraSource(
             isIncreasing().not()
         ) {
             swingViewModel.setCurrentState(ANALYZING)
-            Log.d("가나다", "스윙분석중@@@@@ ")
             val swingData = extractSwing()
 
-            if (swingData != null) {
+            if (swingData.size == 8) {
                 // TODO: 8개 프레임 분석하기
 
                 // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
@@ -307,7 +349,7 @@ class CameraSource(
         }
     }
 
-    fun mirrorKeyPoints(keyPoints: List<KeyPoint>): List<KeyPoint> {
+    private fun mirrorKeyPoints(keyPoints: List<KeyPoint>): List<KeyPoint> {
         return keyPoints.map { keyPoint ->
             val mirroredBodyPart = when (keyPoint.bodyPart) {
                 LEFT_EYE -> RIGHT_EYE
@@ -337,42 +379,31 @@ class CameraSource(
     }
 
     /**
-     * (스윙 영상 + 영상에 그려줄 관절 좌표)와 8동작의 프레임을 반환
+     * 8동작의 비트맵과 관절 좌표를 반환
      */
-    private fun extractSwing(): Unit? {
-        val queuedData = (detector as? MoveNet)?.getQueuedData()
+    private fun extractSwing(): MutableList<Pair<TimestampedData<Bitmap>, KeyPoint>> {
+        val bitmapAndKeyPoint = mutableListOf<Pair<TimestampedData<Bitmap>, KeyPoint>>()
+        val jointDataList = jointQueue.reversed()
 
-        val imagesWithTimestampList = queuedData?.first?.reversed()
-        val jointDataList = queuedData?.second?.reversed()
-
-        if (imagesWithTimestampList == null || jointDataList == null) {
-            return null
-        }
-
-        // 1. 대표적인 8개의 프레임 뽑기
+        // 대표적인 8개의 프레임 뽑기
         for (joint in jointDataList) {
-//            classifier4.classify()
         }
 
-        // TODO: 8개 프레임이 안뽑힐 경우 null 반환
-
-        // 2. 영상 만들기
-
-        return null
+        return bitmapAndKeyPoint
     }
 
     // 손목의 y축 좌표가 상승하는 추세인지 보는 함수
     private fun isIncreasing(): Boolean {
-        (detector as? MoveNet)?.let { detector ->
-            val (_, jointData) = detector.getQueuedData()
+        (detector as? MoveNet)?.let {
+            val jointData = jointQueue.toList()
 
-            // 데이터가 20개 미만이면 추세를 판단할 수 없음
-            if (jointData.size < 20) {
+            // 데이터가 15개 미만이면 추세를 판단할 수 없음
+            if (jointData.size < 15) {
                 return false
             }
 
-            // 최대 20개의 최근 데이터 사용 <- 여기서 보는 데이터의 개수가 스윙 영상이 피니쉬의 어디까지 녹화될지 영향을 줌
-            val recentJointData = jointData.takeLast(20.coerceAtMost(jointData.size))
+            // 최대 15개의 최근 데이터 사용 <- 여기서 보는 데이터의 개수가 스윙 영상이 피니쉬의 어디까지 녹화될지 영향을 줌
+            val recentJointData = jointData.takeLast(15.coerceAtMost(jointData.size))
 
             // 각 프레임에서 오른쪽 손목의 y 좌표를 추출
             val wristYCoordinates = recentJointData.mapNotNull { frame ->
@@ -381,8 +412,8 @@ class CameraSource(
 
             // y 좌표가 전반적으로 감소하는지 확인 (화면 상단으로 갈수록 y 값이 작아짐)
             for (i in 1 until wristYCoordinates.size) {
-                if (wristYCoordinates[i] >= wristYCoordinates[i - 1]) {
-                    return false // 증가하거나 같은 경우가 있으면 상승 추세가 아님
+                if (wristYCoordinates[i] > wristYCoordinates[i - 1]) {
+                    return false
                 }
             }
             return true // 모든 비교에서 감소했다면 상승 추세임

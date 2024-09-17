@@ -29,17 +29,12 @@ enum class ModelType {
     Thunder
 }
 
-// 전역 변수로 imageQueue 생성
-val imageQueue: Queue<TimestampedData<Bitmap>> = LinkedList()
-val jointQueue: Queue<List<KeyPoint>> = LinkedList()
-
 class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: GpuDelegate?) :
 
     PoseDetector {
     companion object {
         private const val MIN_CROP_KEYPOINT_SCORE = .2f
         private const val CPU_NUM_THREADS = 4
-        private const val QUEUE_SIZE = 24 * 3 // 24fps * 3초 = 72
 
         // Parameters that control how large crop region should be expanded from previous frames'
         // body keypoints.
@@ -89,14 +84,7 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
     private val inputHeight = interpreter.getInputTensor(0).shape()[2]
     private var outputShape: IntArray = interpreter.getOutputTensor(0).shape()
 
-    fun getQueuedData(): Pair<List<Pair<Bitmap, Long>>, List<List<KeyPoint>>> {
-        val images = imageQueue.toList().map { Pair(it.data, it.timestamp) }
-        val joints = jointQueue.toList()
-        return Pair(images, joints)
-    }
-
     override fun estimatePoses(bitmap: Bitmap): Person {
-        val inferenceStartTimeNanos = SystemClock.elapsedRealtimeNanos()
 
         // 원본 Bitmap 크기 출력
         Log.d("BitmapSize", "Original Bitmap: width = ${bitmap.width}, height = ${bitmap.height}")
@@ -120,12 +108,6 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
             0f, // 세로는 그대로
             null
         )
-        // 패딩된 비트맵을 imageQueue에 추가
-        val currentTime = System.currentTimeMillis()
-        if (imageQueue.size >= QUEUE_SIZE) {
-            imageQueue.poll()
-        }
-        imageQueue.offer(TimestampedData(paddedBitmap, currentTime))
 
 
         if (cropRegion == null) {
@@ -212,17 +194,6 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
             )
             keyPoint.copy(coordinate = newCoordinate)
         }
-
-        // 패딩된 관절을 imageQueue에 추가합니다.
-        if (jointQueue.size < QUEUE_SIZE) {
-            // 큐의 길이가 QUEUE_SIZE 미만이면 큐에 비트맵 추가
-            jointQueue.add(adjustedKeyPoints)
-        } else {
-            // 큐의 길이가 QUEUE_SIZE에 도달하면 맨 앞의 비트맵을 제거하고 새 비트맵을 추가
-            jointQueue.poll() // 큐의 맨 앞 요소 제거
-            jointQueue.add(adjustedKeyPoints) // 큐의 맨 뒤에 새 비트맵 추가
-        }
-
 
         return Person(keyPoints = adjustedKeyPoints, score = totalScore / numKeyPoints)
     }
