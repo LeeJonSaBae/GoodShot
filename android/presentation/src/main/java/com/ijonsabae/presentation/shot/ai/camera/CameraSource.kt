@@ -21,7 +21,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.Rect
-import android.hardware.camera2.CameraDevice
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
@@ -31,7 +30,6 @@ import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
 import java.util.Timer
-import java.util.TimerTask
 import kotlin.math.max
 
 
@@ -45,8 +43,6 @@ class CameraSource(
     private var classifier4: PoseClassifier? = null
     private var classifier8: PoseClassifier? = null
     private var detector: PoseDetector? = null
-    private var isTrackerEnabled = false
-
     init {
         // Detector
         val poseDetector = MoveNet.create(context, Device.CPU, ModelType.Lightning)
@@ -74,22 +70,11 @@ class CameraSource(
     }
 
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
-    private var fpsTimer: Timer? = null
     private var frameProcessedInOneSecondInterval = 0
     private var framesPerSecond = 1
 
     private var frameCount = 0
-    private val TARGET_FPS = 24
-
-//    /** Readers used as buffers for camera still shots */
-//    private var imageReader: ImageReader? = null
-
-    /*    */
-    /** The [CameraDevice] that will be opened in this fragment *//*
-    private var camera: CameraDevice? = null*/
-
-//    /** Internal reference to the ongoing [CameraCaptureSession] configured with our parameters */
-//    private var session: CameraCaptureSession? = null
+    private val TARGET_FPS = 60
 
     /** [HandlerThread] where all buffer reading operations run */
     private var imageReaderThread: HandlerThread? = null
@@ -97,7 +82,7 @@ class CameraSource(
     /** [Handler] corresponding to [imageReaderThread] */
     private var imageReaderHandler: Handler? = null
 
-    fun getRotateBitmap(bitmap: Bitmap, width: Int, height: Int, self: Boolean): Bitmap {
+    fun getRotateBitmap(bitmap: Bitmap, self: Boolean): Bitmap {
         val rotateMatrix = Matrix()
 
         if (self) {
@@ -105,40 +90,13 @@ class CameraSource(
             rotateMatrix.postScale(-1F, 1F)
         } else {
             rotateMatrix.postRotate(90.0f)
-            rotateMatrix.postScale(1F, 1F)
         }
 
-        val rotateBitmap =
-            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, rotateMatrix, false)
-//        return rotateBitmap
-        // Bitmap과 View의 비율 계산
-        val bitmapRatio = rotateBitmap.width.toFloat() / rotateBitmap.height.toFloat()
-        val viewRatio = width.toFloat() / height.toFloat()
-
-        var croppedBitmap = rotateBitmap
-
-        // Bitmap이 View보다 가로로 길 때 (비율에 맞게 가로를 자름)
-        if (bitmapRatio > viewRatio) {
-            val newWidth = (rotateBitmap.height * viewRatio).toInt()
-            val cropStartX = (rotateBitmap.width - newWidth) / 2
-            // 가로를 자르고 중앙에 맞추기
-            croppedBitmap =
-                Bitmap.createBitmap(rotateBitmap, cropStartX, 0, newWidth, rotateBitmap.height)
-        }
-        // Bitmap이 View보다 세로로 길 때 (비율에 맞게 세로를 자름)
-        else if (bitmapRatio < viewRatio) {
-            val newHeight = (rotateBitmap.width / viewRatio).toInt()
-            val cropStartY = (rotateBitmap.height - newHeight) / 2
-            // 세로를 자르고 중앙에 맞추기
-            croppedBitmap =
-                Bitmap.createBitmap(rotateBitmap, 0, cropStartY, rotateBitmap.width, newHeight)
-        }
-
-        // 크기를 View의 크기에 맞게 확장
-        return Bitmap.createScaledBitmap(croppedBitmap, width, height, false)
+        // 비트맵 회전
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, rotateMatrix, false)
     }
 
-    fun setDetector(detector: PoseDetector) {
+    private fun setDetector(detector: PoseDetector) {
         synchronized(lock) {
             if (this.detector != null) {
                 this.detector?.close()
@@ -148,7 +106,7 @@ class CameraSource(
         }
     }
 
-    fun setClassifier(classifier4: PoseClassifier, classifier8: PoseClassifier) {
+    private fun setClassifier(classifier4: PoseClassifier, classifier8: PoseClassifier) {
         synchronized(lock) {
             if (this.classifier4 != null) {
                 this.classifier4?.close()
@@ -167,29 +125,15 @@ class CameraSource(
     fun resume() {
         imageReaderThread = HandlerThread("imageReaderThread").apply { start() }
         imageReaderHandler = Handler(imageReaderThread!!.looper)
-        fpsTimer = Timer()
-
-        fpsTimer?.scheduleAtFixedRate(
-            object : TimerTask() {
-                override fun run() {
-                    framesPerSecond = frameProcessedInOneSecondInterval
-                    frameProcessedInOneSecondInterval = 0
-                }
-            },
-            0,
-            1000
-        )
     }
 
     fun pause() {
         stopImageReaderThread()
-        fpsTimer?.cancel()
-        fpsTimer = null
         frameProcessedInOneSecondInterval = 0
         framesPerSecond = 0
     }
 
-    fun destroy(){
+    fun destroy() {
         detector?.close()
         detector = null
         classifier4?.close()
@@ -230,9 +174,7 @@ class CameraSource(
         val outputBitmap = VisualizationUtils.drawBodyKeypoints(
             bitmap,
             personList,
-            isTrackerEnabled
         )
-
 
         val holder = surfaceView.holder
         val surfaceCanvas = holder.lockCanvas()

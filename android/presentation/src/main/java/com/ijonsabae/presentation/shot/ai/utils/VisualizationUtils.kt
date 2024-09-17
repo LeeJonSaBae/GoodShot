@@ -60,7 +60,6 @@ object VisualizationUtils {
     fun drawBodyKeypoints(
         input: Bitmap,
         persons: List<Person>,
-        isTrackerEnabled: Boolean = false
     ): Bitmap {
         val width = input.width
         val height = input.height
