@@ -62,17 +62,10 @@ class CameraFragment :
     /** A [SurfaceView] for camera preview.   */
     private lateinit var surfaceView: SurfaceView
 
-    /** Default device is CPU */
-    private var device = Device.CPU
     private var cameraSource: CameraSource? = null
-    private var poseDetector: MoveNet? = null  // MoveNet 인스턴스를 저장할 변수 추가
 
 
-    /** 카메라 처리 간격을 조절하기 위한 변수 */
-    private val fpsInterval = 1000 / 24 // 24 FPS에 해당하는 프레임 간격 (밀리초)
-    private var lastAnalyzedTimestamp = 0L
-
-    private lateinit var cameraProviderFuture : ListenableFuture<ProcessCameraProvider>
+    private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
     private lateinit var cameraProvider: ProcessCameraProvider
     private var isSelf = true
 
@@ -114,9 +107,9 @@ class CameraFragment :
             val cameraProvider = cameraProviderFuture.get()
             // 3-2. 카메라 세팅을 한다. (useCase는 bindToLifecycle에서)
             // CameraSelector는 카메라 세팅을 맡는다.(전면, 후면 카메라)
-            val cameraSelector = if(isSelf){
+            val cameraSelector = if (isSelf) {
                 CameraSelector.DEFAULT_FRONT_CAMERA
-            }else{
+            } else {
                 CameraSelector.DEFAULT_BACK_CAMERA
             }
             try {
@@ -138,21 +131,22 @@ class CameraFragment :
                         analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
                             cameraSource?.let {
                                 it.processImage(
-                                    it.rotateBitmap(image.toBitmap(),surfaceView.width, surfaceView.height, isSelf)  // 이미지 처리 함수 호출
-                                )  // 이미지 처리 함수 호출
-                            }
-                            val currentTimestamp = System.currentTimeMillis()
-                            if (currentTimestamp - lastAnalyzedTimestamp >= fpsInterval) {
-                                lastAnalyzedTimestamp = currentTimestamp
-                                cameraSource?.processImage(
-                                    cameraSource!!.rotateBitmap(
+                                    it.rotateBitmap(
                                         image.toBitmap(),
                                         surfaceView.width,
                                         surfaceView.height,
-                                        true
-                                    )
-                                )
+                                        isSelf
+                                    )  // 이미지 처리 함수 호출
+                                )  // 이미지 처리 함수 호출
                             }
+                            cameraSource?.processImage(
+                                cameraSource!!.rotateBitmap(
+                                    image.toBitmap(),
+                                    surfaceView.width,
+                                    surfaceView.height,
+                                    true
+                                )
+                            )
                             image.close()
                         }
                     }
@@ -181,7 +175,6 @@ class CameraFragment :
         (fragmentContext as MainActivity).hideBottomNavBar()
         initClickListener()
         initAiSetting()
-        createPoseEstimator()
         cameraSource?.resume()
 
         lifecycleScope.launch {
@@ -222,7 +215,7 @@ class CameraFragment :
             var text: String
             var color: Int
             when (state) {
-                POSITIONING ->{
+                POSITIONING -> {
                     binding.tvAlert.visibility = View.VISIBLE
                     binding.ivAlert.visibility = View.VISIBLE
 
@@ -243,6 +236,7 @@ class CameraFragment :
                     text = "전신이 모두 보이도록 조금 더 뒤로 가주세요!!"
                     color = ContextCompat.getColor(fragmentContext, R.color.yello_card)
                 }
+
                 ADDRESS -> {
                     binding.tvAlert.visibility = View.VISIBLE
                     binding.ivAlert.visibility = View.VISIBLE
@@ -264,6 +258,7 @@ class CameraFragment :
                     text = "어드레스 자세를 잡아주세요!"
                     color = ContextCompat.getColor(fragmentContext, R.color.address_color)
                 }
+
                 SWING -> {
                     binding.tvAlert.visibility = View.VISIBLE
                     binding.ivAlert.visibility = View.VISIBLE
@@ -286,6 +281,7 @@ class CameraFragment :
                     text = "스윙해주세요!"
                     color = ContextCompat.getColor(fragmentContext, R.color.swing_color)
                 }
+
                 ANALYZING -> {
                     binding.tvAlert.visibility = View.VISIBLE
                     binding.ivAlert.visibility = View.GONE
@@ -314,7 +310,11 @@ class CameraFragment :
                     val spannableText = SpannableString(binding.progressTitle.text)
 
                     // 그라디언트 적용을 위한 Custom Span 클래스 생성
-                    class GradientSpan(private val startColor: Int, private val midColor: Int, private val endColor: Int) : CharacterStyle(),
+                    class GradientSpan(
+                        private val startColor: Int,
+                        private val midColor: Int,
+                        private val endColor: Int
+                    ) : CharacterStyle(),
                         UpdateAppearance {
                         override fun updateDrawState(textPaint: android.text.TextPaint) {
                             val width = textPaint.measureText(spannableText.toString())
@@ -330,7 +330,20 @@ class CameraFragment :
                     // SpannableString에 그라디언트 Span 적용 (전체 텍스트에 적용)
                     spannableText.apply {
                         setSpan(
-                            GradientSpan(ContextCompat.getColor(fragmentContext, R.color.swing_inference_gradient_gray), ContextCompat.getColor(fragmentContext, R.color.swing_inference_gradient_mid_green), ContextCompat.getColor(fragmentContext, R.color.swing_inference_gradient_end_green)),
+                            GradientSpan(
+                                ContextCompat.getColor(
+                                    fragmentContext,
+                                    R.color.swing_inference_gradient_gray
+                                ),
+                                ContextCompat.getColor(
+                                    fragmentContext,
+                                    R.color.swing_inference_gradient_mid_green
+                                ),
+                                ContextCompat.getColor(
+                                    fragmentContext,
+                                    R.color.swing_inference_gradient_end_green
+                                )
+                            ),
                             0, spannableText.length, 0
                         )
                         setSpan(StyleSpan(Typeface.ITALIC), 0, this.length, 0)
@@ -343,6 +356,7 @@ class CameraFragment :
                         show()
                     }
                 }
+
                 RESULT -> {
                     binding.tvAlert.visibility = View.GONE
                     binding.ivAlert.visibility = View.GONE
@@ -371,16 +385,16 @@ class CameraFragment :
         }
     }
 
-    private fun initClickListener(){
-        binding.btnCameraChange.setOnClickListener{
+    private fun initClickListener() {
+        binding.btnCameraChange.setOnClickListener {
             cameraProvider.unbindAll()
 
             try {
                 // 새로운 카메라를 바인딩
                 isSelf = !isSelf
-                val cameraSelector = if(isSelf){
+                val cameraSelector = if (isSelf) {
                     CameraSelector.DEFAULT_FRONT_CAMERA
-                }else{
+                } else {
                     CameraSelector.DEFAULT_BACK_CAMERA
                 }
 
@@ -398,7 +412,12 @@ class CameraFragment :
                         analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
                             cameraSource?.let {
                                 it.processImage(
-                                    it.rotateBitmap(image.toBitmap(),surfaceView.width, surfaceView.height, isSelf)  // 이미지 처리 함수 호출
+                                    it.rotateBitmap(
+                                        image.toBitmap(),
+                                        surfaceView.width,
+                                        surfaceView.height,
+                                        isSelf
+                                    )  // 이미지 처리 함수 호출
                                 )  // 이미지 처리 함수 호출
                             }
 
@@ -413,26 +432,14 @@ class CameraFragment :
                 Log.e("CameraSwitch", "Failed to bind camera use cases", exc)
             }
         }
-        binding.btnClose.setOnClickListener{
+        binding.btnClose.setOnClickListener {
             navController.navigate(R.id.action_camera_to_shot)
         }
     }
 
-    private fun initAiSetting(){
+    private fun initAiSetting() {
         if (cameraSource == null) {
             cameraSource = CameraSource(fragmentContext, swingViewModel, surfaceView)
-        }
-        createPoseEstimator()
-    }
-
-    private fun createPoseEstimator() {
-        // For MoveNet MultiPose, hide score and disable pose classifier as the model returns
-        // multiple Person instances.
-        val poseDetector = MoveNet.create(requireContext(), device, ModelType.Lightning)
-
-        poseDetector.let { detector ->
-            this.poseDetector = detector as? MoveNet  // MoveNet 인스턴스 저장
-            cameraSource?.setDetector(detector)
         }
     }
 }
