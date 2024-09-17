@@ -45,7 +45,7 @@ class CameraSource(
     private var detector: PoseDetector? = null
     init {
         // Detector
-        val poseDetector = MoveNet.create(context, Device.CPU, ModelType.Lightning)
+        val poseDetector = MoveNet.create(context, Device.NNAPI, ModelType.Lightning)
         setDetector(poseDetector)
 
         // Classifier
