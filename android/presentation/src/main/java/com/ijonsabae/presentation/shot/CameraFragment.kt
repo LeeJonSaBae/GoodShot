@@ -1,7 +1,5 @@
 package com.ijonsabae.presentation.shot
 
-import ModelType
-import MoveNet
 import android.Manifest
 import android.graphics.LinearGradient
 import android.graphics.Shader
@@ -21,7 +19,6 @@ import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -39,7 +36,6 @@ import com.ijonsabae.presentation.shot.CameraState.POSITIONING
 import com.ijonsabae.presentation.shot.CameraState.RESULT
 import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.ai.camera.CameraSource
-import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.flex.FoldingStateActor
 import com.ijonsabae.presentation.util.PermissionChecker
 import kotlinx.coroutines.launch
@@ -52,7 +48,6 @@ class CameraFragment :
     private lateinit var navController: NavController
     private lateinit var foldingStateActor: FoldingStateActor
     private lateinit var permissionChecker: PermissionChecker
-    private lateinit var originalLayoutParams: ConstraintLayout.LayoutParams
     private val permissionList = arrayOf(Manifest.permission.CAMERA)
     private var camera: Camera? = null
     private var cameraController: CameraControl? = null
@@ -61,9 +56,7 @@ class CameraFragment :
 
     /** A [SurfaceView] for camera preview.   */
     private lateinit var surfaceView: SurfaceView
-
     private var cameraSource: CameraSource? = null
-
 
     private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
     private lateinit var cameraProvider: ProcessCameraProvider
@@ -72,11 +65,9 @@ class CameraFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         navController = Navigation.findNavController(binding.root)
-        /******* AI 카메라 코드 시작 *******/
-        // 카메라 상태를 변경해주기 위해 옵저버 등록
+        // 스윙 상태에 따라 카메라 상태를 변경해주기 위해 옵저버 등록
         initObservers()
         surfaceView = binding.camera
-        /******* AI 카메라 코드 끝 *******/
         foldingStateActor = FoldingStateActor(WindowInfoTracker.getOrCreate(fragmentContext))
         permissionChecker = PermissionChecker(this)
         permissionChecker.setOnGrantedListener { //퍼미션 획득 성공일때
@@ -98,76 +89,64 @@ class CameraFragment :
         cameraProviderFuture.addListener({
             // 2. CameraProvier 사용 가능 여부 확인
             // 생명주기에 binding 할 수 있는 ProcessCameraProvider 객체 가져옴
-            initAiSetting()
             cameraProvider = cameraProviderFuture.get()
-            /** AI 세팅 */
-            if (cameraSource == null) {
-                cameraSource = CameraSource(requireContext(), swingViewModel, surfaceView)
-            }
-            val cameraProvider = cameraProviderFuture.get()
-            // 3-2. 카메라 세팅을 한다. (useCase는 bindToLifecycle에서)
             // CameraSelector는 카메라 세팅을 맡는다.(전면, 후면 카메라)
+            cameraSetting()
+        }, ContextCompat.getMainExecutor(fragmentContext))
+    }
+
+    private fun cameraSetting() {
+        try {
+            cameraProvider.unbindAll()
+
             val cameraSelector = if (isSelf) {
                 CameraSelector.DEFAULT_FRONT_CAMERA
             } else {
                 CameraSelector.DEFAULT_BACK_CAMERA
             }
-            try {
-                // binding 전에 binding 초기화
-                cameraProvider.unbindAll()
-                // 관절 트래킹이 더해진 View를 위한 ImageAnalysis
-                // 3-3. use case와 카메라를 생명 주기에 binding
-                val imageAnalyzer = ImageAnalysis
-                    .Builder()
-                    .setTargetResolution(
-                        Size(
-                            binding.camera.width,
-                            binding.camera.height
-                        )
-                    )// 원하는 해상도 설정
-                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                    .build()
-                    .also { analysis ->
-                        analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
-                            cameraSource?.let {
-                                it.processImage(
-                                    it.rotateBitmap(
-                                        image.toBitmap(),
-                                        surfaceView.width,
-                                        surfaceView.height,
-                                        isSelf
-                                    )  // 이미지 처리 함수 호출
-                                )  // 이미지 처리 함수 호출
-                            }
-                            cameraSource?.processImage(
-                                cameraSource!!.rotateBitmap(
+
+            val imageAnalyzer = ImageAnalysis
+                .Builder()
+                .setTargetResolution(
+                    Size(
+                        binding.camera.width,
+                        binding.camera.height
+                    )
+                )// 원하는 해상도 설정
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .build()
+                .also { analysis ->
+                    analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
+                        cameraSource?.let {
+                            it.processImage(
+                                it.getRotateBitmap(
                                     image.toBitmap(),
                                     surfaceView.width,
                                     surfaceView.height,
-                                    true
+                                    isSelf
                                 )
                             )
-                            image.close()
                         }
+                        cameraSource?.processImage(
+                            cameraSource!!.getRotateBitmap(
+                                image.toBitmap(),
+                                surfaceView.width,
+                                surfaceView.height,
+                                isSelf
+                            )
+                        )
+                        image.close()
                     }
+                }
 
-                // 3-3. use case와 카메라를 생명 주기에 binding
-                camera = cameraProvider.bindToLifecycle(
-                    this, cameraSelector, imageAnalyzer
-                )
-                cameraController = camera!!.cameraControl
-                cameraController!!.setZoomRatio(1F) // 1x Zoom
-            } catch (exc: Exception) {
-                println("에러 $exc")
-                Log.d(TAG, "startCamera: 에러 $exc")
-            }
-
-            // 4. Preview를 PreviewView에 연결한다.
-            // surfaceProvider는 데이터를 받을 준비가 되었다는 신호를 카메라에게 보내준다.
-            // setSurfaceProvider는 PreviewView에 SurfaceProvider를 제공해준다.
-//            preview.surfaceProvider = binding.camera.surfaceProvider
-            originalLayoutParams = binding.camera.layoutParams as ConstraintLayout.LayoutParams
-        }, ContextCompat.getMainExecutor(fragmentContext))
+            camera = cameraProvider.bindToLifecycle(
+                this, cameraSelector, imageAnalyzer
+            )
+            cameraController = camera!!.cameraControl
+            cameraController!!.setZoomRatio(1F) // 1x Zoom
+        } catch (exc: Exception) {
+            Log.d(TAG, "Camera Setting Error: $exc")
+        }
     }
 
     override fun onResume() {
@@ -387,51 +366,10 @@ class CameraFragment :
 
     private fun initClickListener() {
         binding.btnCameraChange.setOnClickListener {
-            cameraProvider.unbindAll()
-
-            try {
-                // 새로운 카메라를 바인딩
-                isSelf = !isSelf
-                val cameraSelector = if (isSelf) {
-                    CameraSelector.DEFAULT_FRONT_CAMERA
-                } else {
-                    CameraSelector.DEFAULT_BACK_CAMERA
-                }
-
-                val imageAnalyzer = ImageAnalysis
-                    .Builder()
-                    .setTargetResolution(
-                        Size(
-                            binding.camera.width,
-                            binding.camera.height
-                        )
-                    )// 원하는 해상도 설정
-                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                    .build()
-                    .also { analysis ->
-                        analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
-                            cameraSource?.let {
-                                it.processImage(
-                                    it.rotateBitmap(
-                                        image.toBitmap(),
-                                        surfaceView.width,
-                                        surfaceView.height,
-                                        isSelf
-                                    )  // 이미지 처리 함수 호출
-                                )  // 이미지 처리 함수 호출
-                            }
-
-                            image.close()
-                        }
-                    }
-
-                camera = cameraProvider.bindToLifecycle(
-                    this, cameraSelector, imageAnalyzer
-                )
-            } catch (exc: Exception) {
-                Log.e("CameraSwitch", "Failed to bind camera use cases", exc)
-            }
+            isSelf = !isSelf
+            cameraSetting()
         }
+
         binding.btnClose.setOnClickListener {
             navController.navigate(R.id.action_camera_to_shot)
         }

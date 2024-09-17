@@ -97,10 +97,8 @@ class CameraSource(
     /** [Handler] corresponding to [imageReaderThread] */
     private var imageReaderHandler: Handler? = null
 
-    fun rotateBitmap(bitmap: Bitmap, width: Int, height: Int, self: Boolean): Bitmap {
+    fun getRotateBitmap(bitmap: Bitmap, width: Int, height: Int, self: Boolean): Bitmap {
         val rotateMatrix = Matrix()
-        //rotateMatrix.postScale(1F, 1F) // y축 기준으로 이미지를 뒤집음
-//        Log.d(TAG, "rotateBitmap: bitmap ${bitmap.width} ${bitmap.height}")
 
         if (self) {
             rotateMatrix.postRotate(270.0f)
