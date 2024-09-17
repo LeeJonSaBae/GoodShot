@@ -142,7 +142,7 @@ class CameraSource(
         classifier8 = null
     }
 
-    fun processImage(bitmap: Bitmap) {
+    fun processImage(bitmap: Bitmap, isSelf: Boolean) {
         frameCount++
 
         // framesPerSecond가 0이거나 TARGET_FPS보다 작으면 모든 프레임을 처리합니다.
@@ -153,14 +153,13 @@ class CameraSource(
             var poseResult: Person?
 
             synchronized(lock) {
-                // estimatePoses 에서 각 관절의 이름과 좌표가 반환됨
-                poseResult = detector?.estimatePoses(bitmap)
+                poseResult = detector?.estimatePoses(bitmap, isSelf)
             }
 
             frameProcessedInOneSecondInterval++
             poseResult?.let {
-                listener?.onDetectedInfo(it)
                 visualize(it, bitmap)
+                listener?.onDetectedInfo(it)
             }
         } else {
             Log.d(TAG, "processImage: 처리 안함")

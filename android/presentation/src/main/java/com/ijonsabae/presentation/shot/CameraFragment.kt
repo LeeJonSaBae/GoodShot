@@ -139,7 +139,7 @@ class CameraFragment :
                             cameraSource!!.getRotateBitmap(
                                 image.toBitmap(),
                                 isSelf
-                            )
+                            ), isSelf
                         )
                         image.close()
                     }

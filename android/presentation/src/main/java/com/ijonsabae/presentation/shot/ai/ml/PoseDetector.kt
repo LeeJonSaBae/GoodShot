@@ -22,7 +22,7 @@ import com.ijonsabae.presentation.shot.ai.data.Person
 
 interface PoseDetector : AutoCloseable {
 
-    fun estimatePoses(bitmap: Bitmap): Person
+    fun estimatePoses(bitmap: Bitmap, isSelf: Boolean): Person
 
     fun lastInferenceTimeNanos(): Long
 }
