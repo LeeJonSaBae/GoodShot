@@ -309,18 +309,18 @@ class CameraSource(
         // 5. 스윙의 마지막 동작 체크
         if (swingViewModel.currentState.value == SWING) {
             if (startDetectionOfFinish) {
-                // if 코보다 손목 y 좌표가 내려가면 손이 3,4분면에 내려가는 거니까 다시 startdof를 false로 해준다.
+                // if 코보다 손목 y 좌표가 내려가면 손이 3,4분면에 내려가는 거니까 다시 startDetectionOfFinish를 false로 해준다.
                 if (keyPoints[NOSE.position].coordinate.y < keyPoints[RIGHT_WRIST.position].coordinate.y) {
                     startDetectionOfFinish = false
                     swingViewModel.setCurrentState(ADDRESS)
                 }
-                // elif 손목 x 좌표가 코보다 작아지면 2사분면으로 이동한거니까 startdof를 false로 하고 스윙 추출을 시작한다.
+                // elif 손목 x 좌표가 코보다 작아지면 2사분면으로 이동한거니까 startDetectionOfFinish를 false로 하고 스윙 추출을 시작한다.
                 else if (keyPoints[RIGHT_WRIST.position].coordinate.x < keyPoints[NOSE.position].coordinate.x) {
                     swingViewModel.setCurrentState(ANALYZING)
                     val swingData = extractSwing()
 
                     if (swingData.size == 8) {
-                        Log.d("싸피", "@@ 프레임 분석 완료")
+                        Log.d("싸피", "프레임 분석 완료")
 
                         // 8개의 비트맵을 갤러리에 저장
                         swingData.forEachIndexed { index, (imageData, _) ->
@@ -341,7 +341,7 @@ class CameraSource(
 
                     } else {
                         // TODO: 다시 스윙해주세요 표시 (일정시간)
-                        Log.d("싸피", "@@ 다시 스윙해주세요, ${swingData.size}")
+                        Log.d("싸피", "다시 스윙해주세요, ${swingData.size}")
                     }
                     startDetectionOfFinish = false
                     swingViewModel.setCurrentState(ADDRESS)
@@ -349,9 +349,11 @@ class CameraSource(
             } else {
                 if (keyPoints[RIGHT_WRIST.position].coordinate.x > keyPoints[NOSE.position].coordinate.x &&
                     keyPoints[RIGHT_WRIST.position].coordinate.y < keyPoints[NOSE.position].coordinate.y
-                )
+                ) {
                     startDetectionOfFinish = true
+                }
             }
+            return
         }
 
         // 4. 스윙하는 동안은 안내 메세지 안변하도록 유지
@@ -463,40 +465,34 @@ class CameraSource(
         )
 
         var currentPoseIndex = 0
-        var bestFrameForCurrentPose: Pair<TimestampedData<Bitmap>, List<KeyPoint>>? = null
         var lastScore = 0f
-        var poseIdx = 0
-        imageDataList.zip(jointDataList).forEach { (imageData, jointData) ->
+
+        loop@ for ((imageData, jointData) in imageDataList.zip(jointDataList)) {
             val currentLabel = poseLabels[currentPoseIndex]
             val classifier = if (currentPoseIndex < 4) classifier8 else classifier4
 
-            val (predictedLabel, score) = classifier?.classify(jointData) ?: Pair("", 0f)
+            val classificationResult = classifier?.classify(jointData)
+            val scoreForCurrentPose =
+                classificationResult?.find { it.first == currentLabel }?.second ?: 0f
 
-            Log.d(
-                "싸피_라벨 및 점수",
-                "${poseIdx++} - $currentPoseIndex $predictedLabel, ${
-                    String.format(
-                        "%.1f",
-                        score * 100
-                    )
-                }%"
-            )
-
-            if (predictedLabel == currentLabel && score > lastScore) {
-                bestFrameForCurrentPose = Pair(imageData, jointData)
-                lastScore = score
-            } else if (predictedLabel != currentLabel || (imageData == imageDataList.last() && bestFrameForCurrentPose != null)) {
-                if (lastScore > 0.3) {  // 임계값 체크
-                    bestFrameForCurrentPose?.let {
-                        bitmapAndKeyPoint.add(it)
-                        currentPoseIndex++
-                        bestFrameForCurrentPose = null
-                        lastScore = 0f
-                    }
-                }
+            if (scoreForCurrentPose >= lastScore) {
+                lastScore = scoreForCurrentPose
+            } else {
+                bitmapAndKeyPoint.add(Pair(imageData, jointData))
+                currentPoseIndex++
+                lastScore = 0f
             }
 
-            if (currentPoseIndex >= poseLabels.size) return@forEach
+            if (currentPoseIndex >= poseLabels.size)
+                break@loop
+        }
+
+        if ((currentPoseIndex == poseLabels.size - 1) && (lastScore != 0f)) {
+            val imageData = imageQueue.peek()
+            val jointData = jointQueue.peek()
+            if (imageData != null && jointData != null) {
+                bitmapAndKeyPoint.add(Pair(imageData, jointData))
+            }
         }
 
         // 리스트를 뒤집어서 반환 (address부터 finish 순서로)
