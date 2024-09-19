@@ -22,12 +22,10 @@ import com.ijonsabae.presentation.shot.ai.ml.PoseClassifier
 import com.ijonsabae.presentation.shot.ai.ml.PoseDetector
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.PointF
 import android.graphics.Rect
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
@@ -36,8 +34,6 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.PixelCopy
 import android.view.SurfaceView
-import android.view.View
-import androidx.annotation.RequiresApi
 import com.ijonsabae.presentation.shot.CameraState.ADDRESS
 import com.ijonsabae.presentation.shot.CameraState.ANALYZING
 import com.ijonsabae.presentation.shot.CameraState.POSITIONING
@@ -65,8 +61,10 @@ class CameraSource(
     private var classifier8: PoseClassifier? = null
     private var detector: PoseDetector? = null
 
-    val imageQueue: Queue<TimestampedData<Bitmap>> = LinkedList()
-    val jointQueue: Queue<List<KeyPoint>> = LinkedList()
+    private var startDetectionOfFinish = false
+    private val imageQueue: Queue<TimestampedData<Bitmap>> = LinkedList()
+    private val jointQueue: Queue<List<KeyPoint>> = LinkedList()
+
 
     init {
         // Detector
@@ -106,9 +104,6 @@ class CameraSource(
 
     /** [Handler] corresponding to [imageReaderThread] */
     private var imageReaderHandler: Handler? = null
-
-    // 이전 실행 시간으로부터 최소 1초 지나야 실행
-    private var lastExecutionTime = 0L
 
     fun getQueuedData(): Pair<List<Pair<Bitmap, Long>>, List<List<KeyPoint>>> {
         val images = imageQueue.toList().map { Pair(it.data, it.timestamp) }
@@ -292,11 +287,7 @@ class CameraSource(
     /****************************************************************************************/
 
     override fun onDetectedInfo(person: Person) {
-        val currentTime = System.currentTimeMillis()
-        if (currentTime - lastExecutionTime >= 1000) {
-            lastExecutionTime = currentTime
-            processDetectedInfo(person, isSelf = false)
-        }
+        processDetectedInfo(person, isSelf = false)
     }
 
     /**
@@ -315,38 +306,51 @@ class CameraSource(
             person.keyPoints
         }
 
-        // 5. 스윙의 마지막 동작 체크 (손목 y변화 감지해서 변곡점이 스윙 마무리라고 판단)
-        if (swingViewModel.currentState.value == SWING &&
-            keyPoints[LEFT_WRIST.position].coordinate.x > keyPoints[LEFT_SHOULDER.position].coordinate.x &&
-            isIncreasing().not()
-        ) {
-            swingViewModel.setCurrentState(ANALYZING)
-            val swingData = extractSwing()
-
-            if (swingData.size == 8) {
-                Log.d("싸피", "@@ 프레임 분석 완료")
-
-                // 8개의 비트맵을 갤러리에 저장
-                swingData.forEachIndexed { index, (imageData, _) ->
-                    val fileName = "swing_pose_${index + 1}.jpg"
-                    val uri = saveBitmapToGallery(context, imageData.data, fileName)
-                    uri?.let {
-                        Log.d("싸피", "Saved image $fileName at $it")
-                    }
+        // 5. 스윙의 마지막 동작 체크
+        if (swingViewModel.currentState.value == SWING) {
+            if (startDetectionOfFinish) {
+                // if 코보다 손목 y 좌표가 내려가면 손이 3,4분면에 내려가는 거니까 다시 startdof를 false로 해준다.
+                if (keyPoints[NOSE.position].coordinate.y < keyPoints[RIGHT_WRIST.position].coordinate.y) {
+                    startDetectionOfFinish = false
+                    swingViewModel.setCurrentState(ADDRESS)
                 }
+                // elif 손목 x 좌표가 코보다 작아지면 2사분면으로 이동한거니까 startdof를 false로 하고 스윙 추출을 시작한다.
+                else if (keyPoints[RIGHT_WRIST.position].coordinate.x < keyPoints[NOSE.position].coordinate.x) {
+                    swingViewModel.setCurrentState(ANALYZING)
+                    val swingData = extractSwing()
 
-                // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
+                    if (swingData.size == 8) {
+                        Log.d("싸피", "@@ 프레임 분석 완료")
 
-                // TODO: 영상 메모리에 올리기
+                        // 8개의 비트맵을 갤러리에 저장
+                        swingData.forEachIndexed { index, (imageData, _) ->
+                            val fileName = "swing_pose_${index + 1}.jpg"
+                            val uri = saveBitmapToGallery(context, imageData.data, fileName)
+                            uri?.let {
+                                Log.d("싸피", "Saved image $fileName at $it")
+                            }
+                        }
 
-                // TODO: 영상 서버에 저장하기 (비동기)
+                        // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
 
-                // TODO: 스윙 분석 결과 표시 (일정시간)
+                        // TODO: 영상 메모리에 올리기
 
+                        // TODO: 영상 서버에 저장하기 (비동기)
+
+                        // TODO: 스윙 분석 결과 표시 (일정시간)
+
+                    } else {
+                        // TODO: 다시 스윙해주세요 표시 (일정시간)
+                        Log.d("싸피", "@@ 다시 스윙해주세요, ${swingData.size}")
+                    }
+                    startDetectionOfFinish = false
+                    swingViewModel.setCurrentState(ADDRESS)
+                }
             } else {
-                // TODO: 다시 스윙해주세요 표시 (일정시간)
-                Log.d("싸피", "@@ 다시 스윙해주세요, ${swingData.size}")
-
+                if (keyPoints[RIGHT_WRIST.position].coordinate.x > keyPoints[NOSE.position].coordinate.x &&
+                    keyPoints[RIGHT_WRIST.position].coordinate.y < keyPoints[NOSE.position].coordinate.y
+                )
+                    startDetectionOfFinish = true
             }
         }
 
@@ -468,7 +472,15 @@ class CameraSource(
 
             val (predictedLabel, score) = classifier?.classify(jointData) ?: Pair("", 0f)
 
-            Log.d("싸피_라벨 및 점수", "${poseIdx++} - $currentPoseIndex $predictedLabel, ${String.format("%.1f", score * 100)}%")
+            Log.d(
+                "싸피_라벨 및 점수",
+                "${poseIdx++} - $currentPoseIndex $predictedLabel, ${
+                    String.format(
+                        "%.1f",
+                        score * 100
+                    )
+                }%"
+            )
 
             if (predictedLabel == currentLabel && score > lastScore) {
                 bestFrameForCurrentPose = Pair(imageData, jointData)
@@ -489,35 +501,6 @@ class CameraSource(
 
         // 리스트를 뒤집어서 반환 (address부터 finish 순서로)
         return bitmapAndKeyPoint.asReversed()
-    }
-
-    // 손목의 y축 좌표가 상승하는 추세인지 보는 함수
-    private fun isIncreasing(): Boolean {
-        (detector as? MoveNet)?.let {
-            val jointData = jointQueue.toList()
-
-            // 데이터가 15개 미만이면 추세를 판단할 수 없음
-            if (jointData.size < 15) {
-                return false
-            }
-
-            // 최대 15개의 최근 데이터 사용 <- 여기서 보는 데이터의 개수가 스윙 영상이 피니쉬의 어디까지 녹화될지 영향을 줌
-            val recentJointData = jointData.takeLast(15.coerceAtMost(jointData.size))
-
-            // 각 프레임에서 오른쪽 손목의 y 좌표를 추출
-            val wristYCoordinates = recentJointData.mapNotNull { frame ->
-                frame.find { it.bodyPart == RIGHT_WRIST }?.coordinate?.y
-            }
-
-            // y 좌표가 전반적으로 감소하는지 확인 (화면 상단으로 갈수록 y 값이 작아짐)
-            for (i in 1 until wristYCoordinates.size) {
-                if (wristYCoordinates[i] > wristYCoordinates[i - 1]) {
-                    return false
-                }
-            }
-            return true // 모든 비교에서 감소했다면 상승 추세임
-        }
-        return false // poseDetector가 null인 경우
     }
 
     private var lastLogTime = 0L
