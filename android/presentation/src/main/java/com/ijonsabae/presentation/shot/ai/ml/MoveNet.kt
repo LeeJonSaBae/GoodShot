@@ -181,6 +181,7 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
                         points[index * 2 + 1]
                     )
             }
+
             // new crop region
             cropRegion = determineRectF(keyPoints, bitmap.width, bitmap.height)
         }

@@ -295,7 +295,7 @@ class CameraSource(
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastExecutionTime >= 1000) {
             lastExecutionTime = currentTime
-            processDetectedInfo(person)
+            processDetectedInfo(person, isSelf = false)
         }
     }
 
@@ -461,48 +461,30 @@ class CameraSource(
         var currentPoseIndex = 0
         var bestFrameForCurrentPose: Pair<TimestampedData<Bitmap>, List<KeyPoint>>? = null
         var lastScore = 0f
-        var isIncreasing = true
-
+        var poseIdx = 0
         imageDataList.zip(jointDataList).forEach { (imageData, jointData) ->
             val currentLabel = poseLabels[currentPoseIndex]
             val classifier = if (currentPoseIndex < 4) classifier8 else classifier4
 
-            val classificationResult = classifier?.classify(jointData)
-            classificationResult?.forEach {
-                if (it.first == poseLabels[currentPoseIndex])
-                    Log.d("싸피", "${it.first}, ${it.second}")
-            }
-            val scoreForCurrentPose =
-                classificationResult?.find { it.first == currentLabel }?.second ?: 0f
+            val (predictedLabel, score) = classifier?.classify(jointData) ?: Pair("", 0f)
 
-            if (scoreForCurrentPose > lastScore) {
+            Log.d("싸피_라벨 및 점수", "${poseIdx++} - $currentPoseIndex $predictedLabel, ${String.format("%.1f", score * 100)}%")
+
+            if (predictedLabel == currentLabel && score > lastScore) {
                 bestFrameForCurrentPose = Pair(imageData, jointData)
-                lastScore = scoreForCurrentPose
-                isIncreasing = true
-            } else if (scoreForCurrentPose < lastScore && isIncreasing) {
-                if (scoreForCurrentPose > 0.3) {  // 임계값 체크
+                lastScore = score
+            } else if (predictedLabel != currentLabel || (imageData == imageDataList.last() && bestFrameForCurrentPose != null)) {
+                if (lastScore > 0.3) {  // 임계값 체크
                     bestFrameForCurrentPose?.let {
                         bitmapAndKeyPoint.add(it)
                         currentPoseIndex++
                         bestFrameForCurrentPose = null
-                        lastScore = 0f  // 다음 포즈를 위해 lastScore 초기화
-                        isIncreasing = true  // 다음 포즈를 위해 isIncreasing 초기화
-//                    continue@forEach  // 다음 포즈로 즉시 넘어감
+                        lastScore = 0f
                     }
-                } else {
-                    // 임계값을 넘지 못했다면 isIncreasing만 false로 설정하고 계속 진행
-                    isIncreasing = false
                 }
             }
 
             if (currentPoseIndex >= poseLabels.size) return@forEach
-
-            // 마지막 프레임에 도달했을 때 최고 스코어 담기
-            if (imageData == imageDataList.last()) {
-                if (lastScore > 0.3) {
-                    bestFrameForCurrentPose?.let { bitmapAndKeyPoint.add(it) }
-                }
-            }
         }
 
         // 리스트를 뒤집어서 반환 (address부터 finish 순서로)

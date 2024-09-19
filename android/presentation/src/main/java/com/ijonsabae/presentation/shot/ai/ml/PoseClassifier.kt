@@ -1,5 +1,13 @@
 package com.ijonsabae.presentation.shot.ai.ml
 
+import android.content.Context
+import android.graphics.PointF
+import android.util.Log
+import com.ijonsabae.presentation.shot.ai.data.BodyPart
+import com.ijonsabae.presentation.shot.ai.data.KeyPoint
+import org.tensorflow.lite.Interpreter
+import org.tensorflow.lite.support.common.FileUtil
+
 /* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +24,6 @@ limitations under the License.
 ==============================================================================
 */
 
-import android.content.Context
-import android.util.Log
-import com.ijonsabae.presentation.shot.ai.data.KeyPoint
-import com.ijonsabae.presentation.shot.ai.data.Person
-import org.tensorflow.lite.Interpreter
-import org.tensorflow.lite.support.common.FileUtil
 
 class PoseClassifier(
     private val interpreter: Interpreter,
@@ -51,25 +53,53 @@ class PoseClassifier(
             )
         }
     }
+    fun classify(keyPoints: List<KeyPoint>): Pair<String, Float> {
+        // 코의 위치를 기준으로 정규화
+        val noseKeyPoint = keyPoints.find { it.bodyPart == BodyPart.NOSE }
+        val normalizedKeyPoints = noseKeyPoint?.let { nose ->
+            val referenceX = 0.5572794732116567f
+            val referenceY = 0.1998999040023779f
 
-    fun classify(keyPoints: List<KeyPoint>): MutableList<Pair<String, Float>> {
+            val offsetX = referenceX - nose.coordinate.x
+            val offsetY = referenceY - nose.coordinate.y
+
+            keyPoints.map { keyPoint ->
+                KeyPoint(
+                    keyPoint.bodyPart,
+                    PointF(
+                        (keyPoint.coordinate.x + offsetX).coerceIn(0f, 1f),
+                        (keyPoint.coordinate.y + offsetY).coerceIn(0f, 1f)
+                    ),
+                    keyPoint.score
+                )
+            }
+        } ?: keyPoints
+
         // Preprocess the pose estimation result to a flat array
         val inputVector = FloatArray(input[1])
-        keyPoints.forEachIndexed { index, keyPoint ->
-            inputVector[index * 2] = keyPoint.coordinate.x
-            inputVector[index * 2 + 1] = keyPoint.coordinate.y
+        normalizedKeyPoints.forEachIndexed { index, keyPoint ->
+            inputVector[index] = keyPoint.coordinate.x
+            inputVector[index + normalizedKeyPoints.size] = keyPoint.coordinate.y
         }
 
         // Postprocess the model output to human readable class names
         val outputTensor = FloatArray(output[1])
         interpreter.run(arrayOf(inputVector), arrayOf(outputTensor))
-        val output = mutableListOf<Pair<String, Float>>()
-        outputTensor.forEachIndexed { index, score ->
-            output.add(Pair(labels[index], score))
-        }
-        return output
-    }
 
+        var maxScore = 0f
+        var predictedPoseIndex = 0
+        var predList = mutableListOf<String>()
+        outputTensor.forEachIndexed { index, score ->
+            if (score > maxScore) {
+                maxScore = score
+                predictedPoseIndex = index
+            }
+            predList.add("${labels[index]} : ${String.format("%.1f", score * 100)}%")
+        }
+
+        Log.d("분류기", "${predList.toString()}: ")
+        return Pair(labels[predictedPoseIndex], maxScore)
+    }
     fun close() {
         interpreter.close()
     }
