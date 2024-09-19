@@ -32,7 +32,4 @@ public class ApiResponse<T> {
         return of(CREATED, "CREATED", data);
     }
 
-    public static <T> ApiResponse<T> found(T data) {
-        return of(FOUND, "FOUND", data);
-    }
 }
