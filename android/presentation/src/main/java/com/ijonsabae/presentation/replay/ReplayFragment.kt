@@ -19,7 +19,6 @@ class ReplayFragment :
             setItemClickListener(
                 object : ReplayAdapter.OnItemClickListener {
                     override fun onItemClick(item: ReplayDTO) {
-//                        Toast.makeText(context, "${item.title} 클릭~!", Toast.LENGTH_SHORT).show()
                         findNavController().navigate(R.id.action_replay_to_replayReport)
                     }
 

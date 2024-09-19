@@ -63,7 +63,7 @@
         <fragment
             android:id="@+id/replay_report"
             android:name="com.ijonsabae.presentation.replay.ReplayReportFragment"
-            android:label="replay report"
+            android:label="리플레이 리포트"
             tools:layout="@layout/fragment_replay_report" />
     </navigation>
     <navigation
