@@ -189,7 +189,6 @@ class CameraSource(
             synchronized(lock) {
                 poseResult = detector?.estimatePoses(bitmap)
                 poseResult?.let {
-                    if (it.score > MIN_CONFIDENCE) {
                         visualize(it, bitmap)
 
                         // 관절 그러진 비트맵 큐에 넣기
@@ -209,7 +208,6 @@ class CameraSource(
                         jointQueue.offer(it.keyPoints) // 큐의 맨 뒤에 새 비트맵 추가
 
                         onDetectedInfo(it)
-                    }
                 }
             }
 
@@ -242,9 +240,10 @@ class CameraSource(
     }
 
     private fun visualize(person: Person, bitmap: Bitmap) {
+        val personList = if (person.score > MIN_CONFIDENCE) listOf(person) else listOf()
         val outputBitmap = VisualizationUtils.drawBodyKeypoints(
             bitmap,
-            listOf(person),
+            personList,
         )
 
         val holder = surfaceView.holder
