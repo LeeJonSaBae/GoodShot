@@ -163,7 +163,7 @@ class CameraFragment :
         cameraSource?.resume()
 
         lifecycleScope.launch {
-            foldingStateActor.checkFoldingState(
+            foldingStateActor.checkFoldingStateForCamera(
                 fragmentContext as AppCompatActivity,
                 swingViewModel.currentState.value,
                 binding.progressTitle,

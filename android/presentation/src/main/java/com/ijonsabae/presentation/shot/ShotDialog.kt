@@ -42,7 +42,7 @@ class ShotDialog : DialogFragment() {
     private fun initButtons() {
         binding.btnOk.setOnClickListener {
             saveResult()
-            navController.navigate(R.id.action_shot_dialog_to_camera)
+            navController.navigate(R.id.action_shot_dialog_to_swing_example)
         }
         binding.sbShotCnt.addOnChangeListener { slider, value, fromUser ->
             binding.tvSliderValue.text = "${value.toInt()} 회"

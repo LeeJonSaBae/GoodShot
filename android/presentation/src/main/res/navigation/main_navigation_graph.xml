@@ -31,9 +31,20 @@
             android:label="shot dialog"
             tools:layout="@layout/dialog_shot" >
             <action
-                android:id="@+id/action_shot_dialog_to_camera"
-                app:destination="@id/camera" />
+                android:id="@+id/action_shot_dialog_to_swing_example"
+                app:destination="@id/swing_example" />
         </dialog>
+
+        <fragment
+            android:id="@+id/swing_example"
+            android:name="com.ijonsabae.presentation.shot.SwingExampleFragment"
+            android:label="shot_example"
+            tools:layout="@layout/fragment_swing_example">
+
+            <action
+                android:id="@+id/action_swing_example_to_camera"
+                app:destination="@id/camera" />
+        </fragment>
 
         <fragment
             android:id="@+id/camera"
