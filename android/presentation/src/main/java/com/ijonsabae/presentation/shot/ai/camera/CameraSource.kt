@@ -309,18 +309,20 @@ class CameraSource(
         // 5. 스윙의 마지막 동작 체크
         if (swingViewModel.currentState.value == SWING) {
             if (startDetectionOfFinish) {
-                // if 코보다 손목 y 좌표가 내려가면 손이 3,4분면에 내려가는 거니까 다시 startDetectionOfFinish를 false로 해준다.
+                // if 코보다 손목 y 좌표가 내려가면 손이 3,4분면에 내려가는 거니까 다시 startdof를 false로 해준다.
                 if (keyPoints[NOSE.position].coordinate.y < keyPoints[RIGHT_WRIST.position].coordinate.y) {
+                    Log.d("싸피", "111111111111")
                     startDetectionOfFinish = false
                     swingViewModel.setCurrentState(ADDRESS)
                 }
-                // elif 손목 x 좌표가 코보다 작아지면 2사분면으로 이동한거니까 startDetectionOfFinish를 false로 하고 스윙 추출을 시작한다.
+                // elif 손목 x 좌표가 코보다 작아지면 2사분면으로 이동한거니까 startdof를 false로 하고 스윙 추출을 시작한다.
                 else if (keyPoints[RIGHT_WRIST.position].coordinate.x < keyPoints[NOSE.position].coordinate.x) {
+                    Log.d("싸피", "22222222222")
                     swingViewModel.setCurrentState(ANALYZING)
                     val swingData = extractSwing()
 
                     if (swingData.size == 8) {
-                        Log.d("싸피", "프레임 분석 완료")
+                        Log.d("싸피", "@@ 프레임 분석 완료")
 
                         // 8개의 비트맵을 갤러리에 저장
                         swingData.forEachIndexed { index, (imageData, _) ->
@@ -341,15 +343,18 @@ class CameraSource(
 
                     } else {
                         // TODO: 다시 스윙해주세요 표시 (일정시간)
-                        Log.d("싸피", "다시 스윙해주세요, ${swingData.size}")
+                        Log.d("싸피", "@@ 다시 스윙해주세요, ${swingData.size}")
                     }
                     startDetectionOfFinish = false
                     swingViewModel.setCurrentState(ADDRESS)
+                } else {
+                    Log.d("싸피", "3333333333")
                 }
             } else {
                 if (keyPoints[RIGHT_WRIST.position].coordinate.x > keyPoints[NOSE.position].coordinate.x &&
                     keyPoints[RIGHT_WRIST.position].coordinate.y < keyPoints[NOSE.position].coordinate.y
                 ) {
+                    Log.d("싸피", "44444444444")
                     startDetectionOfFinish = true
                 }
             }
@@ -466,6 +471,7 @@ class CameraSource(
 
         var currentPoseIndex = 0
         var lastScore = 0f
+        var bestPoseData: Pair<TimestampedData<Bitmap>, List<KeyPoint>>? = null
 
         loop@ for ((imageData, jointData) in imageDataList.zip(jointDataList)) {
             val currentLabel = poseLabels[currentPoseIndex]
@@ -477,10 +483,14 @@ class CameraSource(
 
             if (scoreForCurrentPose >= lastScore) {
                 lastScore = scoreForCurrentPose
+                bestPoseData = Pair(imageData, jointData)
             } else {
-                bitmapAndKeyPoint.add(Pair(imageData, jointData))
-                currentPoseIndex++
-                lastScore = 0f
+                bestPoseData?.let {
+                    bitmapAndKeyPoint.add(it)
+                    bestPoseData = null
+                    currentPoseIndex++
+                    lastScore = 0f
+                }
             }
 
             if (currentPoseIndex >= poseLabels.size)
