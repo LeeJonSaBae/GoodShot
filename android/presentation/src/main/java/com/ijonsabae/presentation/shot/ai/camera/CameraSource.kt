@@ -189,25 +189,25 @@ class CameraSource(
             synchronized(lock) {
                 poseResult = detector?.estimatePoses(bitmap)
                 poseResult?.let {
-                        visualize(it, bitmap)
+                    visualize(it, bitmap)
 
-                        // 관절 그러진 비트맵 큐에 넣기
-                        val capturedBitmap = captureSurfaceView(surfaceView)
-                        capturedBitmap?.let {
-                            val currentTime = System.currentTimeMillis()
-                            if (imageQueue.size >= QUEUE_SIZE) {
-                                imageQueue.poll()
-                            }
-                            imageQueue.offer(TimestampedData(capturedBitmap, currentTime))
+                    // 관절 그러진 비트맵 큐에 넣기
+                    val capturedBitmap = captureSurfaceView(surfaceView)
+                    capturedBitmap?.let {
+                        val currentTime = System.currentTimeMillis()
+                        if (imageQueue.size >= QUEUE_SIZE) {
+                            imageQueue.poll()
                         }
+                        imageQueue.offer(TimestampedData(capturedBitmap, currentTime))
+                    }
 
-                        // 패딩된 관절을 imageQueue에 추가합니다.
-                        if (jointQueue.size >= QUEUE_SIZE) {
-                            jointQueue.poll()
-                        }
-                        jointQueue.offer(it.keyPoints) // 큐의 맨 뒤에 새 비트맵 추가
+                    // 패딩된 관절을 imageQueue에 추가합니다.
+                    if (jointQueue.size >= QUEUE_SIZE) {
+                        jointQueue.poll()
+                    }
+                    jointQueue.offer(it.keyPoints) // 큐의 맨 뒤에 새 비트맵 추가
 
-                        onDetectedInfo(it)
+                    onDetectedInfo(it)
                 }
             }
 
@@ -306,7 +306,7 @@ class CameraSource(
      **/
     private fun processDetectedInfo(
         person: Person,
-        isSelf: Boolean = true,
+        isSelf: Boolean = false,
         isLeft: Boolean = false
     ) {
         val keyPoints = if (isSelf != isLeft) {
@@ -352,8 +352,8 @@ class CameraSource(
 
         // 4. 스윙하는 동안은 안내 메세지 안변하도록 유지
         if (swingViewModel.currentState.value == SWING &&
-            ((keyPoints[LEFT_ELBOW.position].coordinate.x < keyPoints[LEFT_SHOULDER.position].coordinate.x) ||
-                    (keyPoints[RIGHT_ELBOW.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x))
+            ((keyPoints[LEFT_WRIST.position].coordinate.x < keyPoints[LEFT_SHOULDER.position].coordinate.x) ||
+                    (keyPoints[RIGHT_WRIST.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x))
         ) return
 
         // 1. 몸 전체가 카메라 화면에 들어오는지 체크
@@ -464,15 +464,13 @@ class CameraSource(
         var isIncreasing = true
 
         imageDataList.zip(jointDataList).forEach { (imageData, jointData) ->
-            if (currentPoseIndex >= poseLabels.size) return@forEach
-
             val currentLabel = poseLabels[currentPoseIndex]
             val classifier = if (currentPoseIndex < 4) classifier8 else classifier4
 
             val classificationResult = classifier?.classify(jointData)
             classificationResult?.forEach {
-                if(it.first == poseLabels[currentPoseIndex])
-                Log.d("싸피", "${it.first}, ${it.second}")
+                if (it.first == poseLabels[currentPoseIndex])
+                    Log.d("싸피", "${it.first}, ${it.second}")
             }
             val scoreForCurrentPose =
                 classificationResult?.find { it.first == currentLabel }?.second ?: 0f
@@ -483,19 +481,21 @@ class CameraSource(
                 isIncreasing = true
             } else if (scoreForCurrentPose < lastScore && isIncreasing) {
                 if (scoreForCurrentPose > 0.3) {  // 임계값 체크
-                bestFrameForCurrentPose?.let {
-                    bitmapAndKeyPoint.add(it)
-                    currentPoseIndex++
-                    bestFrameForCurrentPose = null
-                    lastScore = 0f  // 다음 포즈를 위해 lastScore 초기화
-                    isIncreasing = true  // 다음 포즈를 위해 isIncreasing 초기화
+                    bestFrameForCurrentPose?.let {
+                        bitmapAndKeyPoint.add(it)
+                        currentPoseIndex++
+                        bestFrameForCurrentPose = null
+                        lastScore = 0f  // 다음 포즈를 위해 lastScore 초기화
+                        isIncreasing = true  // 다음 포즈를 위해 isIncreasing 초기화
 //                    continue@forEach  // 다음 포즈로 즉시 넘어감
-                }
+                    }
                 } else {
                     // 임계값을 넘지 못했다면 isIncreasing만 false로 설정하고 계속 진행
                     isIncreasing = false
                 }
             }
+
+            if (currentPoseIndex >= poseLabels.size) return@forEach
 
             // 마지막 프레임에 도달했을 때 최고 스코어 담기
             if (imageData == imageDataList.last()) {
