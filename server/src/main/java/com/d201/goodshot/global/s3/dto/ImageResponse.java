@@ -11,7 +11,7 @@ public class ImageResponse {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class PresignedUrlRes{
+    public static class PresignedUrlResponse{
         private String presignedUrl;
         private String imageUrl;
     }

@@ -6,8 +6,8 @@ import com.amazonaws.services.s3.Headers;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
-import com.d201.goodshot.global.s3.dto.ImageRequest;
-import com.d201.goodshot.global.s3.dto.ImageResponse.PresignedUrlRes;
+import com.d201.goodshot.global.s3.dto.ImageRequest.PresignedUrlRequest;
+import com.d201.goodshot.global.s3.dto.ImageResponse.PresignedUrlResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -34,12 +34,12 @@ public class S3Service {
 
     // 발급
     @Transactional(readOnly = true)
-    public PresignedUrlRes issuePresignedUrl(ImageRequest.PresignedUrlReq presignedUrlReq){
+    public PresignedUrlResponse issuePresignedUrl(PresignedUrlRequest presignedUrlReq){
 
         String imageName = folder + UUID.randomUUID() + "." + presignedUrlReq.getImageExtension().getUploadExtension();
 
         GeneratePresignedUrlRequest request = generatePresignedUrlRequest(bucket, imageName);
-        return PresignedUrlRes.builder()
+        return PresignedUrlResponse.builder()
                 .presignedUrl(amazonS3.generatePresignedUrl(request).toString())
                 .imageUrl(prefix + imageName)
                 .build();

@@ -36,7 +36,7 @@ public class ImageRequest {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class PresignedUrlReq{
+    public static class PresignedUrlRequest{
         ImageExtension imageExtension;
     }
 
