@@ -1,14 +1,19 @@
 package com.ijonsabae.presentation.replay
 
+import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.databinding.ItemSwingFlowAnalysisBinding
 
-class SwingFlowAnalysisAdapter :
+private const val TAG = "굿샷_SwingFlowAnalysisAdapter"
+
+class SwingFlowAnalysisAdapter(private val context: Context) :
     ListAdapter<SwingFlowAnalysisDTO, SwingFlowAnalysisAdapter.SwingFlowAnalysisViewHolder>(
         Comparator
     ) {
@@ -32,7 +37,13 @@ class SwingFlowAnalysisAdapter :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(position: Int) {
             val item = getItem(position)
-            Glide.with(binding.root).load(item.checkedImg).into(binding.ivSwingFlowAnalysis)
+
+            Glide.with(binding.root)
+                .load(
+                    if (item.isSuccess) context.getDrawable(R.drawable.ic_swing_report_checked)
+                    else context.getDrawable(R.drawable.ic_swing_report_unchecked)
+                )
+                .into(binding.ivSwingFlowAnalysis)
             binding.tvSwingFlowAnalysisDescription.text = item.description
         }
     }
@@ -45,5 +56,10 @@ class SwingFlowAnalysisAdapter :
 
     override fun onBindViewHolder(holder: SwingFlowAnalysisViewHolder, position: Int) {
         holder.bind(position)
+    }
+
+    fun updateData(newItems: List<SwingFlowAnalysisDTO>) {
+        submitList(newItems)
+        Log.d(TAG, "updateData: notifyDataSetChanged!")
     }
 }
