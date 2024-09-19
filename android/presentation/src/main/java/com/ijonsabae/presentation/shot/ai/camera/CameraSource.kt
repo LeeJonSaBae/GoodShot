@@ -80,7 +80,7 @@ class CameraSource(
 
     companion object {
         /** Threshold for confidence score. */
-        private const val MIN_CONFIDENCE = .2f
+        private const val MIN_CONFIDENCE = .38f
         private const val TAG = "Camera Source"
 
         /** Classifier */
