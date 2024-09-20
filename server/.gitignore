@@ -39,5 +39,6 @@ out/
 .vscode/
 
 /src/main/resources/application.yml
+/src/main/generated/
 
 .DS_Store
