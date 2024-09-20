@@ -72,7 +72,7 @@ class ReplayReportFragment :
 
         viewPager.offscreenPageLimit = 1
         viewPager.overScrollMode = RecyclerView.OVER_SCROLL_NEVER
-        val itemDecoration = HorizontalMarginItemDecoration(horizontalMarginInDp = 20)
+        val itemDecoration = HorizontalMarginItemDecoration(horizontalMarginInPx = 20)
         viewPager.addItemDecoration(itemDecoration)
         viewPager.setPageTransformer { page, position ->
             val offsetX = position * -(2 * 150) // offset 값으로 간격 조정

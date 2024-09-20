@@ -28,7 +28,8 @@ class NewsViewPagerAdapter(val context: Context) :
     inner class NewsViewHolder(private val binding: ItemNewsBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(position: Int) {
-            val item = getItem(position)
+            val actualPosition = position % currentList.size // 무한스크롤
+            val item = getItem(actualPosition)
             binding.tvNewsTitle.text = item.title
             binding.tvNewsDescription.text = item.description
             Glide.with(binding.root).load(context.resources.getDrawable(R.drawable.golf_dummy_img))
@@ -48,5 +49,9 @@ class NewsViewPagerAdapter(val context: Context) :
 
     override fun onBindViewHolder(holder: NewsViewHolder, position: Int) {
         holder.bind(position)
+    }
+
+    override fun getItemCount(): Int {
+        return return if (currentList.isEmpty()) 0 else Int.MAX_VALUE
     }
 }
