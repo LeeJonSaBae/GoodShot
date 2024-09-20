@@ -30,7 +30,14 @@ public class SecurityConfig {
                 .sessionManagement(auth -> auth.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((a) -> {
                     a.requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-                            .requestMatchers("/member/signup/**").permitAll()
+                            .requestMatchers(
+                                    "/v3/api-docs/**",
+                                    "/swagger-ui/**",
+                                    "/swagger-ui.html",
+                                    "/swagger-resources/**",
+                                    "/webjars/**"
+                            ).permitAll()
+                            .requestMatchers("/users/join/**").permitAll()
                             .anyRequest().authenticated();
                 });
 
