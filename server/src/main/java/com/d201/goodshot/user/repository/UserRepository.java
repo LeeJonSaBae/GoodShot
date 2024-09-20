@@ -1,7 +1,12 @@
 package com.d201.goodshot.user.repository;
 
+import com.d201.goodshot.user.domain.User;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserRepository{
+public interface UserRepository extends JpaRepository<User, Integer> {
+
+    boolean existsByEmail(String email);
+
 }
