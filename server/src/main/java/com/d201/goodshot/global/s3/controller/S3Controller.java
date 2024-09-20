@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/presigned")
-@Tag(name = "presigned") // controller 이름
+@Tag(name = "Presigned") // controller 이름
 public class S3Controller {
 
     private final S3Service s3Service;
