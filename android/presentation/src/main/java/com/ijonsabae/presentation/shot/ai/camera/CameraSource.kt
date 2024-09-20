@@ -15,8 +15,8 @@ limitations under the License.
 */
 
 
-import MoveNet
-import TimestampedData
+import com.ijonsabae.presentation.shot.ai.ml.MoveNet
+import com.ijonsabae.presentation.shot.ai.ml.TimestampedData
 import android.content.ContentValues
 import com.ijonsabae.presentation.shot.ai.ml.PoseClassifier
 import com.ijonsabae.presentation.shot.ai.ml.PoseDetector
@@ -40,6 +40,7 @@ import com.ijonsabae.presentation.shot.ai.data.BodyPart.*
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
+import com.ijonsabae.presentation.shot.ai.ml.ModelType
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
 import java.io.OutputStream
 import java.util.LinkedList
@@ -185,7 +186,7 @@ class CameraSource(
                         if (imageQueue.size >= QUEUE_SIZE) {
                             imageQueue.poll()
                         }
-                        imageQueue.offer(TimestampedData(capturedBitmap, currentTime))
+                        imageQueue.offer(TimestampedData(capturedBitmap, currentTime, -1))
                     }
 
                     // 패딩된 관절을 imageQueue에 추가합니다.
@@ -276,8 +277,6 @@ class CameraSource(
         }
     }
 
-    /****************************************************************************************/
-
     override fun onDetectedInfo(person: Person) {
         processDetectedInfo(person, isSelf = false)
     }
@@ -298,16 +297,17 @@ class CameraSource(
             person.keyPoints
         }
 
-        // 스윙이 마무리 되는 시점부터 10프레임 더 받기
+        // 스윙이 마무리 되는 시점부터 5프레임 더 받기
         if (swingViewModel.currentState.value == SWING && pelvisTwisting) {
             if (swingFrameCount < 5) {
                 swingFrameCount++
             } else {
                 swingViewModel.setCurrentState(ANALYZING)
-                val swingData = extractSwing()
+                val poseIndices = extractBestPoseIndices()
 
-                if (swingData.size == 8) {
-                    Log.d("싸피", "@@ 프레임 분석 완료")
+                if (validateSwingPose(poseIndices)) {
+                    val swingData = indicesToPoses(poseIndices)
+                    Log.d("싸피", "8개 프레임 추출 완료")
 
 //                    큐에 있는 60개 이미지 갤러리에 전부 저장
 //                    imageQueue.toList().forEachIndexed { index, (imageData, _) ->
@@ -337,7 +337,7 @@ class CameraSource(
 
                 } else {
                     // TODO: 다시 스윙해주세요 표시 (일정시간)
-                    Log.d("싸피", "@@ 다시 스윙해주세요, ${swingData.size}")
+                    Log.d("싸피", "다시 스윙해주세요")
                 }
 
                 swingViewModel.setCurrentState(ADDRESS)
@@ -390,6 +390,29 @@ class CameraSource(
         else {
             swingViewModel.setCurrentState(SWING)
         }
+    }
+
+    private fun indicesToPoses(indices: List<Int>): MutableList<Pair<TimestampedData<Bitmap>, List<KeyPoint>>> {
+        val poses = mutableListOf<Pair<TimestampedData<Bitmap>, List<KeyPoint>>>()
+        val jointList = jointQueue.toList().reversed()
+        val imageList = imageQueue.toList().reversed()
+        for (index in indices) {
+            poses.add(Pair(imageList[index], jointList[index]))
+        }
+        return poses
+    }
+
+    // 이미지 인덱스에 같은게 없어야 정상
+    private fun validateSwingPose(poseIndices: List<Int>): Boolean {
+        val countingArray = BooleanArray(QUEUE_SIZE) { false }
+        for (index in poseIndices) {
+            if (!countingArray[index]) {
+                countingArray[index] = true
+            } else {
+                return false
+            }
+        }
+        return true
     }
 
 
@@ -454,24 +477,19 @@ class CameraSource(
     /**
      * 8동작의 비트맵과 관절 좌표를 반환
      */
-    private fun extractSwing(): MutableList<Pair<TimestampedData<Bitmap>, List<KeyPoint>>> {
-        val bitmapAndKeyPoint = mutableListOf<Pair<TimestampedData<Bitmap>, List<KeyPoint>>>()
-        val imageDataList = imageQueue.toList().reversed()
+    private fun extractBestPoseIndices(): List<Int> {
         val jointDataList = jointQueue.toList().reversed()
-
         var poseLabelBias = 4
         var classifier = classifier8
         var modelChangeReady = false
-
         val poseIndexArray = Array(8) { Pair(0, 0f) }
 
         for ((index, jointData) in jointDataList.withIndex()) {
-
             if (jointData[RIGHT_WRIST.position].coordinate.y > jointData[RIGHT_HIP.position].coordinate.y) {
                 modelChangeReady = true
             }
 
-            // 손목이 어깨위로 올라가면 모델 교체 && vias 추가
+            // 손목이 어깨 위로 올라가면 모델 교체 && bias 추가
             if (modelChangeReady
                 && classifier == classifier8
                 && jointData[LEFT_WRIST.position].coordinate.x < jointData[RIGHT_SHOULDER.position].coordinate.x
@@ -479,29 +497,16 @@ class CameraSource(
             ) {
                 classifier = classifier4
                 poseLabelBias = 0
-                Log.d("바뀌나", "change index : ${index}")
             }
 
             val classificationResults = classifier?.classify(jointData)
             classificationResults?.forEachIndexed { poseIndex, result ->
                 if (result.second > poseIndexArray[poseIndex + poseLabelBias].second) {
                     poseIndexArray[poseIndex + poseLabelBias] = Pair(index, result.second)
-                    if (classifier == classifier4 && (poseIndex + poseLabelBias == 6)) {
-                        Log.d("바뀌나", "${result}, $index")
-                    }
                 }
             }
         }
-
-        for (extractedPosePair in poseIndexArray) {
-            bitmapAndKeyPoint.add(
-                Pair(imageDataList[extractedPosePair.first], jointDataList[extractedPosePair.first])
-            )
-            Log.d("맥스", "최대: ${extractedPosePair.first}")
-        }
-
-        // 리스트를 뒤집어서 반환 (address부터 finish 순서로)
-        return bitmapAndKeyPoint.asReversed()
+        return poseIndexArray.toList().map { it.first }
     }
 
     private var lastLogTime = 0L
@@ -513,6 +518,4 @@ class CameraSource(
             lastLogTime = currentTime
         }
     }
-
-
 }

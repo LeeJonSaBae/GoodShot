@@ -1,13 +1,13 @@
+package com.ijonsabae.presentation.shot.ai.ml
+
 import android.content.Context
 import android.graphics.*
-import android.os.SystemClock
 import android.util.Log
 import com.ijonsabae.presentation.shot.ai.data.BodyPart
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.data.TorsoAndBodyDistance
-import com.ijonsabae.presentation.shot.ai.ml.PoseDetector
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.gpu.GpuDelegate
@@ -17,13 +17,11 @@ import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.image.ops.ResizeOp
 import org.tensorflow.lite.support.image.ops.ResizeWithCropOrPadOp
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
-import java.util.LinkedList
-import java.util.Queue
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-data class TimestampedData<T>(val data: T, val timestamp: Long)
+data class TimestampedData<T>(val data: T, val timestamp: Long, val index: Int)
 enum class ModelType {
     Lightning,
     Thunder
