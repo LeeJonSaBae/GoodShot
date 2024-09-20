@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:src="@drawable/swing_example"
-        android:scaleType="fitXY"
+        android:scaleType="centerCrop"
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -28,7 +28,7 @@
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cv_replay"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@color/white"
             app:cardCornerRadius="12dp"
@@ -37,13 +37,15 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/cv_swing"
             app:layout_constraintDimensionRatio="2.28:1"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="15dp"
             >
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/layout_replay"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:paddingHorizontal="22dp"
-                android:paddingVertical="16dp"
+                android:paddingVertical="0dp"
                 >
                 <ImageView
                     android:id="@+id/iv_replay"
@@ -57,7 +59,7 @@
                     />
                 <TextView
                     android:id="@+id/tv_replay_title"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     app:layout_constraintStart_toEndOf="@id/iv_replay"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -65,8 +67,9 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     android:layout_marginStart="10dp"
                     android:fontFamily="@font/pretendard_bold"
-                    android:textSize="22sp"
+                    android:textSize="17sp"
                     android:text="다시보기"
+                    android:gravity="center_horizontal|center_vertical"
                     />
                 <TextView
                     android:id="@+id/tv_replay_description"
@@ -87,7 +90,7 @@
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cv_swing"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@color/white"
             app:cardCornerRadius="12dp"
@@ -96,13 +99,14 @@
             app:layout_constraintStart_toEndOf="@id/cv_replay"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintDimensionRatio="2.28:1"
+            android:layout_marginEnd="20dp"
             >
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/layout_swing"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:paddingHorizontal="22dp"
-                android:paddingVertical="16dp"
+                android:paddingVertical="0dp"
                 >
                 <ImageView
                     android:id="@+id/iv_swing"
@@ -116,7 +120,7 @@
                     />
                 <TextView
                     android:id="@+id/tv_swing_title"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     app:layout_constraintStart_toEndOf="@id/iv_swing"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -124,8 +128,9 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     android:layout_marginStart="10dp"
                     android:text="스윙하기"
-                    android:textSize="22sp"
+                    android:textSize="17sp"
                     android:fontFamily="@font/pretendard_bold"
+                    android:gravity="center_horizontal|center_vertical"
                     />
                 <TextView
                     android:id="@+id/tv_swing_description"

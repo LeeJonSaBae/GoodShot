@@ -8,6 +8,7 @@ import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.Dimension
 import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
@@ -16,8 +17,12 @@ import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.WRAP_CONTE
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.window.layout.DisplayFeature
 import com.ijonsabae.presentation.R
+import com.ijonsabae.presentation.shot.flex.FoldableSwingExampleUtils.moveToTopOf
+import com.ijonsabae.presentation.util.dpToPx
+import com.ijonsabae.presentation.util.spToPx
 
 object FoldableSwingExampleUtils {
     private const val TAG = "FoldableUtils 싸피"
@@ -76,6 +81,8 @@ object FoldableSwingExampleUtils {
         if(::restoreAnimation.isInitialized){ restoreAnimation.cancel() }
         menuLayout.setBackgroundColor(Color.BLACK)
 
+
+
         val height = this.height
         setExampleImageHalfAnimation = ValueAnimator.ofFloat(foldPosition.bottom - height.toFloat()).apply {
             duration = 300 // 애니메이션 지속 시간 (밀리초)
@@ -87,7 +94,7 @@ object FoldableSwingExampleUtils {
             }
             doOnEnd {
                 val view = this@moveToTopOf as ImageView
-                view.scaleType = ImageView.ScaleType.FIT_XY
+                view.scaleType = ImageView.ScaleType.CENTER_INSIDE
                 this@moveToTopOf.invalidate()
             }
         }
@@ -96,6 +103,9 @@ object FoldableSwingExampleUtils {
             duration = 300 // 애니메이션 지속 시간 (밀리초)
             interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
             val menuLayoutHeight = menuLayout.height
+
+
+
             addUpdateListener { valueAnimator ->
                 val animatedValue = valueAnimator.animatedValue as Float
                 menuLayout.layoutParams.height = (menuLayoutHeight + animatedValue).toInt()
@@ -104,12 +114,21 @@ object FoldableSwingExampleUtils {
                 replayDescription.visibility = View.VISIBLE
                 swingDescription.visibility = View.VISIBLE
 
-                swingCardView.layoutParams.height = WRAP_CONTENT
-                replayCardView.layoutParams.height = WRAP_CONTENT
+                replayLogo.layoutParams.apply {
+                    this.width = dpToPx(73F, context).toInt()
+                    this.height = dpToPx(73F, context).toInt()
+                }
+
+                swingLogo.layoutParams.apply {
+                    this.width = dpToPx(73F, context).toInt()
+                    this.height = dpToPx(73F, context).toInt()
+                }
+
+
                 ConstraintSet().apply {
                     clone(menuLayout)
-                    setDimensionRatio(swingCardView.id, null)
-                    setDimensionRatio(replayCardView.id, null)
+                    setDimensionRatio(swingCardView.id, "0.64")
+                    setDimensionRatio(replayCardView.id,"0.64")
 
                     applyTo(menuLayout)
                 }
@@ -118,7 +137,6 @@ object FoldableSwingExampleUtils {
                     clone(replayLayout)
 //                    clear(replayTitle.id)
 //                    clear(replayLogo.id)
-                    setMargin(replayTitle.id, ConstraintSet.START, 0)
 
                     connect(replayLogo.id, ConstraintSet.TOP, replayLayout.id, ConstraintSet.TOP)
                     connect(replayLogo.id, ConstraintSet.BOTTOM, replayTitle.id, ConstraintSet.TOP)
@@ -129,6 +147,13 @@ object FoldableSwingExampleUtils {
                     connect(replayTitle.id, ConstraintSet.BOTTOM, replayDescription.id, ConstraintSet.TOP)
                     connect(replayTitle.id, ConstraintSet.START, replayLayout.id, ConstraintSet.START)
                     connect(replayTitle.id, ConstraintSet.END, replayLayout.id, ConstraintSet.END)
+
+                    setMargin(replayTitle.id, ConstraintSet.START, 0)
+                    setMargin(replayTitle.id, ConstraintSet.BOTTOM, dpToPx(11F, context).toInt())
+                    setMargin(replayLogo.id, ConstraintSet.BOTTOM, dpToPx(11F, context).toInt())
+
+                    replayTitle.setTextSize(Dimension.SP, 22F)
+                    replayTitle.typeface = ResourcesCompat.getFont(context, R.font.pretendard_bold)
 
                     applyTo(replayLayout)
                 }
@@ -147,6 +172,13 @@ object FoldableSwingExampleUtils {
                     connect(swingTitle.id, ConstraintSet.BOTTOM, swingDescription.id, ConstraintSet.TOP)
                     connect(swingTitle.id, ConstraintSet.START, swingLayout.id, ConstraintSet.START)
                     connect(swingTitle.id, ConstraintSet.END, swingLayout.id, ConstraintSet.END)
+
+                    setMargin(swingTitle.id, ConstraintSet.START, 0)
+                    setMargin(swingTitle.id, ConstraintSet.BOTTOM, dpToPx(11F, context).toInt())
+                    setMargin(swingLogo.id, ConstraintSet.BOTTOM, dpToPx(11F, context).toInt())
+
+                    swingTitle.setTextSize(Dimension.SP, 22F)
+                    swingTitle.typeface = ResourcesCompat.getFont(context, R.font.pretendard_bold)
 
                     applyTo(swingLayout)
                 }
@@ -180,6 +212,84 @@ object FoldableSwingExampleUtils {
         swingDescription.visibility = View.GONE
         menuLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.alpha70_black))
 
+
+        replayLayout.layoutParams.height = MATCH_PARENT
+        swingLayout.layoutParams.height = MATCH_PARENT
+
+        replayLogo.layoutParams.apply {
+            width = dpToPx(32F, context).toInt()
+            height = dpToPx(32F, context).toInt()
+        }
+
+        swingLogo.layoutParams.apply {
+            width = dpToPx(32F, context).toInt()
+            height = dpToPx(32F, context).toInt()
+        }
+
+
+
+        ConstraintSet().apply {
+            clone(replayLayout)
+
+            replayTitle.setTextSize(Dimension.SP, 17F)
+            replayTitle.typeface = ResourcesCompat.getFont(context, R.font.pretendard_semibold)
+
+            connect(replayLogo.id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP)
+            connect(replayLogo.id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM)
+            connect(replayLogo.id, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START)
+            connect(replayLogo.id, ConstraintSet.END, replayTitle.id, ConstraintSet.START)
+
+            setMargin(replayTitle.id, ConstraintSet.START, dpToPx(10F, context).toInt())
+            setMargin(replayTitle.id, ConstraintSet.BOTTOM, dpToPx(0F, context).toInt())
+            setMargin(replayLogo.id, ConstraintSet.BOTTOM, dpToPx(0F, context).toInt())
+            connect(replayTitle.id, ConstraintSet.TOP, replayLayout.id, ConstraintSet.TOP)
+            connect(replayTitle.id, ConstraintSet.BOTTOM, replayLayout.id, ConstraintSet.BOTTOM)
+            connect(replayTitle.id, ConstraintSet.START, replayLogo.id, ConstraintSet.END)
+            connect(replayTitle.id, ConstraintSet.END, replayLayout.id, ConstraintSet.END)
+
+            applyTo(replayLayout)
+            Log.d(TAG, "restore: replaylayout ${replayLayout.height}")
+        }
+
+
+        ConstraintSet().apply {
+            clone(swingLayout)
+
+            swingTitle.setTextSize(Dimension.SP, 17F)
+            swingTitle.typeface = ResourcesCompat.getFont(context, R.font.pretendard_semibold)
+
+            connect(swingLogo.id, ConstraintSet.TOP, swingLayout.id, ConstraintSet.TOP)
+            connect(swingLogo.id, ConstraintSet.BOTTOM, swingLayout.id, ConstraintSet.BOTTOM)
+            connect(swingLogo.id, ConstraintSet.START, swingLayout.id, ConstraintSet.START)
+            connect(swingLogo.id, ConstraintSet.END, swingTitle.id, ConstraintSet.START)
+
+            setMargin(swingTitle.id, ConstraintSet.START, dpToPx(10F, context).toInt())
+            setMargin(swingTitle.id, ConstraintSet.BOTTOM, dpToPx(0F, context).toInt())
+            setMargin(swingLogo.id, ConstraintSet.BOTTOM, dpToPx(0F, context).toInt())
+            connect(swingTitle.id, ConstraintSet.TOP, swingLayout.id, ConstraintSet.TOP)
+            connect(swingTitle.id, ConstraintSet.BOTTOM, swingLayout.id, ConstraintSet.BOTTOM)
+            connect(swingTitle.id, ConstraintSet.START, swingLogo.id, ConstraintSet.END)
+            connect(swingTitle.id, ConstraintSet.END, swingLayout.id, ConstraintSet.END)
+
+            applyTo(swingLayout)
+        }
+
+        swingCardView.layoutParams.height = MATCH_CONSTRAINT
+        replayCardView.layoutParams.height = MATCH_CONSTRAINT
+
+        ConstraintSet().apply {
+            clone(menuLayout)
+
+            setDimensionRatio(replayCardView.id, "2.28:1")
+            setDimensionRatio(swingCardView.id, "2.28:1")
+
+            applyTo(menuLayout)
+        }
+
+        val view = this@restore as ImageView
+        view.scaleType = ImageView.ScaleType.CENTER_CROP
+        this@restore.invalidate()
+
         val height = this@restore.height
         menuLayout.layoutParams.height = WRAP_CONTENT
         restoreAnimation =
@@ -190,57 +300,6 @@ object FoldableSwingExampleUtils {
                     val animatedValue = valueAnimator.animatedValue as Int
                     this@restore.layoutParams.height = height + animatedValue
                     this@restore.requestLayout()
-                }
-                doOnEnd {
-                    replayLayout.layoutParams.height = WRAP_CONTENT
-                    swingLayout.layoutParams.height = WRAP_CONTENT
-                    ConstraintSet().apply {
-                        clone(replayLayout)
-
-                        connect(replayLogo.id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP)
-                        connect(replayLogo.id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM)
-                        connect(replayLogo.id, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START)
-                        connect(replayLogo.id, ConstraintSet.END, replayTitle.id, ConstraintSet.START)
-
-                        setMargin(replayTitle.id, ConstraintSet.START, 10)
-                        connect(replayTitle.id, ConstraintSet.TOP, replayLayout.id, ConstraintSet.TOP)
-                        connect(replayTitle.id, ConstraintSet.BOTTOM, replayLayout.id, ConstraintSet.BOTTOM)
-                        connect(replayTitle.id, ConstraintSet.START, replayLogo.id, ConstraintSet.END)
-                        connect(replayTitle.id, ConstraintSet.END, replayLayout.id, ConstraintSet.END)
-
-                        applyTo(replayLayout)
-                        Log.d(TAG, "restore: replaylayout ${replayLayout.height}")
-                    }
-
-
-                    ConstraintSet().apply {
-                        clone(swingLayout)
-
-                        connect(swingLogo.id, ConstraintSet.TOP, swingLayout.id, ConstraintSet.TOP)
-                        connect(swingLogo.id, ConstraintSet.BOTTOM, swingLayout.id, ConstraintSet.BOTTOM)
-                        connect(swingLogo.id, ConstraintSet.START, swingLayout.id, ConstraintSet.START)
-                        connect(swingLogo.id, ConstraintSet.END, swingTitle.id, ConstraintSet.START)
-
-                        setMargin(swingTitle.id, ConstraintSet.START, 10)
-                        connect(swingTitle.id, ConstraintSet.TOP, swingLayout.id, ConstraintSet.TOP)
-                        connect(swingTitle.id, ConstraintSet.BOTTOM, swingLayout.id, ConstraintSet.BOTTOM)
-                        connect(swingTitle.id, ConstraintSet.START, swingLogo.id, ConstraintSet.END)
-                        connect(swingTitle.id, ConstraintSet.END, swingLayout.id, ConstraintSet.END)
-
-                        applyTo(swingLayout)
-                    }
-
-                    swingCardView.layoutParams.height = MATCH_CONSTRAINT
-                    replayCardView.layoutParams.height = MATCH_CONSTRAINT
-
-                    ConstraintSet().apply {
-                        clone(menuLayout)
-
-                        setDimensionRatio(replayCardView.id, "2.28:1")
-                        setDimensionRatio(swingCardView.id, "2.28:1")
-
-                        applyTo(menuLayout)
-                    }
                 }
             }
         restoreAnimation.start()
