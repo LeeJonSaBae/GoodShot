@@ -41,7 +41,7 @@ public class TokenUtil {
     private SecretKey secretKey;
 
     // secretKey 초기화
-    public void generateSecretKey(@Value("${security.secret-key}") String secret) {
+    public TokenUtil(@Value("${security.secret-key}") String secret) {
         secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
     }
 
