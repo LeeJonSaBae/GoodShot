@@ -13,6 +13,7 @@
         android:layout_height="250dp"
         android:layout_margin="10dp"
         android:background="@drawable/golf_dummy_img"
+        android:elevation="8dp"
         app:cardCornerRadius="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -22,6 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <!-- 기사 사진 -->
             <ImageView
                 android:id="@+id/iv_news_img"
                 android:layout_width="match_parent"
@@ -31,6 +33,7 @@
                 android:src="@drawable/dummy_img"
                 app:layout_constraintTop_toTopOf="parent" />
 
+            <!-- 기사 제목 + 내용 -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/layout_title_and_description"
                 android:layout_width="wrap_content"
@@ -69,6 +72,7 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <!-- 링크 -->
             <ImageView
                 android:id="@+id/iv_link"
                 android:layout_width="wrap_content"

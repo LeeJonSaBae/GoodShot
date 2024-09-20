@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">GoodShot</string>
+    <string name="home_youtube_link"><u>자세히 보러가기</u></string>
 </resources>

@@ -10,22 +10,22 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.ijonsabae.presentation.R
-import com.ijonsabae.presentation.databinding.ItemNewsBinding
+import com.ijonsabae.presentation.databinding.ItemHomeNewsBinding
 
 class NewsViewPagerAdapter(val context: Context) :
-    ListAdapter<News, NewsViewPagerAdapter.NewsViewHolder>(Comparator) {
+    ListAdapter<NewsDTO, NewsViewPagerAdapter.NewsViewHolder>(Comparator) {
 
-    companion object Comparator : DiffUtil.ItemCallback<News>() {
-        override fun areItemsTheSame(oldItem: News, newItem: News): Boolean {
+    companion object Comparator : DiffUtil.ItemCallback<NewsDTO>() {
+        override fun areItemsTheSame(oldItem: NewsDTO, newItem: NewsDTO): Boolean {
             return System.identityHashCode(oldItem) == System.identityHashCode(newItem)
         }
 
-        override fun areContentsTheSame(oldItem: News, newItem: News): Boolean {
+        override fun areContentsTheSame(oldItem: NewsDTO, newItem: NewsDTO): Boolean {
             return oldItem == newItem
         }
     }
 
-    inner class NewsViewHolder(private val binding: ItemNewsBinding) :
+    inner class NewsViewHolder(private val binding: ItemHomeNewsBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(position: Int) {
             val actualPosition = position % currentList.size // 무한스크롤
@@ -43,7 +43,8 @@ class NewsViewPagerAdapter(val context: Context) :
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NewsViewHolder {
-        val binding = ItemNewsBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding =
+            ItemHomeNewsBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return NewsViewHolder(binding)
     }
 
@@ -52,6 +53,6 @@ class NewsViewPagerAdapter(val context: Context) :
     }
 
     override fun getItemCount(): Int {
-        return return if (currentList.isEmpty()) 0 else Int.MAX_VALUE
+        return Int.MAX_VALUE
     }
 }

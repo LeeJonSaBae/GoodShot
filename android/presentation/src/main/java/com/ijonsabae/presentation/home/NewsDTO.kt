@@ -1,6 +1,6 @@
 package com.ijonsabae.presentation.home
 
-data class News(
+data class NewsDTO(
     val title: String,
     val originallink: String?,
     val link: String?,
