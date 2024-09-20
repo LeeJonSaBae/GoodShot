@@ -34,10 +34,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.PixelCopy
 import android.view.SurfaceView
-import com.ijonsabae.presentation.shot.CameraState.ADDRESS
-import com.ijonsabae.presentation.shot.CameraState.ANALYZING
-import com.ijonsabae.presentation.shot.CameraState.POSITIONING
-import com.ijonsabae.presentation.shot.CameraState.SWING
+import com.ijonsabae.presentation.shot.CameraState.*
 import com.ijonsabae.presentation.shot.SwingViewModel
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.*
 import com.ijonsabae.presentation.shot.ai.data.Device
@@ -62,36 +59,10 @@ class CameraSource(
     private var classifier8: PoseClassifier? = null
     private var detector: PoseDetector? = null
 
-    private var startDetectionOfFinish = false
+    private var swingFrameCount = 0
+    private var pelvisTwisting = false
     private val imageQueue: Queue<TimestampedData<Bitmap>> = LinkedList()
     private val jointQueue: Queue<List<KeyPoint>> = LinkedList()
-
-
-    init {
-        // Detector
-        val poseDetector = MoveNet.create(context, Device.NNAPI, ModelType.Lightning)
-        setDetector(poseDetector)
-
-        // Classifier
-        val classifier4 = PoseClassifier.create(context, MODEL_FILENAME_4, LABELS_FILENAME_4)
-        val classifier8 = PoseClassifier.create(context, MODEL_FILENAME_8, LABELS_FILENAME_8)
-        setClassifier(classifier4, classifier8)
-
-    }
-
-    companion object {
-        /** Threshold for confidence score. */
-        private const val MIN_CONFIDENCE = .38f
-        private const val TAG = "Camera Source"
-
-        /** Classifier */
-        private const val MODEL_FILENAME_4 = "pose_classifier_4.tflite"
-        private const val LABELS_FILENAME_4 = "labels4.txt"
-        private const val MODEL_FILENAME_8 = "pose_classifier_8.tflite"
-        private const val LABELS_FILENAME_8 = "labels8.txt"
-
-        private const val QUEUE_SIZE = 100
-    }
 
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
     private var frameProcessedInOneSecondInterval = 0
@@ -106,10 +77,30 @@ class CameraSource(
     /** [Handler] corresponding to [imageReaderThread] */
     private var imageReaderHandler: Handler? = null
 
-    fun getQueuedData(): Pair<List<Pair<Bitmap, Long>>, List<List<KeyPoint>>> {
-        val images = imageQueue.toList().map { Pair(it.data, it.timestamp) }
-        val joints = jointQueue.toList()
-        return Pair(images, joints)
+    init {
+        // Detector
+        val poseDetector = MoveNet.create(context, Device.CPU, ModelType.Lightning)
+        setDetector(poseDetector)
+
+        // Classifier
+        val classifier4 = PoseClassifier.create(context, MODEL_FILENAME_4, LABELS_FILENAME_4)
+        val classifier8 = PoseClassifier.create(context, MODEL_FILENAME_8, LABELS_FILENAME_8)
+        setClassifier(classifier4, classifier8)
+
+    }
+
+    companion object {
+        /** Threshold for confidence score. */
+        private const val MIN_CONFIDENCE = .3f
+        private const val TAG = "Camera Source"
+
+        /** Classifier */
+        private const val MODEL_FILENAME_4 = "pose_classifier_4.tflite"
+        private const val LABELS_FILENAME_4 = "labels4.txt"
+        private const val MODEL_FILENAME_8 = "pose_classifier_8.tflite"
+        private const val LABELS_FILENAME_8 = "labels8.txt"
+
+        private const val QUEUE_SIZE = 60
     }
 
     fun getRotateBitmap(bitmap: Bitmap, self: Boolean): Bitmap {
@@ -288,7 +279,7 @@ class CameraSource(
     /****************************************************************************************/
 
     override fun onDetectedInfo(person: Person) {
-        processDetectedInfo(person, isSelf = true)
+        processDetectedInfo(person, isSelf = false)
     }
 
     /**
@@ -307,65 +298,71 @@ class CameraSource(
             person.keyPoints
         }
 
+        // 스윙이 마무리 되는 시점부터 10프레임 더 받기
+        if (swingViewModel.currentState.value == SWING && pelvisTwisting) {
+            if (swingFrameCount < 5) {
+                swingFrameCount++
+            } else {
+                swingViewModel.setCurrentState(ANALYZING)
+                val swingData = extractSwing()
+
+                if (swingData.size == 8) {
+                    Log.d("싸피", "@@ 프레임 분석 완료")
+
+//                    큐에 있는 60개 이미지 갤러리에 전부 저장
+//                    imageQueue.toList().forEachIndexed { index, (imageData, _) ->
+//                        val fileName = "swing_pose_${index + 1}.jpg"
+//                        val uri = saveBitmapToGallery(context, imageData, fileName)
+//                        uri?.let {
+//                            Log.d("싸피", "Saved image $fileName at $it")
+//                        }
+//                    }
+
+                    // 8개의 비트맵을 갤러리에 저장
+                    swingData.forEachIndexed { index, (imageData, _) ->
+                        val fileName = "swing_pose_${index + 1}.jpg"
+                        val uri = saveBitmapToGallery(context, imageData.data, fileName)
+                        uri?.let {
+                            Log.d("싸피", "Saved image $fileName at $it")
+                        }
+                    }
+
+                    // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
+
+                    // TODO: 영상 메모리에 올리기
+
+                    // TODO: 영상 서버에 저장하기 (비동기)
+
+                    // TODO: 스윙 분석 결과 표시 (일정시간)
+
+                } else {
+                    // TODO: 다시 스윙해주세요 표시 (일정시간)
+                    Log.d("싸피", "@@ 다시 스윙해주세요, ${swingData.size}")
+                }
+
+                swingViewModel.setCurrentState(ADDRESS)
+                pelvisTwisting = false
+                swingFrameCount = 0
+            }
+            return
+        }
+
         // 4. 스윙하는 동안은 안내 메세지 안변하도록 유지
         if (swingViewModel.currentState.value == SWING &&
             ((keyPoints[LEFT_WRIST.position].coordinate.x < keyPoints[LEFT_SHOULDER.position].coordinate.x) ||
                     (keyPoints[RIGHT_WRIST.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x)).not()
         ) {
             swingViewModel.setCurrentState(ADDRESS)
+            return
         }
 
         // 5. 스윙의 마지막 동작 체크
         if (swingViewModel.currentState.value == SWING) {
-            if (startDetectionOfFinish) {
-                // if 코보다 손목 y 좌표가 내려가면 손이 3,4분면에 내려가는 거니까 다시 startdof를 false로 해준다.
-                if (keyPoints[NOSE.position].coordinate.y < keyPoints[RIGHT_WRIST.position].coordinate.y) {
-                    Log.d("싸피", "111111111111")
-                    startDetectionOfFinish = false
-                    swingViewModel.setCurrentState(ADDRESS)
-                }
-                // elif 손목 x 좌표가 코보다 작아지면 2사분면으로 이동한거니까 startdof를 false로 하고 스윙 추출을 시작한다.
-                else if (keyPoints[RIGHT_WRIST.position].coordinate.x < keyPoints[NOSE.position].coordinate.x) {
-                    Log.d("싸피", "22222222222")
-                    swingViewModel.setCurrentState(ANALYZING)
-                    val swingData = extractSwing()
-
-                    if (swingData.size == 8) {
-                        Log.d("싸피", "@@ 프레임 분석 완료")
-
-                        // 8개의 비트맵을 갤러리에 저장
-                        swingData.forEachIndexed { index, (imageData, _) ->
-                            val fileName = "swing_pose_${index + 1}.jpg"
-                            val uri = saveBitmapToGallery(context, imageData.data, fileName)
-                            uri?.let {
-                                Log.d("싸피", "Saved image $fileName at $it")
-                            }
-                        }
-
-                        // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
-
-                        // TODO: 영상 메모리에 올리기
-
-                        // TODO: 영상 서버에 저장하기 (비동기)
-
-                        // TODO: 스윙 분석 결과 표시 (일정시간)
-
-                    } else {
-                        // TODO: 다시 스윙해주세요 표시 (일정시간)
-                        Log.d("싸피", "@@ 다시 스윙해주세요, ${swingData.size}")
-                    }
-                    startDetectionOfFinish = false
-                    swingViewModel.setCurrentState(ADDRESS)
-                } else {
-                    Log.d("싸피", "3333333333")
-                }
-            } else {
-                if (keyPoints[RIGHT_WRIST.position].coordinate.x > keyPoints[NOSE.position].coordinate.x &&
-                    keyPoints[RIGHT_WRIST.position].coordinate.y < keyPoints[NOSE.position].coordinate.y
-                ) {
-                    Log.d("싸피", "44444444444")
-                    startDetectionOfFinish = true
-                }
+            // 오른어깨와 왼발이 가까워지면
+            if (abs(keyPoints[RIGHT_SHOULDER.position].coordinate.x - keyPoints[LEFT_ANKLE.position].coordinate.x) < 0.05f &&
+                abs(keyPoints[RIGHT_SHOULDER.position].coordinate.y - keyPoints[RIGHT_ANKLE.position].coordinate.y) > 0.3f
+            ) {
+                pelvisTwisting = true
             }
             return
         }
@@ -385,7 +382,7 @@ class CameraSource(
                     keyPoints[RIGHT_WRIST.position].coordinate.x >= keyPoints[RIGHT_SHOULDER.position].coordinate.x &&
                     keyPoints[RIGHT_WRIST.position].coordinate.x <= keyPoints[LEFT_SHOULDER.position].coordinate.x &&
                     abs(keyPoints[LEFT_ANKLE.position].coordinate.y - keyPoints[RIGHT_ANKLE.position].coordinate.y) < 0.01f
-                ).not()
+                    ).not()
         ) {
             swingViewModel.setCurrentState(ADDRESS)
         }
@@ -462,52 +459,45 @@ class CameraSource(
         val imageDataList = imageQueue.toList().reversed()
         val jointDataList = jointQueue.toList().reversed()
 
-        // 8가지 자세 리스트 (finish부터 address까지 역순)
-        val poseLabels = listOf(
-            "finish",
-            "mid-follow-through",
-            "impact",
-            "mid-downswing",
-            "top",
-            "mid-backswing",
-            "toe-up",
-            "address"
-        )
+        var poseLabelBias = 4
+        var classifier = classifier8
+        var modelChangeReady = false
 
-        var currentPoseIndex = 0
-        var lastScore = 0f
-        var bestPoseData: Pair<TimestampedData<Bitmap>, List<KeyPoint>>? = null
+        val poseIndexArray = Array(8) { Pair(0, 0f) }
 
-        loop@ for ((imageData, jointData) in imageDataList.zip(jointDataList)) {
-            val currentLabel = poseLabels[currentPoseIndex]
-            val classifier = if (currentPoseIndex < 4) classifier8 else classifier4
+        for ((index, jointData) in jointDataList.withIndex()) {
 
-            val classificationResult = classifier?.classify(jointData)
-            val scoreForCurrentPose =
-                classificationResult?.find { it.first == currentLabel }?.second ?: 0f
+            if (jointData[RIGHT_WRIST.position].coordinate.y > jointData[RIGHT_HIP.position].coordinate.y) {
+                modelChangeReady = true
+            }
 
-            if (scoreForCurrentPose >= lastScore) {
-                lastScore = scoreForCurrentPose
-                bestPoseData = Pair(imageData, jointData)
-            } else {
-                bestPoseData?.let {
-                    bitmapAndKeyPoint.add(it)
-                    bestPoseData = null
-                    currentPoseIndex++
-                    lastScore = 0f
+            // 손목이 어깨위로 올라가면 모델 교체 && vias 추가
+            if (modelChangeReady
+                && classifier == classifier8
+                && jointData[LEFT_WRIST.position].coordinate.x < jointData[RIGHT_SHOULDER.position].coordinate.x
+                && jointData[LEFT_WRIST.position].coordinate.y < jointData[RIGHT_SHOULDER.position].coordinate.y
+            ) {
+                classifier = classifier4
+                poseLabelBias = 0
+                Log.d("바뀌나", "change index : ${index}")
+            }
+
+            val classificationResults = classifier?.classify(jointData)
+            classificationResults?.forEachIndexed { poseIndex, result ->
+                if (result.second > poseIndexArray[poseIndex + poseLabelBias].second) {
+                    poseIndexArray[poseIndex + poseLabelBias] = Pair(index, result.second)
+                    if (classifier == classifier4 && (poseIndex + poseLabelBias == 6)) {
+                        Log.d("바뀌나", "${result}, $index")
+                    }
                 }
             }
-
-            if (currentPoseIndex >= poseLabels.size)
-                break@loop
         }
 
-        if ((currentPoseIndex == poseLabels.size - 1) && (lastScore != 0f)) {
-            val imageData = imageQueue.peek()
-            val jointData = jointQueue.peek()
-            if (imageData != null && jointData != null) {
-                bitmapAndKeyPoint.add(Pair(imageData, jointData))
-            }
+        for (extractedPosePair in poseIndexArray) {
+            bitmapAndKeyPoint.add(
+                Pair(imageDataList[extractedPosePair.first], jointDataList[extractedPosePair.first])
+            )
+            Log.d("맥스", "최대: ${extractedPosePair.first}")
         }
 
         // 리스트를 뒤집어서 반환 (address부터 finish 순서로)

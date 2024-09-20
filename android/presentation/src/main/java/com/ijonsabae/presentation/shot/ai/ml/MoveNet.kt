@@ -89,6 +89,14 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
         // 원본 Bitmap 크기 출력
         Log.d("BitmapSize", "Original Bitmap: width = ${bitmap.width}, height = ${bitmap.height}")
 
+        /*
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 360, 480, true)
+        */
+
+        // TODO: 패딩된 비트맵으로 추론하도록 수정하기
+        // TODO: VisualizationUtils에 있는 drawBodyKeypoints가 패딩 이전 좌표로 변환해서 그리도록 수정하기
+
+        /*
         // 세로 길이를 기준으로 가로에 패딩을 추가해 1:1 비율로 만듭니다.
         val targetSize = maxOf(bitmap.width, bitmap.height)
 
@@ -108,7 +116,7 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
             0f, // 세로는 그대로
             null
         )
-
+         */
 
         if (cropRegion == null) {
             cropRegion = initRectF(bitmap.width, bitmap.height)
@@ -187,7 +195,7 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
         }
 
         // 큐에 넣기 위한 y축 기준 반전
-        var adjustedKeyPoints = keyPoints.map { keyPoint ->
+        val adjustedKeyPoints = keyPoints.map { keyPoint ->
 
             val newCoordinate = PointF(
                 keyPoint.coordinate.x / bitmap.width,

@@ -54,7 +54,7 @@ class PoseClassifier(
         }
     }
 
-    fun classify(keyPoints: List<KeyPoint>): List<Pair<String, Float>> {
+    fun classify(keyPoints: List<KeyPoint>): List<Pair<Int, Float>> {
         // 코의 위치를 기준으로 정규화
         val noseKeyPoint = keyPoints.find { it.bodyPart == BodyPart.NOSE }
         val normalizedKeyPoints = noseKeyPoint?.let { nose ->
@@ -87,11 +87,10 @@ class PoseClassifier(
         val outputTensor = FloatArray(output[1])
         interpreter.run(arrayOf(inputVector), arrayOf(outputTensor))
 
-        val output = mutableListOf<Pair<String, Float>>()
+        val output = mutableListOf<Pair<Int, Float>>()
 
-        // TODO: 추후 모델 하나로 8개 확률을 한번에 보게 되면 수정 필요
         outputTensor.forEachIndexed { index, score ->
-            output.add(Pair(labels[index], score))
+            output.add(Pair(index, score))
         }
 
         return output

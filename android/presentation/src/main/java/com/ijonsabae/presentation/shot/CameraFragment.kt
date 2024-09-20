@@ -116,7 +116,7 @@ class CameraFragment :
                         .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
                         .setResolutionStrategy(
                             ResolutionStrategy(
-                                Size(480, 640),
+                                Size(360, 480),
                                 ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER
                             )
                         )
@@ -126,6 +126,7 @@ class CameraFragment :
                 .build()
                 .also { analysis ->
                     analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
+                        Log.d("사이즈", "${image.width} * ${image.height} ")
                         // 성능 분석 로깅
                         val currentTimestamp = System.currentTimeMillis()
                         val lastTimestamp = lastAnalysisTimestamp.getAndSet(currentTimestamp)
