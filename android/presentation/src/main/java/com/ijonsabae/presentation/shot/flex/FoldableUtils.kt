@@ -1,33 +1,22 @@
-/*
- * Copyright 2022 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.ijonsabae.presentation.shot.flex
 
 import android.animation.ValueAnimator
+import android.graphics.Color
 import android.graphics.Rect
 import android.util.Log
 import android.view.View
-import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
 import androidx.constraintlayout.widget.ConstraintSet
+import androidx.constraintlayout.widget.Constraints
 import androidx.core.animation.doOnEnd
 import androidx.window.layout.DisplayFeature
+import com.ijonsabae.presentation.config.Const
 import com.ijonsabae.presentation.shot.CameraState
+import com.ijonsabae.presentation.shot.flex.FoldableUtils.moveToTopOf
 
 object FoldableUtils {
     private const val TAG = "FoldableUtils 싸피"
@@ -73,7 +62,7 @@ object FoldableUtils {
         }
     }
 
-    fun View.moveToTopOf(foldingFeatureRect: Rect, cameraState: CameraState?, progressTitle: TextView, resultHeader:TextView, resultSubHeader: TextView, alertIcon: ImageView, alertText: TextView, cameraMenuLayout: ConstraintLayout, alertConstraintLayout: ConstraintLayout, constraintLayout: ConstraintLayout) {
+    fun View.moveToTopOf(foldingFeatureRect: Rect, cameraState: CameraState?, progressTitle: TextView, resultHeader:TextView, resultSubHeader: TextView, alertIcon: ImageView, alertText: TextView, cameraMenuLayout: ConstraintLayout, alertConstraintLayout: ConstraintLayout, rootConstraintLayout: ConstraintLayout) {
         if(::animator.isInitialized){ animator.cancel() }
         val cameraHeight = this.height
         val alertHeight = alertConstraintLayout.height
@@ -89,74 +78,80 @@ object FoldableUtils {
         }else{
             progressTitle.visibility = View.GONE
         }
+
+        ConstraintSet().apply {
+            clone(alertConstraintLayout)
+            connect(alertIcon.id, ConstraintSet.BOTTOM, alertText.id, ConstraintSet.TOP)
+            connect(alertText.id, ConstraintSet.TOP, alertIcon.id, ConstraintSet.BOTTOM)
+            connect(alertText.id, ConstraintSet.BOTTOM, alertConstraintLayout.id, ConstraintSet.BOTTOM)
+
+            connect(alertIcon.id, ConstraintSet.START, alertConstraintLayout.id, ConstraintSet.START)
+            connect(alertIcon.id, ConstraintSet.END, alertConstraintLayout.id, ConstraintSet.END)
+
+            connect(alertText.id, ConstraintSet.START, alertConstraintLayout.id, ConstraintSet.START)
+            connect(alertText.id, ConstraintSet.END, alertConstraintLayout.id, ConstraintSet.END)
+            applyTo(alertConstraintLayout)
+        }
+
+        ConstraintSet().apply {
+            clone(rootConstraintLayout)
+            connect(this@moveToTopOf.id, ConstraintSet.TOP, rootConstraintLayout.id, ConstraintSet.TOP)
+            connect(cameraMenuLayout.id, ConstraintSet.TOP, this@moveToTopOf.id, ConstraintSet.BOTTOM)
+            clear(cameraMenuLayout.id, ConstraintSet.BOTTOM)
+            connect(this@moveToTopOf.id, ConstraintSet.BOTTOM, cameraMenuLayout.id, ConstraintSet.TOP)
+            connect(alertConstraintLayout.id, ConstraintSet.TOP, cameraMenuLayout.id, ConstraintSet.BOTTOM)
+            applyTo(rootConstraintLayout)
+        }
+
+
+
+
 // 목표 위치를 정의합니다.
-        animator1 = ValueAnimator.ofFloat(0F, foldingFeatureRect.bottom.toFloat() - cameraHeight - cameraMenuLayout.height).apply {
+        animator1 = ValueAnimator.ofFloat(0F, foldingFeatureRect.bottom.toFloat() - this@moveToTopOf.bottom + cameraMenuLayout.height).apply {
             duration = 300 // 애니메이션 지속 시간 (밀리초)
             interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
-
-            ConstraintSet().apply {
-                clone(constraintLayout)
-                clear(this@moveToTopOf.id, ConstraintSet.BOTTOM)
-                applyTo(constraintLayout)
-            }
-
+            val top = this@moveToTopOf.top
+            val bottom = this@moveToTopOf.bottom
+            val alerttop = alertConstraintLayout.top
+            val alertbottom = alertConstraintLayout.bottom
+            val alertIcontop = alertIcon.top
+            val alertIconbottom = alertIcon.bottom
+            val alertTextTop = alertText.top
+            val alertTextbottom = alertText.bottom
             addUpdateListener { valueAnimator ->
                 val animatedValue = valueAnimator.animatedValue as Float
-                this@moveToTopOf.layoutParams.height  = (cameraHeight + animatedValue).toInt()
-                this@moveToTopOf.requestLayout()
+                this@moveToTopOf.elevation = 10F
+                this@moveToTopOf.translationY = animatedValue
 
-                ConstraintSet().apply {
-                    clone(alertConstraintLayout)
-                    connect(this@moveToTopOf.id, ConstraintSet.TOP, cameraMenuLayout.id, ConstraintSet.BOTTOM)
-                    connect(alertIcon.id, ConstraintSet.BOTTOM, alertText.id, ConstraintSet.TOP)
-                    connect(alertText.id, ConstraintSet.TOP, alertIcon.id, ConstraintSet.BOTTOM)
-                    connect(alertText.id, ConstraintSet.BOTTOM, alertConstraintLayout.id, ConstraintSet.BOTTOM)
+                cameraMenuLayout.translationY = animatedValue
+                alertConstraintLayout.top = alerttop + animatedValue.toInt()
 
-
-                    connect(alertIcon.id, ConstraintSet.START, alertConstraintLayout.id, ConstraintSet.START)
-                    connect(alertIcon.id, ConstraintSet.END, alertConstraintLayout.id, ConstraintSet.END)
-
-                    connect(alertText.id, ConstraintSet.START, alertConstraintLayout.id, ConstraintSet.START)
-                    connect(alertText.id, ConstraintSet.END, alertConstraintLayout.id, ConstraintSet.END)
-                    applyTo(alertConstraintLayout)
-                }
+                alertIcon.translationY = -animatedValue/2
+                alertText.translationY = -animatedValue/2
 
             }
         }
-
-        animator2 = ValueAnimator.ofFloat(0F, (this@moveToTopOf.parent as View).bottom - foldingFeatureRect.bottom.toFloat() - alertHeight).apply {
-            duration = 300 // 애니메이션 지속 시간 (밀리초)
-            interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
-
-            addUpdateListener { valueAnimator ->
-                val animatedValue = valueAnimator.animatedValue as Float
-                alertConstraintLayout.layoutParams.height = (alertHeight + animatedValue).toInt()
-
-                // View의 위치를 설정합니다.
-                Log.d(TAG, "animation2 : y ${alertConstraintLayout.y}")
-                doOnEnd {
-//                    alertConstraintLayout.requestLayout()
-                    ConstraintSet().apply {
-                        clone(alertConstraintLayout)
-                        connect(alertIcon.id, ConstraintSet.TOP, alertConstraintLayout.id, ConstraintSet.TOP)
-                        connect(alertIcon.id, ConstraintSet.BOTTOM, alertText.id, ConstraintSet.TOP)
-                        connect(alertText.id, ConstraintSet.TOP, alertIcon.id, ConstraintSet.BOTTOM)
-                        connect(alertText.id, ConstraintSet.BOTTOM, alertConstraintLayout.id, ConstraintSet.BOTTOM)
-
-
-                        connect(alertIcon.id, ConstraintSet.START, alertConstraintLayout.id, ConstraintSet.START)
-                        connect(alertIcon.id, ConstraintSet.END, alertConstraintLayout.id, ConstraintSet.END)
-
-                        connect(alertText.id, ConstraintSet.START, alertConstraintLayout.id, ConstraintSet.START)
-                        connect(alertText.id, ConstraintSet.END, alertConstraintLayout.id, ConstraintSet.END)
-                        applyTo(alertConstraintLayout)
-                    }
-                }
-            }
-        }
+//
+//
+//        animator2 = ValueAnimator.ofFloat(0F, (this@moveToTopOf.parent as View).bottom - foldingFeatureRect.bottom.toFloat() - alertHeight).apply {
+//            duration = 300 // 애니메이션 지속 시간 (밀리초)
+//            interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
+//
+//            addUpdateListener { valueAnimator ->
+//                val animatedValue = valueAnimator.animatedValue as Float
+//                Log.d(TAG, "moveToTopOf animate: $animatedValue")
+//                alertConstraintLayout.layoutParams.height = (alertHeight + animatedValue).toInt()
+////                alertConstraintLayout.layoutParams.height = alertHeight - alertHeight/2
+////                alertConstraintLayout.layoutParams.height = alertHeight - animatedValue.toInt()
+////                alertConstraintLayout.top = top - animatedValue.toInt()
+//                Log.d(TAG, "moveToTopOf: ${alertConstraintLayout.layoutParams.height}")
+//            }
+//            doOnEnd {
+//                Log.d(TAG, "moveToTopOfEnd: ${alertConstraintLayout.layoutParams.height}")
+//            }
+//        }
 
         animator1.start()
-        animator2.start()
     }
 
     fun View.restore(foldingFeatureRect: Rect, cameraState: CameraState?, progressTitle: TextView, resultHeader:TextView, resultSubHeader: TextView, alertIcon: ImageView, alertText: TextView, cameraMenuLayout: ConstraintLayout, alertConstraintLayout: ConstraintLayout, rootConstraintLayout: ConstraintLayout) {
@@ -166,20 +161,15 @@ object FoldableUtils {
         resultSubHeader.visibility = View.GONE
         progressTitle.visibility = View.GONE
         val height = this.height
-        animator = ValueAnimator.ofFloat(0F, rootConstraintLayout.height - cameraMenuLayout.height - height.toFloat()).apply {
+        animator = ValueAnimator.ofFloat(this.translationY, 0F).apply {
             duration = 300 // 애니메이션 지속 시간 (밀리초)
             interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
             addUpdateListener { valueAnimator ->
                 val animatedValue = valueAnimator.animatedValue as Float
-                this@restore.layoutParams.height = height + animatedValue.toInt()
-                this@restore.requestLayout()
-            }
-            doOnEnd {
-                ConstraintSet().apply {
-                    clone(rootConstraintLayout)
-                    connect(this@restore.id, ConstraintSet.BOTTOM, rootConstraintLayout.id, ConstraintSet.BOTTOM)
-                    applyTo(rootConstraintLayout)
-                }
+                this@restore.translationY = animatedValue
+                cameraMenuLayout.translationY = animatedValue
+                alertIcon.translationY = animatedValue
+                alertText.translationY = animatedValue
             }
         }
 
@@ -187,11 +177,16 @@ object FoldableUtils {
 
         ConstraintSet().apply {
             clone(rootConstraintLayout)
+            connect(alertConstraintLayout.id, ConstraintSet.TOP, cameraMenuLayout.id, ConstraintSet.BOTTOM)
             connect(cameraMenuLayout.id, ConstraintSet.TOP, rootConstraintLayout.id, ConstraintSet.TOP)
+            clear(cameraMenuLayout.id, ConstraintSet.BOTTOM)
             connect(this@restore.id, ConstraintSet.TOP, cameraMenuLayout.id, ConstraintSet.BOTTOM)
-            clear(this@restore.id, ConstraintSet.BOTTOM)
+            connect(this@restore.id, ConstraintSet.BOTTOM, alertConstraintLayout.id, ConstraintSet.TOP)
+            connect(alertConstraintLayout.id, ConstraintSet.TOP, this@restore.id, ConstraintSet.BOTTOM)
+            connect(alertConstraintLayout.id, ConstraintSet.BOTTOM, rootConstraintLayout.id, ConstraintSet.BOTTOM)
             applyTo(rootConstraintLayout)
         }
+
 
         ConstraintSet().apply {
             clone(alertConstraintLayout)
@@ -223,8 +218,6 @@ object FoldableUtils {
         }
 //        this.layoutParams.height = MATCH_CONSTRAINT
 //        this.layoutParams.height = MATCH_PARENT
-        alertConstraintLayout.layoutParams.height = WRAP_CONTENT
-        alertConstraintLayout.requestLayout()
-//        requestLayout()
+        alertConstraintLayout.layoutParams.height = MATCH_CONSTRAINT
     }
 }
