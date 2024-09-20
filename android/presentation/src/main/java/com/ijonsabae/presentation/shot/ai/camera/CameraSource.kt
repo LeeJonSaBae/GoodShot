@@ -48,6 +48,7 @@ import java.io.OutputStream
 import java.util.LinkedList
 import java.util.Queue
 import java.util.concurrent.CountDownLatch
+import kotlin.math.abs
 import kotlin.math.max
 
 
@@ -287,7 +288,7 @@ class CameraSource(
     /****************************************************************************************/
 
     override fun onDetectedInfo(person: Person) {
-        processDetectedInfo(person, isSelf = false)
+        processDetectedInfo(person, isSelf = true)
     }
 
     /**
@@ -304,6 +305,14 @@ class CameraSource(
             mirrorKeyPoints(person.keyPoints)
         } else {
             person.keyPoints
+        }
+
+        // 4. 스윙하는 동안은 안내 메세지 안변하도록 유지
+        if (swingViewModel.currentState.value == SWING &&
+            ((keyPoints[LEFT_WRIST.position].coordinate.x < keyPoints[LEFT_SHOULDER.position].coordinate.x) ||
+                    (keyPoints[RIGHT_WRIST.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x)).not()
+        ) {
+            swingViewModel.setCurrentState(ADDRESS)
         }
 
         // 5. 스윙의 마지막 동작 체크
@@ -361,12 +370,6 @@ class CameraSource(
             return
         }
 
-        // 4. 스윙하는 동안은 안내 메세지 안변하도록 유지
-        if (swingViewModel.currentState.value == SWING &&
-            ((keyPoints[LEFT_WRIST.position].coordinate.x < keyPoints[LEFT_SHOULDER.position].coordinate.x) ||
-                    (keyPoints[RIGHT_WRIST.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x))
-        ) return
-
         // 1. 몸 전체가 카메라 화면에 들어오는지 체크
         if ((keyPoints[NOSE.position].score) < 0.3 ||
             (keyPoints[LEFT_ANKLE.position].score) < 0.3 ||
@@ -380,7 +383,9 @@ class CameraSource(
                     keyPoints[LEFT_WRIST.position].coordinate.x <= keyPoints[LEFT_SHOULDER.position].coordinate.x &&
                     keyPoints[LEFT_WRIST.position].coordinate.x >= keyPoints[RIGHT_SHOULDER.position].coordinate.x &&
                     keyPoints[RIGHT_WRIST.position].coordinate.x >= keyPoints[RIGHT_SHOULDER.position].coordinate.x &&
-                    keyPoints[RIGHT_WRIST.position].coordinate.x <= keyPoints[LEFT_SHOULDER.position].coordinate.x).not()
+                    keyPoints[RIGHT_WRIST.position].coordinate.x <= keyPoints[LEFT_SHOULDER.position].coordinate.x &&
+                    abs(keyPoints[LEFT_ANKLE.position].coordinate.y - keyPoints[RIGHT_ANKLE.position].coordinate.y) < 0.01f
+                ).not()
         ) {
             swingViewModel.setCurrentState(ADDRESS)
         }
