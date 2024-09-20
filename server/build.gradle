@@ -44,10 +44,10 @@ dependencies {
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
 
 	// querydsl
-	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-	annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
-	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
-	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+//	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+//	annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+//	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+//	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
 	// AWS S3 의존성 추가
 	implementation 'io.awspring.cloud:spring-cloud-starter-aws:2.4.4'
@@ -59,23 +59,23 @@ dependencies {
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 }
 
-// Querydsl 설정부
-def generated = 'src/main/generated'
-
-// querydsl QClass 파일 생성 위치를 지정
-tasks.withType(JavaCompile).configureEach {
-	options.generatedSourceOutputDirectory = file(generated)
-}
-
-// java source set 에 querydsl QClass 위치 추가
-sourceSets {
-	main.java.srcDirs += "$projectDir/build/generated"
-}
-
-// gradle clean 시에 QClass 디렉토리 삭제
-clean {
-	delete file('src/main/generated')
-}
+//// Querydsl 설정부
+//def generated = 'src/main/generated'
+//
+//// querydsl QClass 파일 생성 위치를 지정
+//tasks.withType(JavaCompile).configureEach {
+//	options.generatedSourceOutputDirectory = file(generated)
+//}
+//
+//// java source set 에 querydsl QClass 위치 추가
+//sourceSets {
+//	main.java.srcDirs += "$projectDir/build/generated"
+//}
+//
+//// gradle clean 시에 QClass 디렉토리 삭제
+//clean {
+//	delete file('src/main/generated')
+//}
 
 tasks.named('test') {
 	useJUnitPlatform()
