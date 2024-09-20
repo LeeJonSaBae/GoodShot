@@ -10,7 +10,7 @@
         <fragment
             android:id="@+id/home"
             android:name="com.ijonsabae.presentation.home.HomeFragment"
-            android:label="home"
+            tools:label="home"
             tools:layout="@layout/fragment_home"></fragment>
     </navigation>
     <navigation
@@ -19,7 +19,7 @@
         <fragment
             android:id="@+id/shot"
             android:name="com.ijonsabae.presentation.shot.ShotFragment"
-            android:label="shot"
+            tools:label="shot"
             tools:layout="@layout/fragment_shot">
             <action
                 android:id="@+id/action_shot_to_shot_dialog"
@@ -28,8 +28,8 @@
         <dialog
             android:id="@+id/shot_dialog"
             android:name="com.ijonsabae.presentation.shot.ShotDialog"
-            android:label="shot dialog"
-            tools:layout="@layout/dialog_shot" >
+            tools:label="shot dialog"
+            tools:layout="@layout/dialog_shot">
             <action
                 android:id="@+id/action_shot_dialog_to_camera"
                 app:destination="@id/camera" />
@@ -38,7 +38,7 @@
         <fragment
             android:id="@+id/camera"
             android:name="com.ijonsabae.presentation.shot.CameraFragment"
-            android:label="camera"
+            tools:label="camera"
             tools:layout="@layout/fragment_camera">
             <action
                 android:id="@+id/action_camera_to_shot"
@@ -53,7 +53,7 @@
         <fragment
             android:id="@+id/replay"
             android:name="com.ijonsabae.presentation.replay.ReplayFragment"
-            android:label="replay"
+            tools:label="replay"
             tools:layout="@layout/fragment_replay">
             <action
                 android:id="@+id/action_replay_to_replayReport"
@@ -63,7 +63,7 @@
         <fragment
             android:id="@+id/replay_report"
             android:name="com.ijonsabae.presentation.replay.ReplayReportFragment"
-            android:label="리플레이 리포트"
+            tools:label="replay report"
             tools:layout="@layout/fragment_replay_report" />
     </navigation>
     <navigation
@@ -72,7 +72,7 @@
         <fragment
             android:id="@+id/profile"
             android:name="com.ijonsabae.presentation.profile.ProfileFragment"
-            android:label="profile"
+            tools:label="profile"
             tools:layout="@layout/fragment_profile"></fragment>
     </navigation>
 
