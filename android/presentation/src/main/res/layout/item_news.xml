@@ -73,14 +73,14 @@
                 android:id="@+id/iv_link"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
-                android:layout_marginVertical="5dp"
+                android:layout_marginVertical="15dp"
                 android:layout_marginEnd="30dp"
                 android:adjustViewBounds="true"
                 android:src="@drawable/ic_news_link"
-                app:layout_constraintBottom_toBottomOf="@id/layout_title_and_description"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/layout_title_and_description"
-                app:layout_constraintTop_toTopOf="@id/layout_title_and_description" />
+                app:layout_constraintTop_toBottomOf="@id/iv_news_img" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
