@@ -23,6 +23,7 @@ import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
@@ -174,7 +175,8 @@ class CameraFragment :
                 binding.tvAlert,
                 binding.layoutCameraMenu,
                 binding.layoutAlert,
-                binding.layoutCamera
+                binding.layoutCamera,
+                binding.indicatorProgress
             )
         }
     }
@@ -218,6 +220,8 @@ class CameraFragment :
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
 
+                    binding.ivAlert.setImageBitmap(ContextCompat.getDrawable(fragmentContext, R.drawable.yellow_card)!!.toBitmap())
+
                     text = "전신이 모두 보이도록 조금 더 뒤로 가주세요!!"
                     color = ContextCompat.getColor(fragmentContext, R.color.yello_card)
                 }
@@ -239,6 +243,8 @@ class CameraFragment :
                     binding.tvAnalyzing.visibility = View.GONE
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
+
+                    binding.ivAlert.setImageBitmap(ContextCompat.getDrawable(fragmentContext, R.drawable.address_icon)!!.toBitmap())
 
                     text = "어드레스 자세를 잡아주세요!"
                     color = ContextCompat.getColor(fragmentContext, R.color.address_color)
@@ -262,6 +268,8 @@ class CameraFragment :
                     binding.tvAnalyzing.visibility = View.GONE
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
+
+                    binding.ivAlert.setImageBitmap(ContextCompat.getDrawable(fragmentContext, R.drawable.swing_icon)!!.toBitmap())
 
                     text = "스윙해주세요!"
                     color = ContextCompat.getColor(fragmentContext, R.color.swing_color)
@@ -332,12 +340,6 @@ class CameraFragment :
                         )
                         setSpan(StyleSpan(Typeface.ITALIC), 0, this.length, 0)
                         binding.progressTitle.text = this
-                    }
-
-                    binding.indicatorProgress.apply {
-                        setProgressCompat(90, true)
-                        isIndeterminate = true
-                        show()
                     }
                 }
 

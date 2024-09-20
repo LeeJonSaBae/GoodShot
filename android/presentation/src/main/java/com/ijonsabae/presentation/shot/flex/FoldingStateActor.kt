@@ -10,6 +10,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.ijonsabae.presentation.shot.CameraState
 import com.ijonsabae.presentation.shot.flex.FoldableSwingExampleUtils.moveToTopOf
 import com.ijonsabae.presentation.shot.flex.FoldableSwingExampleUtils.restore
@@ -71,7 +72,8 @@ class FoldingStateActor @Inject constructor(private val windowInfoTracker: Windo
         alertText: TextView,
         cameraMenuLayout: ConstraintLayout,
         alertConstraintLayout: ConstraintLayout,
-        rootConstraintLayout: ConstraintLayout
+        rootConstraintLayout: ConstraintLayout,
+        indicatorProgress: CircularProgressIndicator
     ) {
         windowInfoTracker.windowLayoutInfo(activity)
             .collect { newLayoutInfo ->
@@ -86,7 +88,8 @@ class FoldingStateActor @Inject constructor(private val windowInfoTracker: Windo
                     alertText,
                     cameraMenuLayout,
                     alertConstraintLayout,
-                    rootConstraintLayout
+                    rootConstraintLayout,
+                    indicatorProgress
                 )
             }
     }
@@ -171,7 +174,8 @@ class FoldingStateActor @Inject constructor(private val windowInfoTracker: Windo
         alertText: TextView,
         cameraMenuLayout: ConstraintLayout,
         alertConstraintLayout: ConstraintLayout,
-        rootConstraintLayout: ConstraintLayout
+        rootConstraintLayout: ConstraintLayout,
+        indicatorProgress: CircularProgressIndicator
     ) {
         val foldingFeature = activeWindowLayoutInfo?.displayFeatures
             ?.firstOrNull { it is FoldingFeature } as FoldingFeature?
@@ -202,7 +206,8 @@ class FoldingStateActor @Inject constructor(private val windowInfoTracker: Windo
                         alertText,
                         cameraMenuLayout,
                         alertConstraintLayout,
-                        rootConstraintLayout
+                        rootConstraintLayout,
+                        indicatorProgress
                     )
                 }
             }
@@ -218,7 +223,8 @@ class FoldingStateActor @Inject constructor(private val windowInfoTracker: Windo
                 alertText,
                 cameraMenuLayout,
                 alertConstraintLayout,
-                rootConstraintLayout
+                rootConstraintLayout,
+                indicatorProgress
             )
         }
     }
