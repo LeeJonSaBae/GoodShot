@@ -126,7 +126,6 @@ class CameraFragment :
                 .build()
                 .also { analysis ->
                     analysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
-                        Log.d("사이즈", "${image.width} * ${image.height} ")
                         // 성능 분석 로깅
                         val currentTimestamp = System.currentTimeMillis()
                         val lastTimestamp = lastAnalysisTimestamp.getAndSet(currentTimestamp)
