@@ -343,9 +343,7 @@ class CameraSource(
                     // TODO: 영상 서버에 저장하기 (비동기)
 
                     // TODO: 스윙 분석 결과 표시
-//                    swingViewModel.setCurrentState(RESULT)
-                    swingViewModel.setCurrentState(AGAIN)
-
+                    swingViewModel.setCurrentState(RESULT)
                 } else {
                     // TODO: 다시 스윙해주세요 표시
                     swingViewModel.setCurrentState(AGAIN)
