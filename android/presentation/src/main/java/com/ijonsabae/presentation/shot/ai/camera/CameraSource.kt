@@ -315,9 +315,22 @@ class CameraSource(
                 val poseIndices = extractBestPoseIndices()
 
                 if (validateSwingPose(poseIndices)) {
-                    val swingData = indicesToPoses(poseIndices)
-                    Log.d("싸피", "8개 프레임 추출 완료")
+//                    val swingData = indicesToPoses(poseIndices)
+//                    Log.d("싸피indices", "$poseIndices")
 
+                    val poseFrameGroupIndices: Array<IntArray> = Array(8) { IntArray(3) }
+                    poseIndices.forEachIndexed { index, frameIndex ->
+                        poseFrameGroupIndices[index] = when (frameIndex) {
+                            0 -> intArrayOf(1, 0, 0)  // 첫 번째 프레임인 경우
+                            QUEUE_SIZE - 1 -> intArrayOf(QUEUE_SIZE - 1, QUEUE_SIZE - 1, QUEUE_SIZE - 2)  // 마지막 프레임인 경우
+                            else -> intArrayOf(frameIndex + 1, frameIndex, frameIndex - 1)  // 일반적인 경우
+                        }
+                    }
+                    Log.d("싸피indices", poseFrameGroupIndices.contentDeepToString())
+
+//                    Log.d("싸피", "8개 프레임 추출 완료")
+                    val swingData = indicesToPosesGroup(poseFrameGroupIndices)
+                    Log.d("싸피", "8개 포즈 그룹(각 3프레임) 추출 완료")
 //                    큐에 있는 60개 이미지 갤러리에 전부 저장
 //                    imageQueue.toList().forEachIndexed { index, (imageData, _) ->
 //                        val fileName = "swing_pose_${index + 1}.jpg"
@@ -328,11 +341,22 @@ class CameraSource(
 //                    }
 
                     // 8개의 비트맵을 갤러리에 저장
-                    swingData.forEachIndexed { index, (imageData, _) ->
-                        val fileName = "swing_pose_${index + 1}.jpg"
-                        val uri = saveBitmapToGallery(context, imageData.data, fileName)
-                        uri?.let {
-                            Log.d("싸피", "Saved image $fileName at $it")
+//                    swingData.forEachIndexed { index, (imageData, _) ->
+//                        val fileName = "swing_pose_${index + 1}.jpg"
+//                        val uri = saveBitmapToGallery(context, imageData.data, fileName)
+//                        uri?.let {
+//                            Log.d("싸피", "Saved image $fileName at $it")
+//                        }
+//                    }
+
+                    // 8개의 포즈 그룹(각 3프레임)을 갤러리에 저장
+                    swingData.forEachIndexed { groupIndex, frameGroup ->
+                        frameGroup.forEachIndexed { _, (imageData, _, originalIndex) ->
+                            val fileName = "swing_pose_group${groupIndex + 1}_frame${originalIndex + 1}.jpg"
+                            val uri = saveBitmapToGallery(context, imageData.data, fileName)
+                            uri?.let {
+                                Log.d("싸피", "Saved image $fileName at $it")
+                            }
                         }
                     }
 
@@ -415,6 +439,19 @@ class CameraSource(
         val imageList = imageQueue.toList().reversed()
         for (index in indices) {
             poses.add(Pair(imageList[index], jointList[index]))
+        }
+        return poses
+    }
+
+    private fun indicesToPosesGroup(poseFrameGroupIndices: Array<IntArray>): List<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>> {
+        val poses = mutableListOf<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>>()
+        val jointList = jointQueue.toList().reversed()
+        val imageList = imageQueue.toList().reversed()
+        for (group in poseFrameGroupIndices) {
+            val groupPoses = group.map { index ->
+                Triple(imageList[index], jointList[index], QUEUE_SIZE - 1 - index)
+            }
+            poses.add(groupPoses)
         }
         return poses
     }
