@@ -419,15 +419,22 @@ class CameraSource(
         return poses
     }
 
-    // 이미지 인덱스에 같은게 없어야 정상
     private fun validateSwingPose(poseIndices: List<Int>): Boolean {
         val countingArray = BooleanArray(QUEUE_SIZE) { false }
+        var prevImageIndex = 100_000_000
         for (index in poseIndices) {
+            // 이미지 인덱스에 중복이 없어야 정상
             if (!countingArray[index]) {
                 countingArray[index] = true
             } else {
                 return false
             }
+
+            // 이미지 순서가 맞아야 정상
+            if(index >= prevImageIndex){
+                return false
+            }
+            prevImageIndex = index
         }
         return true
     }
