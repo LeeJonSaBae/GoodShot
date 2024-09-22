@@ -44,7 +44,6 @@ import com.ijonsabae.presentation.shot.ai.ml.ModelType
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.OutputStream
@@ -170,10 +169,9 @@ class CameraSource(
         classifier8 = null
     }
 
-    fun processImage(bitmap: Bitmap, isSelf: Boolean) {
+    fun processImage(bitmap: Bitmap, isSelfCamera: Boolean, isLeftHanded: Boolean) {
         frameCount++
 
-        // framesPerSecond가 0이거나 TARGET_FPS보다 작으면 모든 프레임을 처리합니다.
         val shouldProcessFrame =
             framesPerSecond <= TARGET_FPS || frameCount % max(1, framesPerSecond / TARGET_FPS) == 0
 
@@ -182,32 +180,49 @@ class CameraSource(
 
             synchronized(lock) {
                 poseResult = detector?.estimatePoses(bitmap)
-                poseResult?.let {
-                    visualize(it, bitmap)
+                poseResult?.let { originalPerson ->
+                    // 시각화를 위해 원본 Person 사용
+                    visualize(originalPerson, bitmap)
 
-                    // 관절 그러진 비트맵 큐에 넣기
+                    // 분석을 위한 정규화된 키포인트
+                    val normalizedKeyPoints = normalizeKeyPoints(originalPerson.keyPoints, isSelfCamera, isLeftHanded)
+                    val normalizedPerson = originalPerson.copy(keyPoints = normalizedKeyPoints)
+
+                    // 관절 그려진 비트맵 큐에 넣기
                     val capturedBitmap = captureSurfaceView(surfaceView, bitmap)
-                    capturedBitmap?.let {
+                    capturedBitmap?.let { capturedBmp ->
                         val currentTime = System.currentTimeMillis()
                         if (imageQueue.size >= QUEUE_SIZE) {
                             imageQueue.poll()
                         }
-                        imageQueue.offer(TimestampedData(capturedBitmap, currentTime, -1))
+                        imageQueue.offer(TimestampedData(capturedBmp, currentTime, -1))
                     }
 
-                    // 패딩된 관절을 imageQueue에 추가합니다.
+                    // 정규화된 관절 좌표를 큐에 추가
                     if (jointQueue.size >= QUEUE_SIZE) {
                         jointQueue.poll()
                     }
-                    jointQueue.offer(it.keyPoints) // 큐의 맨 뒤에 새 비트맵 추가
+                    jointQueue.offer(normalizedKeyPoints)
 
-                    onDetectedInfo(it)
+                    // 정규화된 Person으로 자세 분석
+                    processDetectedInfo(normalizedPerson)
                 }
             }
 
             frameProcessedInOneSecondInterval++
         } else {
             Log.d(TAG, "processImage: 처리 안함")
+        }
+    }
+
+    private fun normalizeKeyPoints(keyPoints: List<KeyPoint>, isSelfCamera: Boolean, isLeftHanded: Boolean): List<KeyPoint> {
+        // 반전이 필요한 경우를 결정
+        val needsMirroring = isSelfCamera xor isLeftHanded
+
+        return if (needsMirroring) {
+            mirrorKeyPoints(keyPoints)
+        } else {
+            keyPoints
         }
     }
 
@@ -285,27 +300,17 @@ class CameraSource(
     }
 
     override fun onDetectedInfo(person: Person) {
-        processDetectedInfo(person, isSelf = false)
+        processDetectedInfo(person)
     }
 
-    /**
-     * TODO: isSelf(카메라 방향), isLeft(좌타여부) 받아서 넣어주기, 지금은 하드코딩
-     * estimatePoses()에서 뒤집으면 그릴 때도 반대로 그려줘서 추론때만 반대로 써서 판단해야 해요
-     * !!!!!!!!!!!! 포즈 추론은 우타, 후면 카메라로 좔영했을 때 기준 !!!!!!!!!!!!
-     **/
+    /** !!!!!!!!!!!! 포즈 추론은 우타, 후면 카메라로 좔영했을 때 기준 !!!!!!!!!!!! **/
     private fun processDetectedInfo(
         person: Person,
-        isSelf: Boolean = false,
-        isLeft: Boolean = false
     ) {
         // 결과 분석 보여주는 동안은 이미지 처리 안함
         if(viewingResult) return
 
-        val keyPoints = if (isSelf != isLeft) {
-            mirrorKeyPoints(person.keyPoints)
-        } else {
-            person.keyPoints
-        }
+        val keyPoints = person.keyPoints
 
         // 스윙 피니쉬가 인식된 시점부터 5프레임 더 받기
         if (swingViewModel.currentState.value == ANALYZING && pelvisTwisting) {

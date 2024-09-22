@@ -64,6 +64,7 @@ class CameraFragment :
     private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
     private lateinit var cameraProvider: ProcessCameraProvider
     private var isSelf = true
+    private var isLeft = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -132,11 +133,15 @@ class CameraFragment :
                             Log.d("CameraAnalyzer", "Current FPS: ${fps.roundToInt()}")
                         }
 
+                        // TODO: 카메라 전면 후면, 좌타 우타 여부 동적으로 넣어주기, 카메라 전환 버튼 빼기, 사용자의 옵션 선택에 따라 카메라 방향 전환해서 보여주기
+                        isSelf = false
+                        isLeft = false
+
                         cameraSource?.processImage(
                             cameraSource!!.getRotateBitmap(
                                 image.toBitmap(),
                                 isSelf
-                            ), isSelf
+                            ), isSelf, isLeft
                         )
                         image.close()
                     }
