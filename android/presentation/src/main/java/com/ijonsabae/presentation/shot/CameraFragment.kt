@@ -134,7 +134,7 @@ class CameraFragment :
                         }
 
                         // TODO: 카메라 전면 후면, 좌타 우타 여부 동적으로 넣어주기, 카메라 전환 버튼 빼기, 사용자의 옵션 선택에 따라 카메라 방향 전환해서 보여주기
-                        isSelf = false
+                        // isSelf = false
                         isLeft = false
 
                         cameraSource?.processImage(
