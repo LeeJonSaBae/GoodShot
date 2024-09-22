@@ -42,6 +42,11 @@ import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.ml.ModelType
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.OutputStream
 import java.util.LinkedList
 import java.util.Queue
@@ -62,6 +67,7 @@ class CameraSource(
 
     private var swingFrameCount = 0
     private var pelvisTwisting = false
+    private var viewingResult = false
     private val imageQueue: Queue<TimestampedData<Bitmap>> = LinkedList()
     private val jointQueue: Queue<List<KeyPoint>> = LinkedList()
 
@@ -292,18 +298,20 @@ class CameraSource(
         isSelf: Boolean = false,
         isLeft: Boolean = false
     ) {
+        // 결과 분석 보여주는 동안은 이미지 처리 안함
+        if(viewingResult) return
+
         val keyPoints = if (isSelf != isLeft) {
             mirrorKeyPoints(person.keyPoints)
         } else {
             person.keyPoints
         }
 
-        // 스윙이 마무리 되는 시점부터 5프레임 더 받기
-        if (swingViewModel.currentState.value == SWING && pelvisTwisting) {
+        // 스윙 피니쉬가 인식된 시점부터 5프레임 더 받기
+        if (swingViewModel.currentState.value == ANALYZING && pelvisTwisting) {
             if (swingFrameCount < 5) {
                 swingFrameCount++
             } else {
-                swingViewModel.setCurrentState(ANALYZING)
                 val poseIndices = extractBestPoseIndices()
 
                 if (validateSwingPose(poseIndices)) {
@@ -334,26 +342,25 @@ class CameraSource(
 
                     // TODO: 영상 서버에 저장하기 (비동기)
 
-                    // TODO: 스윙 분석 결과 표시 (일정시간)
+                    // TODO: 스윙 분석 결과 표시
+//                    swingViewModel.setCurrentState(RESULT)
+                    swingViewModel.setCurrentState(AGAIN)
 
                 } else {
-                    // TODO: 다시 스윙해주세요 표시 (일정시간)
+                    // TODO: 다시 스윙해주세요 표시
+                    swingViewModel.setCurrentState(AGAIN)
                     Log.d("싸피", "다시 스윙해주세요")
                 }
+                viewingResult = true
 
-                swingViewModel.setCurrentState(ADDRESS)
-                pelvisTwisting = false
-                swingFrameCount = 0
+                CoroutineScope(Dispatchers.Main).launch {
+                    delay(3000) // 3초 지연
+                    viewingResult = false
+                    pelvisTwisting = false
+                    swingFrameCount = 0
+                    swingViewModel.setCurrentState(ADDRESS)
+                }
             }
-            return
-        }
-
-        // 4. 스윙하는 동안은 안내 메세지 안변하도록 유지
-        if (swingViewModel.currentState.value == SWING &&
-            ((keyPoints[LEFT_WRIST.position].coordinate.x < keyPoints[LEFT_SHOULDER.position].coordinate.x) ||
-                    (keyPoints[RIGHT_WRIST.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x)).not()
-        ) {
-            swingViewModel.setCurrentState(ADDRESS)
             return
         }
 
@@ -364,7 +371,18 @@ class CameraSource(
                 abs(keyPoints[RIGHT_SHOULDER.position].coordinate.y - keyPoints[RIGHT_ANKLE.position].coordinate.y) > 0.3f
             ) {
                 pelvisTwisting = true
+                swingViewModel.setCurrentState(ANALYZING)
+                Log.d("싸피", "피니쉬 인식 완료")
             }
+            return
+        }
+
+        // 4. 스윙하는 동안은 안내 메세지 안변하도록 유지
+        if (swingViewModel.currentState.value == SWING &&
+            ((keyPoints[LEFT_WRIST.position].coordinate.x < keyPoints[LEFT_SHOULDER.position].coordinate.x) ||
+                    (keyPoints[RIGHT_WRIST.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x)).not()
+        ) {
+            swingViewModel.setCurrentState(ADDRESS)
             return
         }
 

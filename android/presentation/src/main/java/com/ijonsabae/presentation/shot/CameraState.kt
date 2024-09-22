@@ -8,5 +8,6 @@ enum class CameraState {
     ADDRESS,      // 어드레스 자세를 잡아주세요!
     SWING,        // 스윙해주세요!
     ANALYZING,    // 스윙 영상 분석중...
+    AGAIN,        // 다시 스윙해주세요!
     RESULT        // 스윙 분석 결과
 }

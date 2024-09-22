@@ -34,11 +34,7 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentCameraBinding
 import com.ijonsabae.presentation.main.MainActivity
-import com.ijonsabae.presentation.shot.CameraState.ADDRESS
-import com.ijonsabae.presentation.shot.CameraState.ANALYZING
-import com.ijonsabae.presentation.shot.CameraState.POSITIONING
-import com.ijonsabae.presentation.shot.CameraState.RESULT
-import com.ijonsabae.presentation.shot.CameraState.SWING
+import com.ijonsabae.presentation.shot.CameraState.*
 import com.ijonsabae.presentation.shot.ai.camera.CameraSource
 import com.ijonsabae.presentation.shot.flex.FoldingStateActor
 import com.ijonsabae.presentation.util.PermissionChecker
@@ -341,6 +337,31 @@ class CameraFragment :
                         setSpan(StyleSpan(Typeface.ITALIC), 0, this.length, 0)
                         binding.progressTitle.text = this
                     }
+                }
+
+                AGAIN -> {
+                    binding.tvAlert.visibility = View.VISIBLE
+                    binding.ivAlert.visibility = View.VISIBLE
+
+                    binding.ivBar.visibility = View.GONE
+                    binding.ivBar.visibility = View.GONE
+                    binding.tvCircleTempo.visibility = View.GONE
+                    binding.tvTitleTempo.visibility = View.GONE
+                    binding.tvCircleBackswing.visibility = View.GONE
+                    binding.tvTitleBackswing.visibility = View.GONE
+                    binding.tvCircleDownswing.visibility = View.GONE
+                    binding.tvTitleDownswing.visibility = View.GONE
+                    binding.tvResultHeader.visibility = View.GONE
+                    binding.tvResultSubHeader.visibility = View.GONE
+
+                    binding.indicatorProgress.hide()
+                    binding.tvAnalyzing.visibility = View.GONE
+                    binding.progressTitle.visibility = View.GONE
+                    binding.indicatorProgress.visibility = View.GONE
+
+                    binding.ivAlert.setImageBitmap(ContextCompat.getDrawable(fragmentContext, R.drawable.again_icon)!!.toBitmap())
+                    text = "분석을 위해 다시 스윙해주세요!"
+                    color = ContextCompat.getColor(fragmentContext, R.color.like_yellow)
                 }
 
                 RESULT -> {
