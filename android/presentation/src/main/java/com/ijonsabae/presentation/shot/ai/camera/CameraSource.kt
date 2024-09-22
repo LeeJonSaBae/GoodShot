@@ -106,7 +106,10 @@ class CameraSource(
         private const val MODEL_FILENAME_8 = "pose_classifier_8.tflite"
         private const val LABELS_FILENAME_8 = "labels8.txt"
 
+        /** 이미지, 관절 큐 사이즈 */
         private const val QUEUE_SIZE = 60
+        /** 포즈 유사도 임계치 */
+        private const val POSE_THRESHOLD = 0.4f
     }
 
     fun getRotateBitmap(bitmap: Bitmap, self: Boolean): Bitmap {
@@ -317,14 +320,15 @@ class CameraSource(
             if (swingFrameCount < 5) {
                 swingFrameCount++
             } else {
-                val poseIndices = extractBestPoseIndices()
+                val poseIndicesWithScores = extractBestPoseIndices()
 
-                if (validateSwingPose(poseIndices)) {
+                if (validateSwingPose(poseIndicesWithScores)) {
 //                    val swingData = indicesToPoses(poseIndices)
 //                    Log.d("싸피indices", "$poseIndices")
 
                     val poseFrameGroupIndices: Array<IntArray> = Array(8) { IntArray(3) }
-                    poseIndices.forEachIndexed { index, frameIndex ->
+                    poseIndicesWithScores.forEachIndexed { index, frameIndexWithScore ->
+                        val frameIndex = frameIndexWithScore.first
                         poseFrameGroupIndices[index] = when (frameIndex) {
                             0 -> intArrayOf(1, 0, 0)  // 첫 번째 프레임인 경우
                             QUEUE_SIZE - 1 -> intArrayOf(QUEUE_SIZE - 1, QUEUE_SIZE - 1, QUEUE_SIZE - 2)  // 마지막 프레임인 경우
@@ -367,14 +371,17 @@ class CameraSource(
 
                     // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
 
-                    // TODO: 영상 메모리에 올리기
+                    // TODO: 피드백 분석하기
+
+                    // TODO: 영상 만들기
+
+                    // TODO: 영상과 피드백 룸에 저장하기
 
                     // TODO: 영상 서버에 저장하기 (비동기)
 
                     // TODO: 스윙 분석 결과 표시
                     swingViewModel.setCurrentState(RESULT)
                 } else {
-                    // TODO: 다시 스윙해주세요 표시
                     swingViewModel.setCurrentState(AGAIN)
                     Log.d("싸피", "다시 스윙해주세요")
                 }
@@ -461,10 +468,19 @@ class CameraSource(
         return poses
     }
 
-    private fun validateSwingPose(poseIndices: List<Int>): Boolean {
+    private fun validateSwingPose(poseIndicesWithScores: List<Pair<Int, Float>>): Boolean {
         val countingArray = BooleanArray(QUEUE_SIZE) { false }
         var prevImageIndex = 100_000_000
-        for (index in poseIndices) {
+
+        for (indexWithScore in poseIndicesWithScores) {
+            val index = indexWithScore.first
+            val score = indexWithScore.second
+
+            // 포즈가 일정 유사도를 넘어야 정상 스윙으로 판단
+            if(score < POSE_THRESHOLD){
+                return false
+            }
+
             // 이미지 인덱스에 중복이 없어야 정상
             if (!countingArray[index]) {
                 countingArray[index] = true
@@ -543,7 +559,7 @@ class CameraSource(
     /**
      * 8동작의 비트맵과 관절 좌표를 반환
      */
-    private fun extractBestPoseIndices(): List<Int> {
+    private fun extractBestPoseIndices(): List<Pair<Int, Float>> {
         val jointDataList = jointQueue.toList().reversed()
         var poseLabelBias = 4
         var classifier = classifier8
@@ -552,6 +568,7 @@ class CameraSource(
 
         for ((index, jointData) in jointDataList.withIndex()) {
             if (jointData[RIGHT_WRIST.position].coordinate.y > jointData[RIGHT_HIP.position].coordinate.y) {
+                Log.d("확률", "모델 교체 준비 완료")
                 modelChangeReady = true
             }
 
@@ -572,7 +589,8 @@ class CameraSource(
                 }
             }
         }
-        return poseIndexArray.toList().map { it.first }
+
+        return poseIndexArray.toList()
     }
 
     private var lastLogTime = 0L
