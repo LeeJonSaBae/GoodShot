@@ -180,7 +180,7 @@ class CameraSource(
                     visualize(it, bitmap)
 
                     // 관절 그러진 비트맵 큐에 넣기
-                    val capturedBitmap = captureSurfaceView(surfaceView)
+                    val capturedBitmap = captureSurfaceView(surfaceView, bitmap)
                     capturedBitmap?.let {
                         val currentTime = System.currentTimeMillis()
                         if (imageQueue.size >= QUEUE_SIZE) {
@@ -205,9 +205,10 @@ class CameraSource(
         }
     }
 
-    private fun captureSurfaceView(surfaceView: SurfaceView): Bitmap? {
+    private fun captureSurfaceView(surfaceView: SurfaceView, originBitmap: Bitmap): Bitmap? {
         val bitmap =
-            Bitmap.createBitmap(surfaceView.width, surfaceView.height, Bitmap.Config.ARGB_8888)
+            Bitmap.createBitmap(originBitmap.width, originBitmap.height, Bitmap.Config.ARGB_8888)
+
         return try {
             // Use a synchronous approach with a CountDownLatch
             val latch = CountDownLatch(1)
