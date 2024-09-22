@@ -23,6 +23,7 @@ import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
@@ -33,11 +34,7 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentCameraBinding
 import com.ijonsabae.presentation.main.MainActivity
-import com.ijonsabae.presentation.shot.CameraState.ADDRESS
-import com.ijonsabae.presentation.shot.CameraState.ANALYZING
-import com.ijonsabae.presentation.shot.CameraState.POSITIONING
-import com.ijonsabae.presentation.shot.CameraState.RESULT
-import com.ijonsabae.presentation.shot.CameraState.SWING
+import com.ijonsabae.presentation.shot.CameraState.*
 import com.ijonsabae.presentation.shot.ai.camera.CameraSource
 import com.ijonsabae.presentation.shot.flex.FoldingStateActor
 import com.ijonsabae.presentation.util.PermissionChecker
@@ -163,7 +160,7 @@ class CameraFragment :
         cameraSource?.resume()
 
         lifecycleScope.launch {
-            foldingStateActor.checkFoldingState(
+            foldingStateActor.checkFoldingStateForCamera(
                 fragmentContext as AppCompatActivity,
                 swingViewModel.currentState.value,
                 binding.progressTitle,
@@ -174,7 +171,8 @@ class CameraFragment :
                 binding.tvAlert,
                 binding.layoutCameraMenu,
                 binding.layoutAlert,
-                binding.layoutCamera
+                binding.layoutCamera,
+                binding.indicatorProgress
             )
         }
     }
@@ -218,6 +216,8 @@ class CameraFragment :
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
 
+                    binding.ivAlert.setImageBitmap(ContextCompat.getDrawable(fragmentContext, R.drawable.yellow_card)!!.toBitmap())
+
                     text = "전신이 모두 보이도록 조금 더 뒤로 가주세요!!"
                     color = ContextCompat.getColor(fragmentContext, R.color.yello_card)
                 }
@@ -239,6 +239,8 @@ class CameraFragment :
                     binding.tvAnalyzing.visibility = View.GONE
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
+
+                    binding.ivAlert.setImageBitmap(ContextCompat.getDrawable(fragmentContext, R.drawable.address_icon)!!.toBitmap())
 
                     text = "어드레스 자세를 잡아주세요!"
                     color = ContextCompat.getColor(fragmentContext, R.color.address_color)
@@ -262,6 +264,8 @@ class CameraFragment :
                     binding.tvAnalyzing.visibility = View.GONE
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
+
+                    binding.ivAlert.setImageBitmap(ContextCompat.getDrawable(fragmentContext, R.drawable.swing_icon)!!.toBitmap())
 
                     text = "스윙해주세요!"
                     color = ContextCompat.getColor(fragmentContext, R.color.swing_color)
@@ -333,12 +337,31 @@ class CameraFragment :
                         setSpan(StyleSpan(Typeface.ITALIC), 0, this.length, 0)
                         binding.progressTitle.text = this
                     }
+                }
 
-                    binding.indicatorProgress.apply {
-                        setProgressCompat(90, true)
-                        isIndeterminate = true
-                        show()
-                    }
+                AGAIN -> {
+                    binding.tvAlert.visibility = View.VISIBLE
+                    binding.ivAlert.visibility = View.VISIBLE
+
+                    binding.ivBar.visibility = View.GONE
+                    binding.ivBar.visibility = View.GONE
+                    binding.tvCircleTempo.visibility = View.GONE
+                    binding.tvTitleTempo.visibility = View.GONE
+                    binding.tvCircleBackswing.visibility = View.GONE
+                    binding.tvTitleBackswing.visibility = View.GONE
+                    binding.tvCircleDownswing.visibility = View.GONE
+                    binding.tvTitleDownswing.visibility = View.GONE
+                    binding.tvResultHeader.visibility = View.GONE
+                    binding.tvResultSubHeader.visibility = View.GONE
+
+                    binding.indicatorProgress.hide()
+                    binding.tvAnalyzing.visibility = View.GONE
+                    binding.progressTitle.visibility = View.GONE
+                    binding.indicatorProgress.visibility = View.GONE
+
+                    binding.ivAlert.setImageBitmap(ContextCompat.getDrawable(fragmentContext, R.drawable.again_icon)!!.toBitmap())
+                    text = "분석을 위해 다시 스윙해주세요!"
+                    color = ContextCompat.getColor(fragmentContext, R.color.like_yellow)
                 }
 
                 RESULT -> {

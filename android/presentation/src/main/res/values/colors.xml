@@ -22,4 +22,6 @@
     <color name="tempo_color">#277A63</color>
     <color name="back_swing_color">#64A996</color>
     <color name="down_swing_color">#C0E7DC</color>
+
+    <color name="alpha70_black">#B3000000</color>
 </resources>
