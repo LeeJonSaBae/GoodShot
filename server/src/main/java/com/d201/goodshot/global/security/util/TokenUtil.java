@@ -7,6 +7,9 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,11 +40,14 @@ import static com.d201.goodshot.global.security.exception.SecurityExceptionList.
 @RequiredArgsConstructor
 public class TokenUtil {
 
+    @Value("${security.secret-key}")
+    private String secret;
     private final Long accessTokenExpireTime = 60 * 60L; // 1시간
     private SecretKey secretKey;
 
     // secretKey 초기화
-    public TokenUtil(@Value("${security.secret-key}") String secret) {
+    @PostConstruct // 의존성 주입이 완료된 후에 초기화 진행
+    public void generateKey() {
         secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
     }
 
