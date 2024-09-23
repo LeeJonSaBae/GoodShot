@@ -386,10 +386,10 @@ class CameraSource(
                         frameGroup.forEachIndexed { _, (imageData, _, originalIndex) ->
                             val fileName =
                                 "swing_pose_group${groupIndex + 1}_frame${originalIndex + 1}.jpg"
-//                            val uri = saveBitmapToGallery(context, imageData.data, fileName)
-//                            uri?.let {
-//                                Log.d("싸피", "Saved image $fileName at $it")
-//                            }
+                            val uri = saveBitmapToGallery(context, imageData.data, fileName)
+                            uri?.let {
+                                Log.d("싸피", "Saved image $fileName at $it")
+                            }
                         }
                     }
 
@@ -647,7 +647,7 @@ class CameraSource(
 
             //backswing 시작 시간 추적을 위한 로직
             if (classifier == classifier4) {
-                var hipWristDistancePow =
+                val hipWristDistancePow =
                     (jointData[RIGHT_HIP.position].coordinate.x - jointData[RIGHT_WRIST.position].coordinate.x).pow(2) +
                             (jointData[RIGHT_HIP.position].coordinate.y - jointData[RIGHT_WRIST.position].coordinate.y).pow(2)
                 if (hipWristDistancePow < wristHipDist) {

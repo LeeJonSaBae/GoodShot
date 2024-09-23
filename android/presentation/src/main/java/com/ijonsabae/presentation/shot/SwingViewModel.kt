@@ -13,7 +13,7 @@ class SwingViewModel : ViewModel() {
 
     val currentState: LiveData<CameraState>
         get() = _currentState
-    val isRight = true
+
 
     fun setCurrentState(newState: CameraState) {
         if (isMainThread()) {
