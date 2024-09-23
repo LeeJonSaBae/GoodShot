@@ -412,6 +412,7 @@ class CameraFragment :
                         )!!.toBitmap()
                     )
                     text = "분석을 위해 다시 스윙해주세요!"
+                    binding.tvAlert.text = text
                     tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
                     color = ContextCompat.getColor(fragmentContext, R.color.like_yellow)
                 }
