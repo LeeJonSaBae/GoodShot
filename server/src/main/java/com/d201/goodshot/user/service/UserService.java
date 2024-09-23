@@ -1,10 +1,10 @@
 package com.d201.goodshot.user.service;
 
-import com.d201.goodshot.global.security.dto.CustomUser;
 import com.d201.goodshot.global.security.dto.Token;
+import com.d201.goodshot.global.security.exception.InvalidTokenException;
 import com.d201.goodshot.global.security.util.TokenUtil;
 import com.d201.goodshot.user.domain.User;
-import com.d201.goodshot.user.dto.RefreshToken;
+import com.d201.goodshot.user.dto.Auth;
 import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
 import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
 import com.d201.goodshot.user.exception.AlreadyLogoutException;
@@ -13,7 +13,10 @@ import com.d201.goodshot.user.exception.LoginFailException;
 import com.d201.goodshot.user.exception.NotFoundUserException;
 import com.d201.goodshot.user.repository.RefreshTokenRepository;
 import com.d201.goodshot.user.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +26,7 @@ import java.util.Optional;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
     private final UserRepository userRepository;
@@ -55,7 +59,7 @@ public class UserService {
         User user = userRepository.findByEmail(email).orElseThrow(NotFoundUserException::new);
 
         // refresh token
-        Optional<RefreshToken> refreshToken = refreshTokenRepository.findById(email);
+        Optional<Auth> refreshToken = refreshTokenRepository.findById(email);
 
         // 이미 로그아웃된 상태면 예외 던지기
         if (refreshToken.isEmpty()) {
@@ -80,7 +84,7 @@ public class UserService {
     // 로그아웃
     public void logout(String email) {
         // refresh token delete
-        Optional<RefreshToken> refreshToken = refreshTokenRepository.findById(email); // refresh token 찾기
+        Optional<Auth> refreshToken = refreshTokenRepository.findById(email); // refresh token 찾기
 
         // 이미 로그아웃된 상태면 예외 던지기
         if (refreshToken.isEmpty()) {
@@ -89,6 +93,29 @@ public class UserService {
 
         refreshToken.ifPresent(refreshTokenRepository::delete); // refreshTokenRepository.delete(refreshToken)
         // ifPresent : 객체 값이 존재하면 해당 람다식 실행
+    }
+
+    // 토큰 재발급
+    public Token reissue(String refreshToken, HttpServletRequest request) {
+        if (tokenUtil.validateToken(refreshToken, request)) { // refresh token 유효한지 확인
+            try {
+                String email = tokenUtil.getSubject(refreshToken); // email 찾기
+                // token 검증
+                Auth auth = refreshTokenRepository.findById(email).orElseThrow(InvalidTokenException::new);
+
+                log.info("input refreshToken: {}", refreshToken);
+                log.info("redis refreshToken: {}", auth.getRefreshToken());
+
+                // 현재 redis 에 있는 token, 사용자가 가지고 있는 token 동일한지 확인
+                if (StringUtils.equals(auth.getRefreshToken(), refreshToken)) {
+                    // 새로운 token 발급
+                    return tokenUtil.generateToken(User.builder().email(email).build());
+                }
+            } catch (Exception e) {
+                throw new InvalidTokenException();
+            }
+        }
+        throw new InvalidTokenException();
     }
 
 }
