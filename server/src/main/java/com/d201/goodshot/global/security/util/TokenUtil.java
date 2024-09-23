@@ -3,7 +3,7 @@ package com.d201.goodshot.global.security.util;
 import com.d201.goodshot.global.security.dto.CustomUser;
 import com.d201.goodshot.global.security.dto.Token;
 import com.d201.goodshot.user.domain.User;
-import com.d201.goodshot.user.dto.RefreshToken;
+import com.d201.goodshot.user.dto.Auth;
 import com.d201.goodshot.user.repository.RefreshTokenRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -81,7 +81,7 @@ public class TokenUtil {
                 .signWith(secretKey).compact();
 
         // redis 에 refresh Token 저장
-        refreshTokenRepository.save(RefreshToken.builder().email(user.getEmail()).refreshToken(refreshToken).build());
+        refreshTokenRepository.save(Auth.builder().email(user.getEmail()).refreshToken(refreshToken).build());
 
         return Token.builder()
                 .accessToken(accessToken)
