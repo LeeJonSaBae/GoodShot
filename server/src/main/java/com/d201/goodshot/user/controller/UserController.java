@@ -1,6 +1,7 @@
 package com.d201.goodshot.user.controller;
 
 import com.d201.goodshot.global.base.BaseResponse;
+import com.d201.goodshot.global.security.dto.CustomUser;
 import com.d201.goodshot.global.security.dto.Token;
 import com.d201.goodshot.global.security.dto.TokenResponse;
 import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -53,6 +55,21 @@ public class UserController {
         Token token = userService.login(loginRequest);
         TokenResponse response = TokenResponse.builder().accessToken(token.getAccessToken()).refreshToken(token.getRefreshToken()).build();
         return BaseResponse.created(response);
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "로그아웃", description = "")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "로그아웃에 성공했습니다.",
+                    content = @Content(mediaType = "",
+                            examples = @ExampleObject(value = "")))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    public BaseResponse<Void> logout(@AuthenticationPrincipal CustomUser customUser) {
+        userService.logout(customUser.getEmail());
+        return BaseResponse.of(HttpStatus.OK, "로그아웃에 성공했습니다.", null);
     }
 
 }
