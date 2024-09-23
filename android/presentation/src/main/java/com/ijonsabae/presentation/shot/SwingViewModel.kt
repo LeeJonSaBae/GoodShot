@@ -29,9 +29,9 @@ class SwingViewModel : ViewModel() {
     var tempoRatioText: String = ""
 
     fun updateSwingTiming(swingTiming: SwingTiming) {
-        backswingTimeText = String.format("%.2f s", swingTiming.backswingTime / 1000.0)
-        downswingTimeText = String.format("%.2f s", swingTiming.downswingTime / 1000.0)
-        tempoRatioText = String.format("%.1f:1", swingTiming.tempoRatio)
+        backswingTimeText = String.format("%.2f초", swingTiming.backswingTime / 1000.0)
+        downswingTimeText = String.format("%.2f초", swingTiming.downswingTime / 1000.0)
+        tempoRatioText = String.format("%.2f", swingTiming.tempoRatio)
     }
 
     private fun isMainThread(): Boolean = Looper.myLooper() == Looper.getMainLooper()
