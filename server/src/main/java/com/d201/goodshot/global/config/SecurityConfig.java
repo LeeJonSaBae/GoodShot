@@ -38,6 +38,7 @@ public class SecurityConfig {
                                     "/webjars/**"
                             ).permitAll()
                             .requestMatchers("/users/join/**").permitAll()
+                            .requestMatchers("/users/login").permitAll()
                             .anyRequest().authenticated();
                 });
 
