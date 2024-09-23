@@ -5,7 +5,6 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
     tools:context=".login.LoginActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -32,16 +31,6 @@
         app:defaultNavHost="true"
         app:navGraph="@navigation/login_navigation_graph"
         />
-
-
-
-
-    <com.github.mikephil.charting.charts.BarChart
-        android:id="@+id/chart"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintDimensionRatio="H,1.4:1"
-        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
     
 

@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("com.google.devtools.ksp")
+    id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
 }
 
@@ -88,7 +89,10 @@ dependencies {
 
     // Hilt 세팅
     implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
+    kapt(libs.hilt.compiler)
+    
+    // Non Error 뭐시기 에러 뜸 KSP랑 Hilt랑 뭐가 안 맞는 듯
+//    ksp(libs.hilt.compiler)
 
     // RecyclerView
     implementation(libs.androidx.recyclerview)

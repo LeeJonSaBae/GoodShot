@@ -84,7 +84,17 @@
             android:id="@+id/profile"
             android:name="com.ijonsabae.presentation.profile.ProfileFragment"
             tools:label="profile"
-            tools:layout="@layout/fragment_profile"></fragment>
+            tools:layout="@layout/fragment_profile">
+            <action
+                android:id="@+id/action_profile_to_totalReport"
+                app:destination="@id/profile_total_report" />
+        </fragment>
+
+        <fragment
+            android:id="@+id/profile_total_report"
+            android:name="com.ijonsabae.presentation.profile.TotalReportFragment"
+            tools:label="total report"
+            tools:layout="@layout/fragment_total_report" />
     </navigation>
 
 

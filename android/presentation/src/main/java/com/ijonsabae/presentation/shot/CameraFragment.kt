@@ -38,17 +38,21 @@ import com.ijonsabae.presentation.shot.CameraState.*
 import com.ijonsabae.presentation.shot.ai.camera.CameraSource
 import com.ijonsabae.presentation.shot.flex.FoldingStateActor
 import com.ijonsabae.presentation.util.PermissionChecker
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
+import javax.inject.Inject
 import kotlin.math.roundToInt
 
 private const val TAG = "CameraFragment_싸피"
 
+@AndroidEntryPoint
 class CameraFragment :
     BaseFragment<FragmentCameraBinding>(FragmentCameraBinding::bind, R.layout.fragment_camera) {
     private lateinit var navController: NavController
-    private lateinit var foldingStateActor: FoldingStateActor
+    @Inject
+    lateinit var foldingStateActor: FoldingStateActor
     private lateinit var permissionChecker: PermissionChecker
     private val permissionList = arrayOf(Manifest.permission.CAMERA)
     private var camera: Camera? = null
@@ -72,7 +76,6 @@ class CameraFragment :
         // 스윙 상태에 따라 카메라 상태를 변경해주기 위해 옵저버 등록
         initObservers()
         surfaceView = binding.camera
-        foldingStateActor = FoldingStateActor(WindowInfoTracker.getOrCreate(fragmentContext))
         permissionChecker = PermissionChecker(this)
         permissionChecker.setOnGrantedListener { //퍼미션 획득 성공일때
             startCamera()
