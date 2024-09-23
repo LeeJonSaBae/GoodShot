@@ -76,19 +76,6 @@
 
         >
         <TextView
-            android:id="@+id/tv_analyzing"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="스윙 영상 분석중..."
-            android:textSize="24sp"
-            android:textColor="@color/white"
-            android:fontFamily="@font/pretendard_medium"
-            android:gravity="center"
-            app:layout_constraintTop_toBottomOf="@id/progress_title"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:visibility="gone"/>
-
-        <TextView
             android:id="@+id/progress_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -104,11 +91,24 @@
             android:id="@+id/indicator_progress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/tv_alert"
+            app:layout_constraintTop_toBottomOf="@id/progress_title"
+            app:layout_constraintBottom_toTopOf="@id/tv_analyzing"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:indeterminate="true"
+            android:visibility="gone"
+            />
+        <TextView
+            android:id="@+id/tv_analyzing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="스윙 영상 분석중..."
+            android:textSize="24sp"
+            android:textColor="@color/white"
+            android:fontFamily="@font/pretendard_medium"
+            android:gravity="center"
+            app:layout_constraintTop_toBottomOf="@id/indicator_progress"
+            app:layout_constraintBottom_toBottomOf="parent"
             android:visibility="gone"
             />
 
@@ -121,7 +121,7 @@
             app:layout_constraintBottom_toBottomOf="@id/tv_result_sub_header"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/tv_result_header"
-            android:visibility="gone"
+
             />
 
         <TextView
@@ -133,11 +133,12 @@
             android:textColor="@color/white"
             android:fontFamily="@font/pretendard_semibold"
             android:layout_marginStart="17dp"
+            android:layout_marginTop="20dp"
             app:layout_constraintStart_toEndOf="@id/iv_bar"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toTopOf="@id/tv_result_sub_header"
-            android:visibility="gone"/>
+            />
         <TextView
             android:id="@+id/tv_result_sub_header"
             android:layout_width="0dp"
@@ -147,12 +148,10 @@
             android:textColor="@color/white"
             android:fontFamily="@font/pretendard_semibold"
             android:layout_marginStart="17dp"
-            android:layout_marginBottom="54dp"
             app:layout_constraintStart_toEndOf="@id/iv_bar"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_result_header"
             app:layout_constraintBottom_toTopOf="@id/tv_circle_tempo"
-            android:visibility="gone"
             />
         <TextView
             android:id="@+id/tv_circle_tempo"
@@ -161,19 +160,20 @@
             android:text="1.67초"
             android:textSize="15sp"
             android:textColor="@color/white"
-            android:gravity="center_horizontal|center_vertical"
             android:fontFamily="@font/pretendard_semibold"
             android:background="@drawable/radius_circle_button"
             android:backgroundTint="@color/tempo_color"
-            android:padding="25dp"
+            android:padding="5dp"
+            android:layout_marginVertical="5dp"
+            android:gravity="center_horizontal|center_vertical"
             app:layout_constraintTop_toBottomOf="@id/tv_result_sub_header"
             app:layout_constraintBottom_toTopOf="@id/tv_title_tempo"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/tv_circle_backswing"
-            app:layout_constraintHorizontal_weight="1"
             app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintHorizontal_weight="1"
             app:layout_constraintHorizontal_chainStyle="spread_inside"
-            android:visibility="gone"
+            app:layout_constraintWidth_default="spread"
             />
         <TextView
             android:id="@+id/tv_circle_backswing"
@@ -185,14 +185,17 @@
             android:fontFamily="@font/pretendard_semibold"
             android:background="@drawable/radius_circle_button"
             android:backgroundTint="@color/back_swing_color"
-            android:padding="25dp"
+            android:padding="5dp"
+
             app:layout_constraintTop_toTopOf="@id/tv_circle_tempo"
             app:layout_constraintBottom_toBottomOf="@id/tv_circle_tempo"
             app:layout_constraintStart_toEndOf="@id/tv_circle_tempo"
             app:layout_constraintEnd_toStartOf="@id/tv_circle_downswing"
             app:layout_constraintHorizontal_weight="1"
             app:layout_constraintDimensionRatio="1:1"
-            android:visibility="gone"
+            android:layout_marginHorizontal="10dp"
+            app:layout_constraintWidth_default="spread"
+
             />
         <TextView
             android:id="@+id/tv_circle_downswing"
@@ -204,14 +207,16 @@
             android:fontFamily="@font/pretendard_semibold"
             android:background="@drawable/radius_circle_button"
             android:backgroundTint="@color/down_swing_color"
-            android:padding="25dp"
+            android:padding="5dp"
+
             app:layout_constraintTop_toTopOf="@id/tv_circle_tempo"
             app:layout_constraintBottom_toBottomOf="@id/tv_circle_tempo"
             app:layout_constraintStart_toEndOf="@id/tv_circle_backswing"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintHorizontal_weight="1"
-            android:visibility="gone"
+            app:layout_constraintWidth_default="spread"
+
             />
 
         <TextView
@@ -227,8 +232,6 @@
             app:layout_constraintEnd_toEndOf="@id/tv_circle_tempo"
             app:layout_constraintTop_toBottomOf="@id/tv_circle_tempo"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginTop="15dp"
-            android:visibility="gone"
             />
         <TextView
             android:id="@+id/tv_title_backswing"
@@ -243,7 +246,6 @@
             app:layout_constraintEnd_toEndOf="@id/tv_circle_backswing"
             app:layout_constraintTop_toTopOf="@id/tv_title_tempo"
             app:layout_constraintBottom_toBottomOf="@id/tv_title_tempo"
-            android:visibility="gone"
             />
         <TextView
             android:id="@+id/tv_title_downswing"
@@ -258,7 +260,6 @@
             app:layout_constraintEnd_toEndOf="@id/tv_circle_downswing"
             app:layout_constraintTop_toTopOf="@id/tv_title_tempo"
             app:layout_constraintBottom_toBottomOf="@id/tv_title_tempo"
-            android:visibility="gone"
             />
 
         <ImageView
@@ -273,6 +274,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintHorizontal_chainStyle="spread_inside"
+            android:visibility="gone"
             />
 
 
@@ -292,7 +294,9 @@
             app:layout_constraintHorizontal_weight="1"
             app:layout_constraintStart_toEndOf="@id/iv_alert"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.493" />
+            app:layout_constraintVertical_bias="0.493"
+            android:visibility="gone"
+            />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
