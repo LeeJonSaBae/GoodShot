@@ -108,6 +108,7 @@ class CameraSource(
 
         /** 이미지, 관절 큐 사이즈 */
         private const val QUEUE_SIZE = 60
+
         /** 포즈 유사도 임계치 */
         private const val POSE_THRESHOLD = 0.4f
     }
@@ -188,7 +189,8 @@ class CameraSource(
                     visualize(originalPerson, bitmap)
 
                     // 분석을 위한 정규화된 키포인트
-                    val normalizedKeyPoints = normalizeKeyPoints(originalPerson.keyPoints, isSelfCamera, isLeftHanded)
+                    val normalizedKeyPoints =
+                        normalizeKeyPoints(originalPerson.keyPoints, isSelfCamera, isLeftHanded)
                     val normalizedPerson = originalPerson.copy(keyPoints = normalizedKeyPoints)
 
                     // 관절 그려진 비트맵 큐에 넣기
@@ -218,7 +220,11 @@ class CameraSource(
         }
     }
 
-    private fun normalizeKeyPoints(keyPoints: List<KeyPoint>, isSelfCamera: Boolean, isLeftHanded: Boolean): List<KeyPoint> {
+    private fun normalizeKeyPoints(
+        keyPoints: List<KeyPoint>,
+        isSelfCamera: Boolean,
+        isLeftHanded: Boolean
+    ): List<KeyPoint> {
         // 반전이 필요한 경우를 결정
         val needsMirroring = isSelfCamera xor isLeftHanded
 
@@ -311,7 +317,7 @@ class CameraSource(
         person: Person,
     ) {
         // 결과 분석 보여주는 동안은 이미지 처리 안함
-        if(viewingResult) return
+        if (viewingResult) return
 
         val keyPoints = person.keyPoints
 
@@ -331,8 +337,16 @@ class CameraSource(
                         val frameIndex = frameIndexWithScore.first
                         poseFrameGroupIndices[index] = when (frameIndex) {
                             0 -> intArrayOf(1, 0, 0)  // 첫 번째 프레임인 경우
-                            QUEUE_SIZE - 1 -> intArrayOf(QUEUE_SIZE - 1, QUEUE_SIZE - 1, QUEUE_SIZE - 2)  // 마지막 프레임인 경우
-                            else -> intArrayOf(frameIndex + 1, frameIndex, frameIndex - 1)  // 일반적인 경우
+                            QUEUE_SIZE - 1 -> intArrayOf(
+                                QUEUE_SIZE - 1,
+                                QUEUE_SIZE - 1,
+                                QUEUE_SIZE - 2
+                            )  // 마지막 프레임인 경우
+                            else -> intArrayOf(
+                                frameIndex + 1,
+                                frameIndex,
+                                frameIndex - 1
+                            )  // 일반적인 경우
                         }
                     }
                     Log.d("싸피indices", poseFrameGroupIndices.contentDeepToString())
@@ -361,7 +375,8 @@ class CameraSource(
                     // 8개의 포즈 그룹(각 3프레임)을 갤러리에 저장
                     swingData.forEachIndexed { groupIndex, frameGroup ->
                         frameGroup.forEachIndexed { _, (imageData, _, originalIndex) ->
-                            val fileName = "swing_pose_group${groupIndex + 1}_frame${originalIndex + 1}.jpg"
+                            val fileName =
+                                "swing_pose_group${groupIndex + 1}_frame${originalIndex + 1}.jpg"
                             val uri = saveBitmapToGallery(context, imageData.data, fileName)
                             uri?.let {
                                 Log.d("싸피", "Saved image $fileName at $it")
@@ -402,7 +417,8 @@ class CameraSource(
         if (swingViewModel.currentState.value == SWING) {
             // 오른어깨와 왼발이 가까워지면
             if (abs(keyPoints[RIGHT_SHOULDER.position].coordinate.x - keyPoints[LEFT_ANKLE.position].coordinate.x) < 0.05f &&
-                abs(keyPoints[RIGHT_SHOULDER.position].coordinate.y - keyPoints[RIGHT_ANKLE.position].coordinate.y) > 0.3f
+                abs(keyPoints[RIGHT_SHOULDER.position].coordinate.y - keyPoints[RIGHT_ANKLE.position].coordinate.y) > 0.3f &&
+                keyPoints[RIGHT_ELBOW.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x
             ) {
                 pelvisTwisting = true
                 swingViewModel.setCurrentState(ANALYZING)
@@ -477,7 +493,7 @@ class CameraSource(
             val score = indexWithScore.second
 
             // 포즈가 일정 유사도를 넘어야 정상 스윙으로 판단
-            if(score < POSE_THRESHOLD){
+            if (score < POSE_THRESHOLD) {
                 return false
             }
 
@@ -489,7 +505,7 @@ class CameraSource(
             }
 
             // 이미지 순서가 맞아야 정상
-            if(index >= prevImageIndex){
+            if (index >= prevImageIndex) {
                 return false
             }
             prevImageIndex = index
@@ -567,7 +583,10 @@ class CameraSource(
         val poseIndexArray = Array(8) { Pair(0, 0f) }
 
         for ((index, jointData) in jointDataList.withIndex()) {
-            if (jointData[RIGHT_WRIST.position].coordinate.y > jointData[RIGHT_HIP.position].coordinate.y) {
+            if (!modelChangeReady &&
+                jointData[RIGHT_WRIST.position].coordinate.x > jointData[RIGHT_SHOULDER.position].coordinate.x &&
+                jointData[RIGHT_WRIST.position].coordinate.y < jointData[RIGHT_SHOULDER.position].coordinate.y
+            ) {
                 Log.d("확률", "모델 교체 준비 완료")
                 modelChangeReady = true
             }

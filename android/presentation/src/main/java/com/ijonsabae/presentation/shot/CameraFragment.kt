@@ -63,7 +63,7 @@ class CameraFragment :
 
     private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
     private lateinit var cameraProvider: ProcessCameraProvider
-    private var isSelf = true
+    private var isSelf = false
     private var isLeft = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -134,7 +134,7 @@ class CameraFragment :
                         }
 
                         // TODO: 카메라 전면 후면, 좌타 우타 여부 동적으로 넣어주기, 카메라 전환 버튼 빼기, 사용자의 옵션 선택에 따라 카메라 방향 전환해서 보여주기
-                        // isSelf = false
+//                         isSelf = true
                         isLeft = false
 
                         cameraSource?.processImage(
@@ -221,7 +221,12 @@ class CameraFragment :
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
 
-                    binding.ivAlert.setImageBitmap(ContextCompat.getDrawable(fragmentContext, R.drawable.yellow_card)!!.toBitmap())
+                    binding.ivAlert.setImageBitmap(
+                        ContextCompat.getDrawable(
+                            fragmentContext,
+                            R.drawable.yellow_card
+                        )!!.toBitmap()
+                    )
 
                     text = "전신이 모두 보이도록 조금 더 뒤로 가주세요!!"
                     color = ContextCompat.getColor(fragmentContext, R.color.yello_card)
@@ -245,7 +250,12 @@ class CameraFragment :
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
 
-                    binding.ivAlert.setImageBitmap(ContextCompat.getDrawable(fragmentContext, R.drawable.address_icon)!!.toBitmap())
+                    binding.ivAlert.setImageBitmap(
+                        ContextCompat.getDrawable(
+                            fragmentContext,
+                            R.drawable.address_icon
+                        )!!.toBitmap()
+                    )
 
                     text = "어드레스 자세를 잡아주세요!"
                     color = ContextCompat.getColor(fragmentContext, R.color.address_color)
@@ -270,7 +280,12 @@ class CameraFragment :
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
 
-                    binding.ivAlert.setImageBitmap(ContextCompat.getDrawable(fragmentContext, R.drawable.swing_icon)!!.toBitmap())
+                    binding.ivAlert.setImageBitmap(
+                        ContextCompat.getDrawable(
+                            fragmentContext,
+                            R.drawable.swing_icon
+                        )!!.toBitmap()
+                    )
 
                     text = "스윙해주세요!"
                     color = ContextCompat.getColor(fragmentContext, R.color.swing_color)
@@ -364,7 +379,12 @@ class CameraFragment :
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
 
-                    binding.ivAlert.setImageBitmap(ContextCompat.getDrawable(fragmentContext, R.drawable.again_icon)!!.toBitmap())
+                    binding.ivAlert.setImageBitmap(
+                        ContextCompat.getDrawable(
+                            fragmentContext,
+                            R.drawable.again_icon
+                        )!!.toBitmap()
+                    )
                     text = "분석을 위해 다시 스윙해주세요!"
                     color = ContextCompat.getColor(fragmentContext, R.color.like_yellow)
                 }
