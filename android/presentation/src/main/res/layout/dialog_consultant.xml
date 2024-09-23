@@ -42,6 +42,7 @@
         app:layout_constraintVertical_chainStyle="packed"
         />
     <android.widget.Button
+        android:id="@+id/btn_close"
         android:layout_width="35dp"
         android:layout_height="35dp"
         android:background="@drawable/bg_close_btn"
@@ -63,7 +64,7 @@
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintWidth_percent="0.36"
         app:cardCornerRadius="9999dp"
-        app:cardElevation="0dp"
+        app:cardElevation="5dp"
         >
     </androidx.cardview.widget.CardView>
     <androidx.cardview.widget.CardView
@@ -75,15 +76,15 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintWidth_percent="0.33"
-        app:cardElevation="0dp"
+        app:cardElevation="5dp"
         app:cardCornerRadius="9999dp"
         >
         <ImageView
             android:id="@+id/iv_profile_image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/swing_example"
             android:scaleType="fitXY"
+            tools:src="@drawable/swing_example"
             />
     </androidx.cardview.widget.CardView>
 
@@ -93,177 +94,187 @@
         android:layout_height="wrap_content"
         android:textSize="22sp"
         android:fontFamily="@font/pretendard_semibold"
-        app:layout_constraintTop_toBottomOf="@id/cv_consultant_image"
+        android:layout_marginTop="10dp"
         android:gravity="center_vertical|center_horizontal"
+        app:layout_constraintTop_toBottomOf="@id/cv_consultant_image"
         tools:text="김민깅 프로"
         />
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <ScrollView
+        android:id="@+id/sc_info"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/tv_consultant_name"
-        app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginHorizontal="40dp"
+        android:layout_marginVertical="15dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_consultant_name"
+        app:layout_constraintBottom_toTopOf="@id/btn_consult"
+        app:layout_constraintVertical_chainStyle="spread"
         >
-
-        <TextView
-            android:id="@+id/tv_career_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="경력"
-            android:textColor="@color/black"
-            android:textSize="18sp"
-            android:fontFamily="@font/pretendard_semibold"
-            android:layout_marginVertical="15dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/divider1"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/tv_career"
-            app:layout_constraintHorizontal_chainStyle="spread_inside"
-            app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintVertical_bias="0"
-            />
-        <TextView
-            android:id="@+id/tv_career"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:textColor="@color/dark_green"
-            android:fontFamily="@font/pretendard_semibold"
-            android:drawableLeft="@drawable/career_icon"
-            android:drawablePadding="5dp"
-            app:layout_constraintTop_toTopOf="@id/tv_career_title"
-            app:layout_constraintBottom_toBottomOf="@id/tv_career_title"
-            app:layout_constraintStart_toEndOf="@id/tv_career_title"
-            app:layout_constraintEnd_toEndOf="parent"
-            tools:text="총 경력 2년"
-            />
-        <View
-            android:id="@+id/divider1"
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:background="@color/divider_color"
-            app:layout_constraintTop_toBottomOf="@id/tv_career_title"
-            app:layout_constraintBottom_toTopOf="@id/tv_expertise_title"
-            />
-        <TextView
-            android:id="@+id/tv_expertise_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="전문"
-            android:textColor="@color/black"
-            android:textSize="18sp"
-            android:fontFamily="@font/pretendard_semibold"
-            android:layout_marginVertical="15dp"
-            app:layout_constraintTop_toBottomOf="@id/divider1"
-            app:layout_constraintBottom_toTopOf="@id/divider2"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/tv_expertise"
-            app:layout_constraintHorizontal_chainStyle="spread_inside"
-            />
-        <TextView
-            android:id="@+id/tv_expertise"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:textColor="@color/dark_green"
-            android:fontFamily="@font/pretendard_semibold"
-            android:drawableLeft="@drawable/expertise_icon"
-            android:drawablePadding="5dp"
-            app:layout_constraintTop_toBottomOf="@id/divider1"
-            app:layout_constraintBottom_toTopOf="@id/divider2"
-            app:layout_constraintStart_toEndOf="@id/tv_expertise_title"
-            app:layout_constraintEnd_toEndOf="parent"
-            tools:text="스윙 분석"
-            />
-
-        <View
-            android:id="@+id/divider2"
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:background="@color/divider_color"
-            app:layout_constraintTop_toBottomOf="@id/tv_expertise_title"
-            app:layout_constraintBottom_toTopOf="@id/tv_certification_title"
-            />
-
-        <TextView
-            android:id="@+id/tv_certification_title"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="자격 및 인증"
-            android:textColor="@color/black"
-            android:textSize="18sp"
-            android:fontFamily="@font/pretendard_semibold"
-            android:layout_marginVertical="15dp"
-            app:layout_constraintTop_toBottomOf="@id/divider2"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/tv_expertise"
-            app:layout_constraintHorizontal_chainStyle="spread_inside"
-            app:layout_constraintBottom_toTopOf="@id/rv_certification"
-            />
+            app:layout_constraintTop_toBottomOf="@id/tv_consultant_name"
+            >
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_certification"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
-            android:orientation="horizontal"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintTop_toBottomOf="@id/tv_certification_title"
-            app:layout_constraintBottom_toTopOf="@id/divider3"
-            />
+            <TextView
+                android:id="@+id/tv_career_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="경력"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:fontFamily="@font/pretendard_semibold"
+                android:layout_marginVertical="15dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/divider1"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/tv_career"
+                app:layout_constraintHorizontal_chainStyle="spread_inside"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintVertical_bias="0"
+                />
+            <TextView
+                android:id="@+id/tv_career"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textColor="@color/dark_green"
+                android:fontFamily="@font/pretendard_semibold"
+                android:drawableLeft="@drawable/career_icon"
+                android:drawablePadding="5dp"
+                app:layout_constraintTop_toTopOf="@id/tv_career_title"
+                app:layout_constraintBottom_toBottomOf="@id/tv_career_title"
+                app:layout_constraintStart_toEndOf="@id/tv_career_title"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:text="총 경력 2년"
+                />
+            <View
+                android:id="@+id/divider1"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="@color/divider_color"
+                app:layout_constraintTop_toBottomOf="@id/tv_career_title"
+                app:layout_constraintBottom_toTopOf="@id/tv_expertise_title"
+                />
+            <TextView
+                android:id="@+id/tv_expertise_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="전문"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:fontFamily="@font/pretendard_semibold"
+                android:layout_marginVertical="15dp"
+                app:layout_constraintTop_toBottomOf="@id/divider1"
+                app:layout_constraintBottom_toTopOf="@id/divider2"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/tv_expertise"
+                app:layout_constraintHorizontal_chainStyle="spread_inside"
+                />
+            <TextView
+                android:id="@+id/tv_expertise"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textColor="@color/dark_green"
+                android:fontFamily="@font/pretendard_semibold"
+                android:drawableLeft="@drawable/expertise_icon"
+                android:drawablePadding="5dp"
+                app:layout_constraintTop_toBottomOf="@id/divider1"
+                app:layout_constraintBottom_toTopOf="@id/divider2"
+                app:layout_constraintStart_toEndOf="@id/tv_expertise_title"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:text="스윙 분석"
+                />
 
-        <View
-            android:id="@+id/divider3"
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            app:layout_constraintTop_toBottomOf="@id/rv_certification"
-            app:layout_constraintBottom_toTopOf="@id/tv_topic_title"
-            android:background="@color/divider_color"
-            />
+            <View
+                android:id="@+id/divider2"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="@color/divider_color"
+                app:layout_constraintTop_toBottomOf="@id/tv_expertise_title"
+                app:layout_constraintBottom_toTopOf="@id/tv_certification_title"
+                />
 
-        <TextView
-            android:id="@+id/tv_topic_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="상담 가능한 주제"
-            android:textColor="@color/black"
-            android:textSize="18sp"
-            android:fontFamily="@font/pretendard_semibold"
-            android:layout_marginVertical="15dp"
-            app:layout_constraintTop_toBottomOf="@id/divider3"
-            app:layout_constraintBottom_toTopOf="@id/rv_topic"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/tv_expertise"
-            app:layout_constraintHorizontal_chainStyle="spread_inside"
-            />
+            <TextView
+                android:id="@+id/tv_certification_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="자격 및 인증"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:fontFamily="@font/pretendard_semibold"
+                android:layout_marginVertical="15dp"
+                app:layout_constraintTop_toBottomOf="@id/divider2"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/tv_expertise"
+                app:layout_constraintHorizontal_chainStyle="spread_inside"
+                app:layout_constraintBottom_toTopOf="@id/rv_certification"
+                />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_topic"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="15dp"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintTop_toBottomOf="@id/tv_topic_title"
-            app:layout_constraintBottom_toTopOf="@id/btn_consult"
-            />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_certification"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:orientation="horizontal"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintTop_toBottomOf="@id/tv_certification_title"
+                app:layout_constraintBottom_toTopOf="@id/divider3"
+                />
 
-        <android.widget.Button
-            android:id="@+id/btn_consult"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/rv_topic"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:background="@drawable/radius_circle_button"
-            android:backgroundTint="@color/black"
-            android:text="상담 신청하기"
-            android:textSize="14sp"
-            android:textColor="@color/white"
-            android:fontFamily="@font/pretendard_regular"
+            <View
+                android:id="@+id/divider3"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                app:layout_constraintTop_toBottomOf="@id/rv_certification"
+                app:layout_constraintBottom_toTopOf="@id/tv_topic_title"
+                android:background="@color/divider_color"
+                />
 
-            />
+            <TextView
+                android:id="@+id/tv_topic_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="상담 가능한 주제"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:fontFamily="@font/pretendard_semibold"
+                android:layout_marginVertical="15dp"
+                app:layout_constraintTop_toBottomOf="@id/divider3"
+                app:layout_constraintBottom_toTopOf="@id/rv_topic"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/tv_expertise"
+                app:layout_constraintHorizontal_chainStyle="spread_inside"
+                />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_topic"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="15dp"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintTop_toBottomOf="@id/tv_topic_title"
+                app:layout_constraintBottom_toBottomOf="parent"
+                />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+    <android.widget.Button
+        android:id="@+id/btn_consult"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="40dp"
+        android:background="@drawable/radius_circle_button"
+        android:backgroundTint="@color/black"
+        android:text="상담 신청하기"
+        android:textSize="14sp"
+        android:textColor="@color/white"
+        android:fontFamily="@font/pretendard_regular"
+        android:layout_marginBottom="30dp"
+        app:layout_constraintTop_toBottomOf="@id/sc_info"
+        app:layout_constraintBottom_toBottomOf="parent"
+        />
 
 
 

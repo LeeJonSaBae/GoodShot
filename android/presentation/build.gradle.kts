@@ -4,6 +4,10 @@ plugins {
     id("com.google.devtools.ksp")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+    kotlin("plugin.serialization") version "2.0.20"
+    id("kotlin-parcelize")
+    id("androidx.navigation.safeargs.kotlin")
+
 }
 
 android {
@@ -41,6 +45,9 @@ android {
 dependencies {
     implementation(project(":domain"))
     implementation(libs.androidx.window)
+
+    //serialization
+    implementation(libs.kotlinx.serialization.json)
 
     // navigation
     implementation(libs.androidx.navigation.fragment.ktx)

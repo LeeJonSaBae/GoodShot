@@ -1,5 +1,6 @@
 package com.ijonsabae.presentation.consult
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,10 +11,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.ijonsabae.domain.model.Consultant
 import com.ijonsabae.presentation.R
-import com.ijonsabae.presentation.databinding.ItemConsultantBinding
+import com.ijonsabae.presentation.databinding.ItemConsultantListBinding
 
-class ConsultantAdapter() :
-    ListAdapter<Consultant, ConsultantAdapter.ReplayViewHolder>(
+private const val TAG = "ConsultantListAdapter_싸피"
+class ConsultantListAdapter :
+    ListAdapter<Consultant, ConsultantListAdapter.ConsultantListViewHolder>(
         Comparator
     ) {
 
@@ -44,24 +46,15 @@ class ConsultantAdapter() :
         this.itemClickListener = onItemClickListener
     }
 
-    inner class ReplayViewHolder(private val binding: ItemConsultantBinding) :
+    inner class ConsultantListViewHolder(private val binding: ItemConsultantListBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        private var check = false
-
         fun bindInfo(position: Int) {
             val consultant = getItem(position)
 
-            if (consultant.profileImage == null) {
-                // 없을 경우 기본 이미지. 글라이드 : 링크이미지 받아올 때
-                Glide.with(binding.root)
-                    .load("https://images-ext-1.discordapp.net/external/9pyEBG4x_J2aG-j5BeoaA8edEpEpfQEOEO9SdmT9hIg/https/k.kakaocdn.net/dn/cwObI9/btsGqPcg5ic/UHYbwvy2M2154EdZSpK8B1/img_110x110.jpg%2C?format=webp")
-                    .into(binding.ivThumbnail)
-            } else {
-                Glide.with(binding.root)
-                    .load(consultant.profileImage)
-                    .into(binding.ivThumbnail)
-            }
-
+            Glide.with(binding.root)
+                .load(consultant.profileImage).error(R.drawable.swing_example)
+                .into(binding.ivThumbnail)
+            Log.d(TAG, "bindInfo: ${consultant.profileImage}")
             binding.tvName.text = consultant.name
             binding.tvCareerTitle.text = "경력 ${consultant.career}년"
             binding.tvCourse.text = "${consultant.course} 과정"
@@ -74,9 +67,9 @@ class ConsultantAdapter() :
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
-    ): ReplayViewHolder {
-        return ReplayViewHolder(
-            ItemConsultantBinding.inflate(
+    ): ConsultantListViewHolder {
+        return ConsultantListViewHolder(
+            ItemConsultantListBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
                 false
@@ -84,7 +77,7 @@ class ConsultantAdapter() :
         )
     }
 
-    override fun onBindViewHolder(holder: ReplayViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ConsultantListViewHolder, position: Int) {
         holder.bindInfo(position)
         // 애니메이션 설정
         setAnimation(holder.itemView, position)

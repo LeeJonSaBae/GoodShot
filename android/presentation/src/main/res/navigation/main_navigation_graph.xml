@@ -31,7 +31,9 @@
             android:name="com.ijonsabae.presentation.consult.ConsultantDetailInfoDialog"
             tools:label="consult_dialog"
             tools:layout="@layout/dialog_consultant">
-
+            <argument
+                android:name="consult"
+                app:argType="com.ijonsabae.presentation.consult.model.Consultant" />
         </dialog>
     </navigation>
     <navigation

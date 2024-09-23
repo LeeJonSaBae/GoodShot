@@ -1,36 +1,26 @@
 package com.ijonsabae.presentation.consult
 
-import android.app.Dialog
-import android.content.Context
 import android.graphics.Color
-import android.graphics.Point
 import android.graphics.drawable.ColorDrawable
-import android.os.Build
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
-import android.view.WindowInsets
-import android.view.WindowManager
-import androidx.core.content.ContextCompat.getSystemService
-import androidx.fragment.app.DialogFragment
+import androidx.navigation.fragment.navArgs
+import com.bumptech.glide.Glide
+import com.ijonsabae.presentation.R
+import com.ijonsabae.presentation.config.BaseDialog
 import com.ijonsabae.presentation.databinding.DialogConsultantBinding
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 
-class ConsultantDetailInfoDialog @Inject constructor(): DialogFragment() {
-    private lateinit var binding: DialogConsultantBinding
-    private lateinit var dialogContext: Context
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+class ConsultantDetailInfoDialog :
+    BaseDialog<DialogConsultantBinding>(DialogConsultantBinding::bind, R.layout.dialog_consultant) {
+    private val args: ConsultantDetailInfoDialogArgs by navArgs()
+    private val consultantCertificationAdapter by lazy {
+        ConsultantCertificationAdapter()
     }
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        dialogContext = context
+    private val consultantTopicAdapter by lazy {
+        ConsultantCertificationAdapter()
     }
 
     override fun onCreateView(
@@ -38,54 +28,49 @@ class ConsultantDetailInfoDialog @Inject constructor(): DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = DialogConsultantBinding.inflate(layoutInflater)
-        // 레이아웃 배경을 투명하게 해줌, 필수 아님
         dialog?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         dialog?.window?.requestFeature(Window.FEATURE_NO_TITLE)
+        return super.onCreateView(inflater, container, savedInstanceState)
+    }
 
-
-
-        return binding.root
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initArgs()
+        initRecyclerView()
+        initSetOnClickListener()
+        loadProfileImage()
     }
 
     override fun onStart() {
         super.onStart()
-        val screenWidth = getScreenWidth(dialogContext)
-        val screenHeight = getScreenHeight(dialogContext)
-
-        val newWidth = (screenWidth * 0.9).toInt()
-        val newHeight = (screenHeight * 0.8).toInt()
-        val layoutParams = requireView().layoutParams
-        layoutParams.width = newWidth
-        layoutParams.height = newHeight
-        requireView().layoutParams = layoutParams
+        setScreenWidthPercentage(0.9F)
+        setScreenHeightPercentage(0.8F)
     }
 
-    private fun getScreenWidth(context: Context): Int {
-        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val windowMetrics = wm.currentWindowMetrics
-            val insets = windowMetrics.windowInsets
-                .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
-            windowMetrics.bounds.width() - insets.left - insets.right
-        } else {
-            val displayMetrics = DisplayMetrics()
-            wm.defaultDisplay.getMetrics(displayMetrics)
-            displayMetrics.widthPixels
+    private fun initArgs() {
+        args.consult.apply {
+            binding.tvConsultantName.text = "${name} 프로"
+            binding.tvCareer.text = "총 경력${career}년"
+            binding.tvExpertise.text = expertise
         }
     }
 
-    private fun getScreenHeight(context: Context): Int {
-        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val windowMetrics = wm.currentWindowMetrics
-            val insets = windowMetrics.windowInsets
-                .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
-            windowMetrics.bounds.height() - insets.bottom - insets.top
-        } else {
-            val displayMetrics = DisplayMetrics()
-            wm.defaultDisplay.getMetrics(displayMetrics)
-            displayMetrics.heightPixels
+    private fun initSetOnClickListener() {
+        binding.btnClose.setOnClickListener {
+            dismiss()
         }
+    }
+
+    private fun initRecyclerView() {
+        binding.rvTopic.adapter = consultantTopicAdapter
+        consultantTopicAdapter.submitList(args.consult.topic)
+        binding.rvCertification.adapter = consultantCertificationAdapter
+        consultantCertificationAdapter.submitList(args.consult.certification)
+    }
+
+    private fun loadProfileImage() {
+        Glide.with(binding.root)
+            .load(args.consult.profileImage)
+            .into(binding.ivProfileImage)
     }
 }

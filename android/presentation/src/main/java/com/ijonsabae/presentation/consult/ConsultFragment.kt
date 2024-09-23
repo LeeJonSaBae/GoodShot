@@ -14,24 +14,21 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentConsultBinding
 import com.ijonsabae.presentation.main.MainActivity
+import com.ijonsabae.presentation.util.convertConsultant
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ConsultFragment :
     BaseFragment<FragmentConsultBinding>(FragmentConsultBinding::bind, R.layout.fragment_consult) {
-    @Inject
-    lateinit var dialog: ConsultantDetailInfoDialog
     private lateinit var navController: NavController
-
     private val consultViewModel: ConsultViewModel by viewModels()
-    private val consultantAdapter by lazy {
-        ConsultantAdapter().apply {
+    private val consultantListAdapter by lazy {
+        ConsultantListAdapter().apply {
             setItemClickListener(
-                object : ConsultantAdapter.OnItemClickListener {
+                object : ConsultantListAdapter.OnItemClickListener {
                     override fun onItemClick(item: Consultant) {
-                        navController.navigate(R.id.action_consult_to_consult_dialog)
+                        navController.navigate(ConsultFragmentDirections.actionConsultToConsultDialog(convertConsultant(item)))
                     }
                 }
             )
@@ -51,16 +48,17 @@ class ConsultFragment :
         lifecycleScope.launch {
             consultViewModel.consultantList.collect {
                 repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    consultantAdapter.submitList(it)
+                    consultantListAdapter.submitList(it)
+                    binding.tvCount.text = "(All ${it.size})"
                 }
             }
         }
     }
 
     private fun initRecyclerView() {
-        consultantAdapter.submitList(consultViewModel.consultantList.value)
+        consultantListAdapter.submitList(consultViewModel.consultantList.value)
         val mountainRecyclerView = binding.rvConsultant
         mountainRecyclerView.layoutManager = LinearLayoutManager(context)
-        mountainRecyclerView.adapter = consultantAdapter
+        mountainRecyclerView.adapter = consultantListAdapter
     }
 }

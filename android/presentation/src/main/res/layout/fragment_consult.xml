@@ -16,6 +16,8 @@
         android:textColor="@color/dark_green"
         android:textSize="15sp"
         android:fontFamily="@font/pretendard_bold"
+        app:layout_constraintBottom_toTopOf="@id/rv_consultant"
+        android:layout_marginBottom="15dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
     />

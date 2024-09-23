@@ -5,10 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.ijonsabae.domain.model.Consultant
 import com.ijonsabae.domain.usecase.consult.GetConsultantListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
