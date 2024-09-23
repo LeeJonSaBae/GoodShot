@@ -3,7 +3,6 @@ package com.d201.goodshot.user.controller;
 import com.d201.goodshot.global.base.BaseResponse;
 import com.d201.goodshot.global.security.dto.Token;
 import com.d201.goodshot.global.security.dto.TokenResponse;
-import com.d201.goodshot.user.dto.UserRequest;
 import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
 import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
 import com.d201.goodshot.user.service.UserService;
@@ -52,8 +51,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public BaseResponse<TokenResponse> login(@RequestBody LoginRequest loginRequest) {
         Token token = userService.login(loginRequest);
-        TokenResponse response = TokenResponse.builder().accessToken(token.getAccessToken()).build();
-        System.out.println("token : "  + response);
+        TokenResponse response = TokenResponse.builder().accessToken(token.getAccessToken()).refreshToken(token.getRefreshToken()).build();
         return BaseResponse.created(response);
     }
 

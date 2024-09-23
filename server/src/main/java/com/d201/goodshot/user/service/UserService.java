@@ -7,6 +7,7 @@ import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
 import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
 import com.d201.goodshot.user.exception.DuplicateEmailException;
 import com.d201.goodshot.user.exception.LoginFailException;
+import com.d201.goodshot.user.repository.RefreshTokenRepository;
 import com.d201.goodshot.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
