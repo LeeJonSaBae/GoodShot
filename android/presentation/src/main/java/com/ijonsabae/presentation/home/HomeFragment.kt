@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import androidx.navigation.NavController
+import androidx.navigation.Navigation
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
@@ -26,16 +28,24 @@ class HomeFragment :
     private val NEWS_MARGIN_PX by lazy { resources.getDimension(R.dimen.home_news_margin_dp_between_items) }
     private lateinit var newsViewPagAdapter: NewsViewPagerAdapter
     private lateinit var youtubeRecyclerViewAdapter: YoutubeRecyclerViewAdapter
+    private lateinit var navController: NavController
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         (fragmentContext as MainActivity).hideAppBar()
-
+        initClickListener()
         initAppBarMotionLayout()
         initNewsViewPager(binding.vpNews)
         initYoutubeRecyclerView(binding.rvYoutube)
 //        Log.d(TAG, "onViewCreated: margin = $NEWS_MARGIN_PX")
+    }
+
+    private fun initClickListener(){
+        navController = Navigation.findNavController(binding.root)
+        binding.btnConsult.setOnClickListener{
+            navController.navigate(R.id.action_home_to_consult)
+        }
     }
 
     private fun initAppBarMotionLayout() {

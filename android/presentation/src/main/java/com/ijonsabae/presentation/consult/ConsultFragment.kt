@@ -1,0 +1,66 @@
+package com.ijonsabae.presentation.consult
+
+import android.os.Bundle
+import android.view.View
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavController
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.ijonsabae.domain.model.Consultant
+import com.ijonsabae.presentation.R
+import com.ijonsabae.presentation.config.BaseFragment
+import com.ijonsabae.presentation.databinding.FragmentConsultBinding
+import com.ijonsabae.presentation.main.MainActivity
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@AndroidEntryPoint
+class ConsultFragment :
+    BaseFragment<FragmentConsultBinding>(FragmentConsultBinding::bind, R.layout.fragment_consult) {
+    @Inject
+    lateinit var dialog: ConsultantDetailInfoDialog
+    private lateinit var navController: NavController
+
+    private val consultViewModel: ConsultViewModel by viewModels()
+    private val consultantAdapter by lazy {
+        ConsultantAdapter().apply {
+            setItemClickListener(
+                object : ConsultantAdapter.OnItemClickListener {
+                    override fun onItemClick(item: Consultant) {
+                        navController.navigate(R.id.action_consult_to_consult_dialog)
+                    }
+                }
+            )
+        }
+    }
+
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        (fragmentContext as MainActivity).showAppBar("전문가 상담")
+        navController = findNavController()
+        initRecyclerView()
+        initFlow()
+    }
+
+    private fun initFlow() {
+        lifecycleScope.launch {
+            consultViewModel.consultantList.collect {
+                repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    consultantAdapter.submitList(it)
+                }
+            }
+        }
+    }
+
+    private fun initRecyclerView() {
+        consultantAdapter.submitList(consultViewModel.consultantList.value)
+        val mountainRecyclerView = binding.rvConsultant
+        mountainRecyclerView.layoutManager = LinearLayoutManager(context)
+        mountainRecyclerView.adapter = consultantAdapter
+    }
+}
