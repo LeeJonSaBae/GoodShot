@@ -400,7 +400,7 @@ class CameraSource(
 
                     // TODO: 영상과 피드백 룸에 저장하기
 
-                    // TODO: 영상 서버에 저장하기 (비동기)
+                    // TODO: 영상 + 피드백 서버에 저장하기 (비동기) <- 나중에 여기서 보낸 피드백을 토대로 종합 리포트 만들어줄 예정
 
                     // TODO: 스윙 분석 결과 표시
                     swingViewModel.setCurrentState(RESULT)
