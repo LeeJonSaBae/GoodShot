@@ -3,12 +3,12 @@ package com.d201.goodshot.global.security.util;
 import com.d201.goodshot.global.security.dto.CustomUser;
 import com.d201.goodshot.global.security.dto.Token;
 import com.d201.goodshot.user.domain.User;
+import com.d201.goodshot.user.dto.RefreshToken;
+import com.d201.goodshot.user.repository.RefreshTokenRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +43,9 @@ public class TokenUtil {
     @Value("${security.secret-key}")
     private String secret;
     private final Long accessTokenExpireTime = 60 * 60L; // 1시간
+    private final Long refreshTokenExpireTime = 60 * 60 * 24 * 7L;
     private SecretKey secretKey;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     // secretKey 초기화
     @PostConstruct // 의존성 주입이 완료된 후에 초기화 진행
@@ -70,7 +72,21 @@ public class TokenUtil {
                         .from(Instant.now()
                         .plus(accessTokenExpireTime, ChronoUnit.SECONDS)))
                 .signWith(secretKey).compact();
-        return Token.builder().accessToken(accessToken).build();
+
+        String refreshToken = Jwts.builder().
+                subject(user.getEmail())
+                .issuedAt(Timestamp.valueOf(LocalDateTime.now()))
+                .expiration(Date
+                        .from(Instant.now().plus(refreshTokenExpireTime, ChronoUnit.SECONDS)))
+                .signWith(secretKey).compact();
+
+        // redis 에 refresh Token 저장
+        refreshTokenRepository.save(RefreshToken.builder().email(user.getEmail()).refreshToken(refreshToken).build());
+
+        return Token.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 
     public Authentication getAuthentication(CustomUser user) {
