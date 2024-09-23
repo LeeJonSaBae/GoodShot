@@ -5,6 +5,7 @@ import android.graphics.LinearGradient
 import android.graphics.Shader
 import android.graphics.Typeface
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import android.text.SpannableString
 import android.text.style.CharacterStyle
 import android.text.style.StyleSpan
@@ -28,7 +29,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import androidx.window.layout.WindowInfoTracker
 import com.google.common.util.concurrent.ListenableFuture
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
@@ -40,6 +40,7 @@ import com.ijonsabae.presentation.shot.flex.FoldingStateActor
 import com.ijonsabae.presentation.util.PermissionChecker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.util.Locale
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
@@ -51,6 +52,7 @@ private const val TAG = "CameraFragment_싸피"
 class CameraFragment :
     BaseFragment<FragmentCameraBinding>(FragmentCameraBinding::bind, R.layout.fragment_camera) {
     private lateinit var navController: NavController
+
     @Inject
     lateinit var foldingStateActor: FoldingStateActor
     private lateinit var permissionChecker: PermissionChecker
@@ -58,6 +60,8 @@ class CameraFragment :
     private var camera: Camera? = null
     private var cameraController: CameraControl? = null
     private val lastAnalysisTimestamp = AtomicLong(0L)
+    private var tts: TextToSpeech? = null
+    private var TTS_ID = "TTS"
 
     private val swingViewModel by activityViewModels<SwingViewModel>()
 
@@ -73,8 +77,8 @@ class CameraFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         navController = Navigation.findNavController(binding.root)
-        // 스윙 상태에 따라 카메라 상태를 변경해주기 위해 옵저버 등록
         initObservers()
+        initTts()
         surfaceView = binding.camera
         permissionChecker = PermissionChecker(this)
         permissionChecker.setOnGrantedListener { //퍼미션 획득 성공일때
@@ -86,6 +90,21 @@ class CameraFragment :
         } else {
             Log.d(TAG, "onViewCreated: 권한 부족")
             permissionChecker.requestPermissionLauncher.launch(permissionList) // 권한없으면 창 띄움
+        }
+    }
+
+    private fun initTts() {
+        tts = TextToSpeech(requireContext()) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                val result = tts?.setLanguage(Locale.KOREAN)
+                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    Log.e(TAG, "The Language is not supported!")
+                } else {
+                    Log.i(TAG, "TTS Initialization successful")
+                }
+            } else {
+                Log.e(TAG, "TTS Initialization failed!")
+            }
         }
     }
 
@@ -197,6 +216,10 @@ class CameraFragment :
     }
 
     override fun onDestroy() {
+        tts?.let { t ->
+            t.stop()
+            t.shutdown()
+        }
         cameraSource?.destroy()
         super.onDestroy()
     }
@@ -389,6 +412,7 @@ class CameraFragment :
                         )!!.toBitmap()
                     )
                     text = "분석을 위해 다시 스윙해주세요!"
+                    tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
                     color = ContextCompat.getColor(fragmentContext, R.color.like_yellow)
                 }
 
@@ -410,16 +434,16 @@ class CameraFragment :
                     binding.tvAnalyzing.visibility = View.GONE
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
+                    val feedback = swingViewModel.getWorstPoseAnalysisResult()?.let { result ->
+                        if (result.feedbacks.isNotEmpty()) {
+                            result.feedbacks.random().comment
+                        } else {
+                            "이 포즈에 대한 피드백이 없습니다."
+                        }
+                    } ?: "분석 결과가 없습니다."
+                    binding.tvResultSubHeader.text = feedback
 
-                    binding.tvResultSubHeader.text =
-                        swingViewModel.getWorstPoseAnalysisResult()?.let { result ->
-                            if (result.feedbacks.isNotEmpty()) {
-                                result.feedbacks.random().comment
-                            } else {
-                                "이 포즈에 대한 피드백이 없습니다."
-                            }
-                        } ?: "분석 결과가 없습니다."
-
+                    tts?.speak(feedback, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
                     text = "스윙 분석 결과"
                     color = ContextCompat.getColor(fragmentContext, R.color.black)
                 }
