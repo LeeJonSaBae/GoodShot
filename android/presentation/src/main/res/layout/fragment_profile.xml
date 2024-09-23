@@ -5,19 +5,20 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_marginVertical="15dp"
     tools:context=".main.MainActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-
         <!-- 사용자 정보 -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/layout_user_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toTopOf="@id/layout_change_password"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="packed">
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/profile_cardview"
@@ -65,7 +66,7 @@
             android:layout_marginHorizontal="20dp"
             android:layout_marginTop="20dp"
             android:background="@drawable/profile_rounded_button_password"
-            app:layout_constraintBottom_toTopOf="@id/layout_go_total_report"
+            app:layout_constraintBottom_toTopOf="@id/layout_resign"
             app:layout_constraintTop_toBottomOf="@id/layout_user_info">
 
             <TextView
@@ -73,6 +74,36 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="비밀번호 변경"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:adjustViewBounds="true"
+                android:src="@drawable/ic_go"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- 회원 탈퇴 버튼 -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layout_resign"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/profile_rounded_button_password"
+            app:layout_constraintBottom_toTopOf="@id/layout_go_total_report"
+            app:layout_constraintTop_toBottomOf="@id/layout_change_password">
+
+            <TextView
+                android:id="@+id/tv_resign"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="회원 탈퇴"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -95,9 +126,9 @@
             android:layout_marginHorizontal="20dp"
             android:layout_marginTop="20dp"
             android:background="@drawable/profile_rounded_button_go_total_report"
-            app:layout_constraintBottom_toTopOf="@id/tv_resign"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintDimensionRatio="4:3"
-            app:layout_constraintTop_toBottomOf="@id/layout_change_password"
+            app:layout_constraintTop_toBottomOf="@id/layout_resign"
             app:layout_constraintVertical_bias="0">
 
             <ImageView
@@ -141,19 +172,6 @@
                 app:layout_constraintStart_toEndOf="@id/tv_go_total_report"
                 app:layout_constraintTop_toTopOf="@id/tv_go_total_report" />
         </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <!-- 회원 탈퇴 -->
-        <TextView
-            android:id="@+id/tv_resign"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
-            android:layout_marginBottom="30dp"
-            android:text="@string/resign"
-            android:textColor="@color/dark_green"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@id/layout_go_total_report"
-            app:layout_constraintTop_toBottomOf="@id/layout_go_total_report" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 

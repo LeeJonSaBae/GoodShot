@@ -31,7 +31,7 @@ class ProfileFragment :
             showTotalReport()
         }
 
-        binding.tvResign.setOnClickListener {
+        binding.layoutResign.setOnClickListener {
             showResignDialog()
         }
     }
