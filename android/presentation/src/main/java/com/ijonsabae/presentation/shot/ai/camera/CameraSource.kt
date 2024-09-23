@@ -394,6 +394,7 @@ class CameraSource(
                         }
                     }
                     val poseAnalysisResults = PostureFeedback.checkPosture(extractedKeyPoints)
+                    swingViewModel.setPoseAnalysisResults(poseAnalysisResults)
 
                     // TODO: 영상 만들기
 

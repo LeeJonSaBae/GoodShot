@@ -408,6 +408,15 @@ class CameraFragment :
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
 
+                    binding.tvResultSubHeader.text =
+                        swingViewModel.getWorstPoseAnalysisResult()?.let { result ->
+                            if (result.feedbacks.isNotEmpty()) {
+                                result.feedbacks.random().comment
+                            } else {
+                                "이 포즈에 대한 피드백이 없습니다."
+                            }
+                        } ?: "분석 결과가 없습니다."
+
                     text = "스윙 분석 결과"
                     color = ContextCompat.getColor(fragmentContext, R.color.black)
                 }
