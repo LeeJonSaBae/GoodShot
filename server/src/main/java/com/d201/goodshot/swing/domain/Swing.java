@@ -35,4 +35,6 @@ public class Swing {
 
     private double downSwingTime;
 
+    private boolean likeStatus; // 즐겨찾기 상태 
+
 }
