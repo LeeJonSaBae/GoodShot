@@ -52,6 +52,8 @@ import java.util.Queue
 import java.util.concurrent.CountDownLatch
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.pow
+
 data class SwingTiming(
     val backswingTime: Long,
     val downswingTime: Long,
@@ -87,6 +89,7 @@ class CameraSource(
     /** [Handler] corresponding to [imageReaderThread] */
     private var imageReaderHandler: Handler? = null
 
+    private var backswingStartTime: Long = 0
 
 
     init {
@@ -361,13 +364,13 @@ class CameraSource(
                     val swingData = indicesToPosesGroup(poseFrameGroupIndices)
                     Log.d("싸피", "8개 포즈 그룹(각 3프레임) 추출 완료")
 //                    큐에 있는 60개 이미지 갤러리에 전부 저장
-                    imageQueue.toList().forEachIndexed { index, (imageData, _) ->
-                        val fileName = "swing_pose_${index + 1}.jpg"
-                        val uri = saveBitmapToGallery(context, imageData, fileName)
-                        uri?.let {
-                            Log.d("싸피", "Saved image $fileName at $it")
-                        }
-                    }
+//                    imageQueue.toList().forEachIndexed { index, (imageData, _) ->
+//                        val fileName = "swing_pose_${index + 1}.jpg"
+//                        val uri = saveBitmapToGallery(context, imageData, fileName)
+//                        uri?.let {
+//                            Log.d("싸피", "Saved image $fileName at $it")
+//                        }
+//                    }
 
                     // 8개의 비트맵을 갤러리에 저장
 //                    swingData.forEachIndexed { index, (imageData, _) ->
@@ -497,7 +500,7 @@ class CameraSource(
         val finishTime = poses[7][1].first.timestamp
         val impactTime = poses[5][1].first.timestamp
         val topTime = poses[3][1].first.timestamp
-        val addressTime = poses[0][1].first.timestamp
+        val addressTime = backswingStartTime
         //2. 전체 스윙 시간, 백스윙, 다운스윙 추출
         val backswingTime = topTime - addressTime
         val downswingTime = impactTime - topTime
@@ -608,10 +611,13 @@ class CameraSource(
      */
     private fun extractBestPoseIndices(): List<Pair<Int, Float>> {
         val jointDataList = jointQueue.toList().reversed()
+        val imageDataList = imageQueue.toList().reversed()
         var poseLabelBias = 4
         var classifier = classifier8
         var modelChangeReady = false
         val poseIndexArray = Array(8) { Pair(0, 0f) }
+
+        var wristHipDist = 1f
 
         for ((index, jointData) in jointDataList.withIndex()) {
             if (!modelChangeReady &&
@@ -636,6 +642,18 @@ class CameraSource(
             classificationResults?.forEachIndexed { poseIndex, result ->
                 if (result.second > poseIndexArray[poseIndex + poseLabelBias].second) {
                     poseIndexArray[poseIndex + poseLabelBias] = Pair(index, result.second)
+                }
+            }
+
+            //backswing 시작 시간 추적을 위한 로직
+            if (classifier == classifier4) {
+                var hipWristDistancePow =
+                    (jointData[RIGHT_HIP.position].coordinate.x - jointData[RIGHT_WRIST.position].coordinate.x).pow(2) +
+                            (jointData[RIGHT_HIP.position].coordinate.y - jointData[RIGHT_WRIST.position].coordinate.y).pow(2)
+                if (hipWristDistancePow < wristHipDist) {
+                    wristHipDist = hipWristDistancePow
+                    backswingStartTime = imageDataList[index].timestamp
+//                    Log.d("extractBestPoseIndices", "백스윙 시작시간 인덱스 : ${index} , $backswingStartTime")
                 }
             }
         }
