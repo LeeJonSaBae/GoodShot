@@ -72,4 +72,19 @@ public class UserController {
         return BaseResponse.of(HttpStatus.OK, "로그아웃에 성공했습니다.", null);
     }
 
+    @PostMapping("/exit")
+    @Operation(summary = "회원탈퇴", description = "")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "회원탈퇴에 성공했습니다.",
+                    content = @Content(mediaType = "",
+                            examples = @ExampleObject(value = "")))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    public BaseResponse<Void> exit(@AuthenticationPrincipal CustomUser customUser) {
+        userService.exit(customUser.getEmail());
+        return BaseResponse.of(HttpStatus.OK, "회원탈퇴에 성공했습니다.", null);
+    }
+
 }

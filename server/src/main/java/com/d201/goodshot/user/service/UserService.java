@@ -1,5 +1,6 @@
 package com.d201.goodshot.user.service;
 
+import com.d201.goodshot.global.security.dto.CustomUser;
 import com.d201.goodshot.global.security.dto.Token;
 import com.d201.goodshot.global.security.util.TokenUtil;
 import com.d201.goodshot.user.domain.User;
@@ -9,6 +10,7 @@ import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
 import com.d201.goodshot.user.exception.AlreadyLogoutException;
 import com.d201.goodshot.user.exception.DuplicateEmailException;
 import com.d201.goodshot.user.exception.LoginFailException;
+import com.d201.goodshot.user.exception.NotFoundUserException;
 import com.d201.goodshot.user.repository.RefreshTokenRepository;
 import com.d201.goodshot.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +48,23 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
+    }
+
+    // 회원탈퇴
+    public void exit(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(NotFoundUserException::new);
+
+        // refresh token
+        Optional<RefreshToken> refreshToken = refreshTokenRepository.findById(email);
+
+        // 이미 로그아웃된 상태면 예외 던지기
+        if (refreshToken.isEmpty()) {
+            throw new AlreadyLogoutException();
+        }
+
+        refreshToken.ifPresent(refreshTokenRepository::delete);
+        userRepository.delete(user);
+
     }
 
     // 로그인
