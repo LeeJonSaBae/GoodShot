@@ -22,12 +22,7 @@ class ShotFragment :
 
         navController = Navigation.findNavController(binding.root)
         binding.cvBtnCamera.setOnClickListener {
-//            navController.navigate(R.id.action_shot_to_camera)
-
-//            val shotDialog = ShotDialog()
-//            shotDialog.show(parentFragmentManager, shotDialog.tag)
             navController.navigate(R.id.action_shot_to_shot_dialog)
-
         }
         binding.btnCamera.setOnClickListener {
             navController.navigate(R.id.action_shot_to_shot_dialog)

@@ -22,6 +22,7 @@ class SwingExampleFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        (fragmentContext as MainActivity).hideAppBar()
         navController = Navigation.findNavController(binding.root)
 
         binding.layoutSwing.setOnClickListener{
