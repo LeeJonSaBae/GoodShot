@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.ijonsabae.presentation.databinding.DialogChangePasswordBinding
 
@@ -31,6 +32,11 @@ class ChangePasswordDialog : DialogFragment() {
         binding.ivChangePasswordClose.setOnClickListener {
             dismiss()
         }
+
+        binding.btnSubmit.setOnClickListener {
+            Toast.makeText(requireContext(), "변경 완료!", Toast.LENGTH_SHORT).show()
+            dismiss()
+        }
     }
 
     override fun onStart() {
@@ -39,7 +45,6 @@ class ChangePasswordDialog : DialogFragment() {
         val displayMetrics = DisplayMetrics()
         requireActivity().windowManager.defaultDisplay.getMetrics(displayMetrics)
         val screenWidth = getScreenWidth(this.requireContext())
-//        val screenHeight = getScreenHeight(this.requireContext())
 
         val newWidth = (screenWidth * 0.85).toInt()
         val layoutParams = requireView().layoutParams
