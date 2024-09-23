@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">GoodShot</string>
     <string name="home_youtube_link"><u>자세히 보러가기</u></string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="resign"><u>회원탈퇴</u></string>
 </resources>
