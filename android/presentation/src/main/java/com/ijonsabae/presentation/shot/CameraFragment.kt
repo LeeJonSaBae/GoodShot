@@ -408,6 +408,11 @@ class CameraFragment :
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
 
+
+                    binding.tvCircleTempo.text = swingViewModel.tempoRatioText
+                    binding.tvCircleBackswing.text = swingViewModel.backswingTimeText
+                    binding.tvCircleDownswing.text = swingViewModel.downswingTimeText
+
                     text = "스윙 분석 결과"
                     color = ContextCompat.getColor(fragmentContext, R.color.black)
                 }

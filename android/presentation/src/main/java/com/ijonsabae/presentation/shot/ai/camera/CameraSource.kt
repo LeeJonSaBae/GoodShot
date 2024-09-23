@@ -52,7 +52,12 @@ import java.util.Queue
 import java.util.concurrent.CountDownLatch
 import kotlin.math.abs
 import kotlin.math.max
-
+data class SwingTiming(
+    val backswingTime: Long,
+    val downswingTime: Long,
+    val totalSwingTime: Long,
+    val tempoRatio: Double
+)
 
 class CameraSource(
     private val context: Context,
@@ -69,7 +74,6 @@ class CameraSource(
     private var viewingResult = false
     private val imageQueue: Queue<TimestampedData<Bitmap>> = LinkedList()
     private val jointQueue: Queue<List<KeyPoint>> = LinkedList()
-
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
     private var frameProcessedInOneSecondInterval = 0
     private var framesPerSecond = 1
@@ -82,6 +86,8 @@ class CameraSource(
 
     /** [Handler] corresponding to [imageReaderThread] */
     private var imageReaderHandler: Handler? = null
+
+
 
     init {
         // Detector
@@ -355,13 +361,13 @@ class CameraSource(
                     val swingData = indicesToPosesGroup(poseFrameGroupIndices)
                     Log.d("싸피", "8개 포즈 그룹(각 3프레임) 추출 완료")
 //                    큐에 있는 60개 이미지 갤러리에 전부 저장
-//                    imageQueue.toList().forEachIndexed { index, (imageData, _) ->
-//                        val fileName = "swing_pose_${index + 1}.jpg"
-//                        val uri = saveBitmapToGallery(context, imageData, fileName)
-//                        uri?.let {
-//                            Log.d("싸피", "Saved image $fileName at $it")
-//                        }
-//                    }
+                    imageQueue.toList().forEachIndexed { index, (imageData, _) ->
+                        val fileName = "swing_pose_${index + 1}.jpg"
+                        val uri = saveBitmapToGallery(context, imageData, fileName)
+                        uri?.let {
+                            Log.d("싸피", "Saved image $fileName at $it")
+                        }
+                    }
 
                     // 8개의 비트맵을 갤러리에 저장
 //                    swingData.forEachIndexed { index, (imageData, _) ->
@@ -377,15 +383,15 @@ class CameraSource(
                         frameGroup.forEachIndexed { _, (imageData, _, originalIndex) ->
                             val fileName =
                                 "swing_pose_group${groupIndex + 1}_frame${originalIndex + 1}.jpg"
-                            val uri = saveBitmapToGallery(context, imageData.data, fileName)
-                            uri?.let {
-                                Log.d("싸피", "Saved image $fileName at $it")
-                            }
+//                            val uri = saveBitmapToGallery(context, imageData.data, fileName)
+//                            uri?.let {
+//                                Log.d("싸피", "Saved image $fileName at $it")
+//                            }
                         }
                     }
 
-                    // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
-
+                    //스윙 템포 및 스윙 시간 계산 및 뷰모델에 값 갱신
+                    swingViewModel.updateSwingTiming(analyzeSwingTime(swingData))
                     // TODO: 피드백 분석하기
 
                     // TODO: 영상 만들기
@@ -482,6 +488,31 @@ class CameraSource(
             poses.add(groupPoses)
         }
         return poses
+    }
+
+    fun analyzeSwingTime(poses: List<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>>): SwingTiming {
+        //이상적인 템포 비율은 약 3:1(백스윙:다운스윙)로 알려져 있지만, 개인의 스타일과 체형에 따라 다를 수 있다.
+
+        //1. 피니시, 임팩트, 탑스윙, 어드레스 ~ 테이크 어웨이 자세에 대한 Long값 추출
+        val finishTime = poses[7][1].first.timestamp
+        val impactTime = poses[5][1].first.timestamp
+        val topTime = poses[3][1].first.timestamp
+        val addressTime = poses[0][1].first.timestamp
+        //2. 전체 스윙 시간, 백스윙, 다운스윙 추출
+        val backswingTime = topTime - addressTime
+        val downswingTime = impactTime - topTime
+        //3. 전체 스윙 시간, 백스윙 시간, 다운스윙 시간 반환
+        val totalSwingTime = finishTime - addressTime
+
+        val tempoRatio = backswingTime.toDouble() / downswingTime.toDouble()
+
+        return SwingTiming(
+            backswingTime = backswingTime,
+            downswingTime = downswingTime,
+            totalSwingTime = totalSwingTime,
+            tempoRatio = tempoRatio
+        )
+
     }
 
     private fun validateSwingPose(poseIndicesWithScores: List<Pair<Int, Float>>): Boolean {
