@@ -1,8 +1,12 @@
 package com.d201.goodshot.user.service;
 
+import com.d201.goodshot.global.security.dto.Token;
+import com.d201.goodshot.global.security.util.TokenUtil;
 import com.d201.goodshot.user.domain.User;
 import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
+import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
 import com.d201.goodshot.user.exception.DuplicateEmailException;
+import com.d201.goodshot.user.exception.LoginFailException;
 import com.d201.goodshot.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +20,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TokenUtil tokenUtil;
 
     // 회원가입
     public void join(JoinRequest joinRequest) {
@@ -35,6 +40,16 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
+    }
+
+    // 로그인
+    public Token login(LoginRequest loginRequest) {
+        User user = userRepository.findByEmail(loginRequest.getEmail()).orElseThrow(LoginFailException::new);
+        if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+            return tokenUtil.generateToken(user);
+        } else {
+            throw new LoginFailException();
+        }
     }
 
 }

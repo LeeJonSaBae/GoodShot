@@ -1,7 +1,11 @@
 package com.d201.goodshot.user.controller;
 
 import com.d201.goodshot.global.base.BaseResponse;
+import com.d201.goodshot.global.security.dto.Token;
+import com.d201.goodshot.global.security.dto.TokenResponse;
+import com.d201.goodshot.user.dto.UserRequest;
 import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
+import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
 import com.d201.goodshot.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,6 +38,23 @@ public class UserController {
     public BaseResponse<Void> join(@RequestBody JoinRequest joinRequest) {
         userService.join(joinRequest);
         return BaseResponse.of(HttpStatus.CREATED, "회원가입에 성공했습니다.", null);
+    }
+
+    @PostMapping("/login")
+    @Operation(summary = "로그인", description = "")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "로그인에 성공했습니다.",
+                    content = @Content(mediaType = "",
+                            examples = @ExampleObject(value = "")))
+    })
+    @ResponseStatus(HttpStatus.CREATED)
+    public BaseResponse<TokenResponse> login(@RequestBody LoginRequest loginRequest) {
+        Token token = userService.login(loginRequest);
+        TokenResponse response = TokenResponse.builder().accessToken(token.getAccessToken()).build();
+        System.out.println("token : "  + response);
+        return BaseResponse.created(response);
     }
 
 }

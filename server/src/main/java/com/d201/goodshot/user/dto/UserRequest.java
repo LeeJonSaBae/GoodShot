@@ -17,4 +17,13 @@ public class UserRequest {
         private String password; // 비밀번호
     }
 
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class LoginRequest {
+        private String email;
+        private String password;
+    }
+
 }
