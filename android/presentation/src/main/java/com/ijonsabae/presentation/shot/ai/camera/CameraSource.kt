@@ -35,6 +35,7 @@ import android.util.Log
 import android.view.PixelCopy
 import android.view.SurfaceView
 import com.ijonsabae.presentation.shot.CameraState.*
+import com.ijonsabae.presentation.shot.PostureFeedback
 import com.ijonsabae.presentation.shot.SwingViewModel
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.*
 import com.ijonsabae.presentation.shot.ai.data.Device
@@ -387,6 +388,12 @@ class CameraSource(
                     // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
 
                     // TODO: 피드백 분석하기
+                    val extractedKeyPoints = swingData.map { outerList ->
+                        outerList.map { triple ->
+                            Pair(triple.first.data, triple.second)
+                        }
+                    }
+                    val poseAnalysisResults = PostureFeedback.checkPosture(extractedKeyPoints)
 
                     // TODO: 영상 만들기
 
