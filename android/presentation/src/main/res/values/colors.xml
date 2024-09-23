@@ -7,6 +7,7 @@
     <color name="login_dark_green">#54806F</color>
     <color name="gray">#A2A2A2</color>
     <color name="dark_gray">#5D5D5D</color>
+    <color name="chart_light_gray">#F0F0F0</color>
     <color name="highlight">#1C277A63</color>
     <color name="timeline_color">#8F8F8F</color>
     <color name="like_yellow">#F1C903</color>

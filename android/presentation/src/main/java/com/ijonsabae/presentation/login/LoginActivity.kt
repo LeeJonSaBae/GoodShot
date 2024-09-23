@@ -29,7 +29,7 @@ import kotlinx.coroutines.runBlocking
 private const val TAG = "LoginActivity_싸피"
 @AndroidEntryPoint
 class LoginActivity: BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::inflate) {
-    private lateinit var chart: BarChart
+
     private lateinit var splashScreen: SplashScreen
     override fun onCreate(savedInstanceState: Bundle?) {
         splashScreen = installSplashScreen().apply {
@@ -49,9 +49,6 @@ class LoginActivity: BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::in
             this.navigationIcon = ContextCompat.getDrawable(this@LoginActivity, R.drawable.back)
         }
         setContentView(binding.root)
-        binding.chart.visibility = View.GONE
-        //initChart()
-
     }
 
     override fun onStart() {
@@ -86,87 +83,5 @@ class LoginActivity: BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::in
         binding.layoutAppbar.visibility = View.GONE
     }
 
-    private fun initChart(){
-        chart = binding.chart
-        chart.apply {
-            val chartAnimator = chart.animator
-            val viewPortHandler = chart.viewPortHandler
-            renderer = BarChartRender(chart, chartAnimator, viewPortHandler)
-            // 남은 공간 채움
-            // 확대 막음
-            setScaleEnabled(false)
-            setDrawBarShadow(true)
-            setPinchZoom(false)
-            legend.isEnabled = false
-            description.isEnabled = false
-            chart.axisLeft.run { // 왼쪽 y축
-                isEnabled = false
-                axisMinimum = 0f // 최소값
-                axisMaximum = 100f // 최대값
-                setDrawAxisLine(false)
-            }
-            axisRight.run { // 오른쪽 y축
-                isEnabled = false
-                axisMinimum = 0f // 최소값
-                axisMaximum = 100f // 최대값
-                granularity = 1f // 값 만큼 라인선 설정
-                setDrawGridLines(false)
-                setDrawAxisLine(false)
-                setDrawLabels(false)
-            }
-            xAxis.run{
-                isEnabled = true
-                valueFormatter = GolfSwingValueFormatter()
-                position = XAxis.XAxisPosition.BOTTOM
-                setDrawGridLines(false)
-                setDrawAxisLine(false)
-            }
-        }
-        setData(8,100F)
-    }
 
-    private fun setData(count: Int, range: Float) {
-        val start = 1f
-        val values = ArrayList<BarEntry>()
-        var i = start
-
-        // 랜덤으로 데이터 만들어내는 로직
-        while (i < start + count) {
-            val `val` = (Math.random() * (range + 1)).toFloat()
-            if (Math.random() * 100 < 25) {
-                values.add(BarEntry(i, `val`, ContextCompat.getDrawable(this, R.drawable.ic_android_black_24dp)))
-            } else {
-                values.add(BarEntry(i.toFloat(), `val`))
-            }
-            i++
-        }
-
-        val barDataSet = BarDataSet(values, "Golf").apply {
-            setDrawIcons(false)
-            setDrawValues(false)
-            colors = listOf(
-                ContextCompat.getColor(
-                    this@LoginActivity
-                    , com.ijonsabae.presentation.R.color.dark_green
-                ),
-                ContextCompat.getColor(
-                    this@LoginActivity,
-                    com.ijonsabae.presentation.R.color.light_green
-                )
-            )
-        }
-
-        val dataSets = ArrayList<IBarDataSet>().apply {
-            add(barDataSet)
-        }
-
-        val data = BarData(dataSets).apply {
-            barWidth = 0.4f
-        }
-
-        chart.apply {
-            this.data = data
-            invalidate()
-        }
-    }
 }
