@@ -155,7 +155,7 @@ class TotalReportFragment : BaseFragment<FragmentTotalReportBinding>(
     }
 
     private fun initTip() {
-        binding.tvTip.text =
+        binding.tvSummary.text =
             "다운스윙 시 손과 클럽 보다 빠르게 골반을 오른발 뒤꿈치 바깥쪽으로 열며 회전하는 연습을 해야 합니다. 힘 있는 골반 오픈을 위해서는 전환 동작 시 오른발 쪽으로 약간 주저 앉았다가 (스쿼트 동작) 오픈해 주면 골반의 회전력을 높일 수 있습니다."
     }
 }
