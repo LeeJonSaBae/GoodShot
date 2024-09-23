@@ -156,7 +156,7 @@
             />
         <TextView
             android:id="@+id/tv_circle_tempo"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="0dp"
             android:text="1.67초"
             android:textSize="15sp"
@@ -177,7 +177,7 @@
             />
         <TextView
             android:id="@+id/tv_circle_backswing"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="0dp"
             android:text="0.67초"
             android:textSize="15sp"
@@ -196,7 +196,7 @@
             />
         <TextView
             android:id="@+id/tv_circle_downswing"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="0dp"
             android:text="0.40초"
             android:textSize="15sp"
