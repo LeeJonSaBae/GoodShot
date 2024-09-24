@@ -77,7 +77,16 @@
             <action
                 android:id="@+id/action_camera_to_shot"
                 app:destination="@id/shot" />
+            <action
+                android:id="@+id/action_camera_to_feedback_dialog"
+                app:destination="@id/feedback_dialog" />
         </fragment>
+        <dialog android:id="@+id/feedback_dialog"
+            android:name="com.ijonsabae.presentation.shot.FeedbackDialog"
+            tools:label="feedback dialog"
+            tools:layout="@layout/dialog_feedback">
+
+        </dialog>
     </navigation>
 
     <navigation

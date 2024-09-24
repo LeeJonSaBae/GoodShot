@@ -29,6 +29,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import androidx.navigation.fragment.findNavController
 import androidx.window.layout.WindowInfoTracker
 import com.google.common.util.concurrent.ListenableFuture
 import com.ijonsabae.presentation.R
@@ -79,6 +80,8 @@ class CameraFragment :
         super.onViewCreated(view, savedInstanceState)
         navController = Navigation.findNavController(binding.root)
         // 스윙 상태에 따라 카메라 상태를 변경해주기 위해 옵저버 등록
+        navController = findNavController()
+        navController.navigate(R.id.action_camera_to_feedback_dialog)
         initObservers()
         initTts()
         surfaceView = binding.camera

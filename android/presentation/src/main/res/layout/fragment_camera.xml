@@ -121,7 +121,6 @@
             app:layout_constraintBottom_toBottomOf="@id/tv_result_sub_header"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/tv_result_header"
-
             />
 
         <TextView
