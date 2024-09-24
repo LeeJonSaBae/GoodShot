@@ -27,7 +27,7 @@ class ConsultFragment :
         ConsultantListAdapter().apply {
             setItemClickListener(
                 object : ConsultantListAdapter.OnItemClickListener {
-                    override fun onItemClick(item: Consultant) {
+                    override fun onItemClick(item: Consultant) `{
                         navController.navigate(ConsultFragmentDirections.actionConsultToConsultDialog(convertConsultant(item)))
                     }
                 }

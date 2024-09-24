@@ -29,6 +29,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import androidx.window.layout.WindowInfoTracker
 import com.google.common.util.concurrent.ListenableFuture
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
@@ -77,6 +78,7 @@ class CameraFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         navController = Navigation.findNavController(binding.root)
+        // 스윙 상태에 따라 카메라 상태를 변경해주기 위해 옵저버 등록
         initObservers()
         initTts()
         surfaceView = binding.camera
@@ -445,6 +447,11 @@ class CameraFragment :
                     binding.tvResultSubHeader.text = feedback
 
                     tts?.speak(feedback, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
+
+                    binding.tvCircleTempo.text = swingViewModel.tempoRatioText
+                    binding.tvCircleBackswing.text = swingViewModel.backswingTimeText
+                    binding.tvCircleDownswing.text = swingViewModel.downswingTimeText
+
                     text = "스윙 분석 결과"
                     color = ContextCompat.getColor(fragmentContext, R.color.black)
                 }

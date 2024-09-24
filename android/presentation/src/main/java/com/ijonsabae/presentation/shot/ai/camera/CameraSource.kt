@@ -15,6 +15,7 @@ limitations under the License.
 */
 
 
+import VideoEncoder
 import com.ijonsabae.presentation.shot.ai.ml.MoveNet
 import com.ijonsabae.presentation.shot.ai.ml.TimestampedData
 import android.content.ContentValues
@@ -25,7 +26,9 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.PointF
 import android.graphics.Rect
+import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
@@ -34,6 +37,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.PixelCopy
 import android.view.SurfaceView
+import androidx.annotation.RequiresApi
 import com.ijonsabae.presentation.shot.CameraState.*
 import com.ijonsabae.presentation.shot.PostureFeedback
 import com.ijonsabae.presentation.shot.SwingViewModel
@@ -43,18 +47,32 @@ import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.data.Pose
 import com.ijonsabae.presentation.shot.ai.ml.ModelType
+
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
 import java.io.OutputStream
+import java.nio.ByteBuffer
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.LinkedList
+import java.util.Locale
 import java.util.Queue
 import java.util.concurrent.CountDownLatch
+
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.pow
 
+data class SwingTiming(
+    val backswingTime: Long,
+    val downswingTime: Long,
+    val totalSwingTime: Long,
+    val tempoRatio: Double
+)
 
 class CameraSource(
     private val context: Context,
@@ -71,7 +89,6 @@ class CameraSource(
     private var viewingResult = false
     private val imageQueue: Queue<TimestampedData<Bitmap>> = LinkedList()
     private val jointQueue: Queue<List<KeyPoint>> = LinkedList()
-
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
     private var frameProcessedInOneSecondInterval = 0
     private var framesPerSecond = 1
@@ -84,6 +101,9 @@ class CameraSource(
 
     /** [Handler] corresponding to [imageReaderThread] */
     private var imageReaderHandler: Handler? = null
+
+    private var backswingStartTime: Long = 0
+
 
     init {
         // Detector
@@ -112,7 +132,7 @@ class CameraSource(
         private const val QUEUE_SIZE = 60
 
         /** 포즈 유사도 임계치 */
-        private const val POSE_THRESHOLD = 0.2f
+        private const val POSE_THRESHOLD = 0.4f
     }
 
     fun getRotateBitmap(bitmap: Bitmap, self: Boolean): Bitmap {
@@ -315,6 +335,7 @@ class CameraSource(
     }
 
     /** !!!!!!!!!!!! 포즈 추론은 우타, 후면 카메라로 좔영했을 때 기준 !!!!!!!!!!!! **/
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun processDetectedInfo(
         person: Person,
     ) {
@@ -380,9 +401,13 @@ class CameraSource(
 //                            }
 //                        }
 //                    }
-
+                    var bitmapIndices = mutableListOf<Bitmap>()
+                    val imageList = imageQueue.toList().reversed()
+                    for (idx in imageQueue.size - 1  downTo swingData[0][0].third ) {
+                        bitmapIndices.add(imageList[idx].data)
+                    }
                     // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
-
+                    swingViewModel.updateSwingTiming(analyzeSwingTime(swingData))
                     // TODO: 피드백 분석하기
                     val extractedKeyPoints = swingData.map { outerList ->
                         outerList.map { triple ->
@@ -400,11 +425,14 @@ class CameraSource(
                         uri?.let {
                             Log.d("싸피", "Saved image $fileName at $it")
                         }
-
                     }
 
-                    // TODO: 영상 만들기
+                    // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
 
+                    // TODO: 피드백 분석하기
+
+                    // TODO: 영상 만들기
+                    convertBitmapsToVideo(bitmapIndices)
                     // TODO: 영상과 피드백 룸에 저장하기
 
                     // TODO: 영상 + 피드백 서버에 저장하기 (비동기) <- 나중에 여기서 보낸 피드백을 토대로 종합 리포트 만들어줄 예정
@@ -499,6 +527,31 @@ class CameraSource(
         return poses
     }
 
+    fun analyzeSwingTime(poses: List<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>>): SwingTiming {
+        //이상적인 템포 비율은 약 3:1(백스윙:다운스윙)로 알려져 있지만, 개인의 스타일과 체형에 따라 다를 수 있다.
+
+        //1. 피니시, 임팩트, 탑스윙, 어드레스 ~ 테이크 어웨이 자세에 대한 Long값 추출
+        val finishTime = poses[7][1].first.timestamp
+        val impactTime = poses[5][1].first.timestamp
+        val topTime = poses[3][1].first.timestamp
+        val addressTime = backswingStartTime
+        //2. 전체 스윙 시간, 백스윙, 다운스윙 추출
+        val backswingTime = topTime - addressTime
+        val downswingTime = impactTime - topTime
+        //3. 전체 스윙 시간, 백스윙 시간, 다운스윙 시간 반환
+        val totalSwingTime = finishTime - addressTime
+
+        val tempoRatio = backswingTime.toDouble() / downswingTime.toDouble()
+
+        return SwingTiming(
+            backswingTime = backswingTime,
+            downswingTime = downswingTime,
+            totalSwingTime = totalSwingTime,
+            tempoRatio = tempoRatio
+        )
+
+    }
+
     private fun validateSwingPose(poseIndicesWithScores: List<Pair<Int, Float>>): Boolean {
         val countingArray = BooleanArray(QUEUE_SIZE) { false }
         var prevImageIndex = 100_000_000
@@ -563,6 +616,101 @@ class CameraSource(
         return uri
     }
 
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun convertBitmapsToVideo(bitmapIndices : List<Bitmap>) {
+
+
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val videoFileName = "pose_$timestamp.mp4"
+        val videoFile = File(context.cacheDir, videoFileName)
+
+        val videoEncoder = VideoEncoder(bitmapIndices[0].width, bitmapIndices[0].height, 24, videoFile.absolutePath)
+        videoEncoder.start()
+
+        bitmapIndices.forEachIndexed { index, bitmap ->
+            val byteBuffer = bitmapToByteBuffer(bitmap)
+            videoEncoder.encodeFrame(byteBuffer)
+        }
+
+        videoEncoder.finish()
+
+        val uri = saveVideoToGallery(videoFile)
+        uri?.let {
+            Log.d("MainActivity_Capture", "비디오 URI: $it")
+            MediaScannerConnection.scanFile(context, arrayOf(it.toString()), null, null)
+
+
+        } ?: Log.d("MainActivity_Capture", "비디오 저장 실패")
+
+        // 임시 파일 삭제
+        videoFile.delete()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun saveVideoToGallery(videoFile: File): Uri? {
+        val values = ContentValues().apply {
+            put(MediaStore.Video.Media.DISPLAY_NAME, videoFile.name)
+            put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+            put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/PoseEstimation") // 수정된 부분
+            put(MediaStore.Video.Media.IS_PENDING, 1)
+        }
+
+        val resolver = context.contentResolver
+        val collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        val uri = resolver.insert(collection, values)
+
+        uri?.let {
+            resolver.openOutputStream(it)?.use { os ->
+                videoFile.inputStream().use { it.copyTo(os) }
+            }
+            values.clear()
+            values.put(MediaStore.Video.Media.IS_PENDING, 0)
+            resolver.update(it, values, null, null)
+        }
+
+        return uri
+    }
+
+    private fun bitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {
+        val inputWidth = bitmap.width
+        val inputHeight = bitmap.height
+        val yuvImage = ByteArray(inputWidth * inputHeight * 3 / 2)
+        val argb = IntArray(inputWidth * inputHeight)
+
+        bitmap.getPixels(argb, 0, inputWidth, 0, 0, inputWidth, inputHeight)
+
+        encodeYUV420SP(yuvImage, argb, inputWidth, inputHeight)
+
+        return ByteBuffer.wrap(yuvImage)
+    }
+
+
+    private fun encodeYUV420SP(yuv420sp: ByteArray, argb: IntArray, width: Int, height: Int) {
+        val frameSize = width * height
+        var yIndex = 0
+        var uvIndex = frameSize
+
+        for (j in 0 until height) {
+            for (i in 0 until width) {
+                val rgb = argb[j * width + i]
+                val r = rgb shr 16 and 0xFF
+                val g = rgb shr 8 and 0xFF
+                val b = rgb and 0xFF
+                val y = (66 * r + 129 * g + 25 * b + 128 shr 8) + 16
+                yuv420sp[yIndex++] = y.toByte()
+
+                if (j % 2 == 0 && i % 2 == 0) {
+                    val u = (-38 * r - 74 * g + 112 * b + 128 shr 8) + 128
+                    val v = (112 * r - 94 * g - 18 * b + 128 shr 8) + 128
+                    yuv420sp[uvIndex++] = u.toByte()
+                    yuv420sp[uvIndex++] = v.toByte()
+                }
+            }
+        }
+    }
+
+
     private fun mirrorKeyPoints(keyPoints: List<KeyPoint>): List<KeyPoint> {
         return keyPoints.map { keyPoint ->
             val mirroredBodyPart = when (keyPoint.bodyPart) {
@@ -597,10 +745,13 @@ class CameraSource(
      */
     private fun extractBestPoseIndices(): List<Pair<Int, Float>> {
         val jointDataList = jointQueue.toList().reversed()
+        val imageDataList = imageQueue.toList().reversed()
         var poseLabelBias = 4
         var classifier = classifier8
         var modelChangeReady = false
         val poseIndexArray = Array(8) { Pair(0, 0f) }
+
+        var wristHipDist = 1f
 
         for ((index, jointData) in jointDataList.withIndex()) {
             if (!modelChangeReady &&
@@ -628,10 +779,25 @@ class CameraSource(
                     poseIndexArray[poseIndex + poseLabelBias] = Pair(index, result.second)
                 }
             }
+
+            //backswing 시작 시간 추적을 위한 로직
+            if (classifier == classifier4) {
+                val hipWristDistancePow =
+                    (jointData[RIGHT_HIP.position].coordinate.x - jointData[RIGHT_WRIST.position].coordinate.x).pow(2) +
+                            (jointData[RIGHT_HIP.position].coordinate.y - jointData[RIGHT_WRIST.position].coordinate.y).pow(2)
+                if (hipWristDistancePow < wristHipDist) {
+                    wristHipDist = hipWristDistancePow
+                    backswingStartTime = imageDataList[index].timestamp
+//                    Log.d("extractBestPoseIndices", "백스윙 시작시간 인덱스 : ${index} , $backswingStartTime")
+                }
+            }
         }
 
         return poseIndexArray.toList()
     }
+
+
+
 
     private var lastLogTime = 0L
 
