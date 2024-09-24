@@ -15,12 +15,15 @@ import androidx.core.animation.doOnEnd
 import androidx.window.layout.DisplayFeature
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.ijonsabae.presentation.shot.CameraState
+import com.ijonsabae.presentation.shot.flex.FoldableUtils.restore
 
 object FoldableUtils {
     private const val TAG = "FoldableUtils 싸피"
     lateinit var animator1: ValueAnimator
     lateinit var animator2: ValueAnimator
     lateinit var animator: ValueAnimator
+    var alertHeight = -1
+
     fun getFeaturePositionInViewRect(
         displayFeature: DisplayFeature,
         view: View,
@@ -61,9 +64,14 @@ object FoldableUtils {
     }
 
     fun View.moveToTopOf(foldingFeatureRect: Rect, cameraState: CameraState?, progressTitle: TextView, resultHeader:TextView, resultSubHeader: TextView, alertIcon: ImageView, alertText: TextView, cameraMenuLayout: ConstraintLayout, alertConstraintLayout: ConstraintLayout, rootConstraintLayout: ConstraintLayout, indicatorProgress:CircularProgressIndicator) {
-        if(::animator.isInitialized){ animator.cancel() }
+        if(::animator.isInitialized){
+            animator.cancel()
+            this@moveToTopOf.translationY = 0F
+            cameraMenuLayout.translationY = 0F
+            alertIcon.translationY = 0F
+            alertText.translationY = 0F
+        }
         val cameraHeight = this.height
-        val alertHeight = alertConstraintLayout.height
         if(cameraState == CameraState.RESULT){
             resultHeader.visibility = View.VISIBLE
             resultSubHeader.visibility = View.VISIBLE
@@ -130,6 +138,7 @@ object FoldableUtils {
             val alerttop = alertConstraintLayout.top
             val alertbottom = alertConstraintLayout.bottom
             val alertheight = alertConstraintLayout.height
+            alertHeight = alertConstraintLayout.height
             val alertIcontop = alertIcon.top
             val alertIconbottom = alertIcon.bottom
             val alertTextTop = alertText.top
@@ -165,7 +174,12 @@ object FoldableUtils {
     }
 
     fun View.restore(foldingFeatureRect: Rect, cameraState: CameraState?, progressTitle: TextView, resultHeader:TextView, resultSubHeader: TextView, alertIcon: ImageView, alertText: TextView, cameraMenuLayout: ConstraintLayout, alertConstraintLayout: ConstraintLayout, rootConstraintLayout: ConstraintLayout, indicatorProgress: CircularProgressIndicator) {
-        if(::animator1.isInitialized){ animator1.cancel() }
+        if(::animator1.isInitialized){
+            animator1.cancel()
+            if(alertHeight != -1){
+                alertConstraintLayout.layoutParams.height = alertHeight
+            }
+        }
         if(::animator2.isInitialized){ animator2.cancel() }
         resultHeader.visibility = View.GONE
         resultSubHeader.visibility = View.GONE
