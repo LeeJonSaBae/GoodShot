@@ -15,6 +15,7 @@ limitations under the License.
 */
 
 
+import VideoEncoder
 import com.ijonsabae.presentation.shot.ai.ml.MoveNet
 import com.ijonsabae.presentation.shot.ai.ml.TimestampedData
 import android.content.ContentValues
@@ -25,7 +26,9 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.PointF
 import android.graphics.Rect
+import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
@@ -34,6 +37,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.PixelCopy
 import android.view.SurfaceView
+import androidx.annotation.RequiresApi
 import com.ijonsabae.presentation.shot.CameraState.*
 import com.ijonsabae.presentation.shot.SwingViewModel
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.*
@@ -41,15 +45,22 @@ import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.ml.ModelType
+
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
 import java.io.OutputStream
+import java.nio.ByteBuffer
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.LinkedList
+import java.util.Locale
 import java.util.Queue
 import java.util.concurrent.CountDownLatch
+
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.pow
@@ -382,11 +393,17 @@ class CameraSource(
 //                    }
 
                     // 8개의 포즈 그룹(각 3프레임)을 갤러리에 저장
+                    var bitmapIndices = mutableListOf<Bitmap>()
+                    val imageList = imageQueue.toList().reversed()
+                    for (idx in imageQueue.size - 1  downTo swingData[0][0].third ) {
+                        bitmapIndices.add(imageList[idx].data)
+                    }
                     swingData.forEachIndexed { groupIndex, frameGroup ->
                         frameGroup.forEachIndexed { _, (imageData, _, originalIndex) ->
                             val fileName =
                                 "swing_pose_group${groupIndex + 1}_frame${originalIndex + 1}.jpg"
                             val uri = saveBitmapToGallery(context, imageData.data, fileName)
+
                             uri?.let {
                                 Log.d("싸피", "Saved image $fileName at $it")
                             }
@@ -398,7 +415,7 @@ class CameraSource(
                     // TODO: 피드백 분석하기
 
                     // TODO: 영상 만들기
-
+                    convertBitmapsToVideo(bitmapIndices)
                     // TODO: 영상과 피드백 룸에 저장하기
 
                     // TODO: 영상 서버에 저장하기 (비동기)
@@ -577,6 +594,101 @@ class CameraSource(
         return uri
     }
 
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun convertBitmapsToVideo(bitmapIndices : List<Bitmap>) {
+
+
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val videoFileName = "pose_$timestamp.mp4"
+        val videoFile = File(context.cacheDir, videoFileName)
+
+        val videoEncoder = VideoEncoder(bitmapIndices[0].width, bitmapIndices[0].height, 24, videoFile.absolutePath)
+        videoEncoder.start()
+
+        bitmapIndices.forEachIndexed { index, bitmap ->
+            val byteBuffer = bitmapToByteBuffer(bitmap)
+            videoEncoder.encodeFrame(byteBuffer)
+        }
+
+        videoEncoder.finish()
+
+        val uri = saveVideoToGallery(videoFile)
+        uri?.let {
+            Log.d("MainActivity_Capture", "비디오 URI: $it")
+            MediaScannerConnection.scanFile(context, arrayOf(it.toString()), null, null)
+
+
+        } ?: Log.d("MainActivity_Capture", "비디오 저장 실패")
+
+        // 임시 파일 삭제
+        videoFile.delete()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun saveVideoToGallery(videoFile: File): Uri? {
+        val values = ContentValues().apply {
+            put(MediaStore.Video.Media.DISPLAY_NAME, videoFile.name)
+            put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+            put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/PoseEstimation") // 수정된 부분
+            put(MediaStore.Video.Media.IS_PENDING, 1)
+        }
+
+        val resolver = context.contentResolver
+        val collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        val uri = resolver.insert(collection, values)
+
+        uri?.let {
+            resolver.openOutputStream(it)?.use { os ->
+                videoFile.inputStream().use { it.copyTo(os) }
+            }
+            values.clear()
+            values.put(MediaStore.Video.Media.IS_PENDING, 0)
+            resolver.update(it, values, null, null)
+        }
+
+        return uri
+    }
+
+    private fun bitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {
+        val inputWidth = bitmap.width
+        val inputHeight = bitmap.height
+        val yuvImage = ByteArray(inputWidth * inputHeight * 3 / 2)
+        val argb = IntArray(inputWidth * inputHeight)
+
+        bitmap.getPixels(argb, 0, inputWidth, 0, 0, inputWidth, inputHeight)
+
+        encodeYUV420SP(yuvImage, argb, inputWidth, inputHeight)
+
+        return ByteBuffer.wrap(yuvImage)
+    }
+
+
+    private fun encodeYUV420SP(yuv420sp: ByteArray, argb: IntArray, width: Int, height: Int) {
+        val frameSize = width * height
+        var yIndex = 0
+        var uvIndex = frameSize
+
+        for (j in 0 until height) {
+            for (i in 0 until width) {
+                val rgb = argb[j * width + i]
+                val r = rgb shr 16 and 0xFF
+                val g = rgb shr 8 and 0xFF
+                val b = rgb and 0xFF
+                val y = (66 * r + 129 * g + 25 * b + 128 shr 8) + 16
+                yuv420sp[yIndex++] = y.toByte()
+
+                if (j % 2 == 0 && i % 2 == 0) {
+                    val u = (-38 * r - 74 * g + 112 * b + 128 shr 8) + 128
+                    val v = (112 * r - 94 * g - 18 * b + 128 shr 8) + 128
+                    yuv420sp[uvIndex++] = u.toByte()
+                    yuv420sp[uvIndex++] = v.toByte()
+                }
+            }
+        }
+    }
+
+
     private fun mirrorKeyPoints(keyPoints: List<KeyPoint>): List<KeyPoint> {
         return keyPoints.map { keyPoint ->
             val mirroredBodyPart = when (keyPoint.bodyPart) {
@@ -660,6 +772,9 @@ class CameraSource(
 
         return poseIndexArray.toList()
     }
+
+
+
 
     private var lastLogTime = 0L
 

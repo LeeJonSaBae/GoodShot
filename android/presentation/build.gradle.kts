@@ -114,4 +114,7 @@ dependencies {
     // recyclerview snapping
     implementation(libs.gravitysnaphelper)
 
+    // gif process
+    implementation(libs.gifencoder)
+
 }
