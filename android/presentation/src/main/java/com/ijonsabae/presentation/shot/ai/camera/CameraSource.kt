@@ -89,6 +89,7 @@ class CameraSource(
     private var viewingResult = false
     private val imageQueue: Queue<TimestampedData<Bitmap>> = LinkedList()
     private val jointQueue: Queue<List<KeyPoint>> = LinkedList()
+
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
     private var frameProcessedInOneSecondInterval = 0
     private var framesPerSecond = 1
@@ -343,6 +344,7 @@ class CameraSource(
         if (viewingResult) return
 
         val keyPoints = person.keyPoints
+        var isSuccess = false
 
         // 스윙 피니쉬가 인식된 시점부터 5프레임 더 받기
         if (swingViewModel.currentState.value == ANALYZING && pelvisTwisting) {
@@ -403,7 +405,7 @@ class CameraSource(
 //                    }
                     var bitmapIndices = mutableListOf<Bitmap>()
                     val imageList = imageQueue.toList().reversed()
-                    for (idx in imageQueue.size - 1  downTo swingData[0][0].third ) {
+                    for (idx in imageQueue.size - 1 downTo swingData[0][0].third) {
                         bitmapIndices.add(imageList[idx].data)
                     }
                     // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
@@ -439,14 +441,17 @@ class CameraSource(
 
                     // TODO: 스윙 분석 결과 표시
                     swingViewModel.setCurrentState(RESULT)
+                    isSuccess = true
                 } else {
                     swingViewModel.setCurrentState(AGAIN)
                     Log.d("싸피", "다시 스윙해주세요")
+                    isSuccess = false
                 }
                 viewingResult = true
 
+                val delayTime = if (isSuccess) 4500L else 2800L
                 CoroutineScope(Dispatchers.Main).launch {
-                    delay(3000) // 3초 지연
+                    delay(delayTime)
                     viewingResult = false
                     pelvisTwisting = false
                     swingFrameCount = 0
@@ -618,14 +623,19 @@ class CameraSource(
 
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun convertBitmapsToVideo(bitmapIndices : List<Bitmap>) {
+    private fun convertBitmapsToVideo(bitmapIndices: List<Bitmap>) {
 
 
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val videoFileName = "pose_$timestamp.mp4"
         val videoFile = File(context.cacheDir, videoFileName)
 
-        val videoEncoder = VideoEncoder(bitmapIndices[0].width, bitmapIndices[0].height, 24, videoFile.absolutePath)
+        val videoEncoder = VideoEncoder(
+            bitmapIndices[0].width,
+            bitmapIndices[0].height,
+            24,
+            videoFile.absolutePath
+        )
         videoEncoder.start()
 
         bitmapIndices.forEachIndexed { index, bitmap ->
@@ -652,7 +662,10 @@ class CameraSource(
         val values = ContentValues().apply {
             put(MediaStore.Video.Media.DISPLAY_NAME, videoFile.name)
             put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-            put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/PoseEstimation") // 수정된 부분
+            put(
+                MediaStore.Video.Media.RELATIVE_PATH,
+                Environment.DIRECTORY_MOVIES + "/PoseEstimation"
+            ) // 수정된 부분
             put(MediaStore.Video.Media.IS_PENDING, 1)
         }
 
@@ -783,8 +796,12 @@ class CameraSource(
             //backswing 시작 시간 추적을 위한 로직
             if (classifier == classifier4) {
                 val hipWristDistancePow =
-                    (jointData[RIGHT_HIP.position].coordinate.x - jointData[RIGHT_WRIST.position].coordinate.x).pow(2) +
-                            (jointData[RIGHT_HIP.position].coordinate.y - jointData[RIGHT_WRIST.position].coordinate.y).pow(2)
+                    (jointData[RIGHT_HIP.position].coordinate.x - jointData[RIGHT_WRIST.position].coordinate.x).pow(
+                        2
+                    ) +
+                            (jointData[RIGHT_HIP.position].coordinate.y - jointData[RIGHT_WRIST.position].coordinate.y).pow(
+                                2
+                            )
                 if (hipWristDistancePow < wristHipDist) {
                     wristHipDist = hipWristDistancePow
                     backswingStartTime = imageDataList[index].timestamp
@@ -795,8 +812,6 @@ class CameraSource(
 
         return poseIndexArray.toList()
     }
-
-
 
 
     private var lastLogTime = 0L
