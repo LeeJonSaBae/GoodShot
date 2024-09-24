@@ -5,6 +5,7 @@ import android.graphics.LinearGradient
 import android.graphics.Shader
 import android.graphics.Typeface
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import android.text.SpannableString
 import android.text.style.CharacterStyle
 import android.text.style.StyleSpan
@@ -38,22 +39,30 @@ import com.ijonsabae.presentation.shot.CameraState.*
 import com.ijonsabae.presentation.shot.ai.camera.CameraSource
 import com.ijonsabae.presentation.shot.flex.FoldingStateActor
 import com.ijonsabae.presentation.util.PermissionChecker
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.util.Locale
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
+import javax.inject.Inject
 import kotlin.math.roundToInt
 
 private const val TAG = "CameraFragment_싸피"
 
+@AndroidEntryPoint
 class CameraFragment :
     BaseFragment<FragmentCameraBinding>(FragmentCameraBinding::bind, R.layout.fragment_camera) {
     private lateinit var navController: NavController
-    private lateinit var foldingStateActor: FoldingStateActor
+
+    @Inject
+    lateinit var foldingStateActor: FoldingStateActor
     private lateinit var permissionChecker: PermissionChecker
     private val permissionList = arrayOf(Manifest.permission.CAMERA)
     private var camera: Camera? = null
     private var cameraController: CameraControl? = null
     private val lastAnalysisTimestamp = AtomicLong(0L)
+    private var tts: TextToSpeech? = null
+    private var TTS_ID = "TTS"
 
     private val swingViewModel by activityViewModels<SwingViewModel>()
 
@@ -71,8 +80,8 @@ class CameraFragment :
         navController = Navigation.findNavController(binding.root)
         // 스윙 상태에 따라 카메라 상태를 변경해주기 위해 옵저버 등록
         initObservers()
+        initTts()
         surfaceView = binding.camera
-        foldingStateActor = FoldingStateActor(WindowInfoTracker.getOrCreate(fragmentContext))
         permissionChecker = PermissionChecker(this)
         permissionChecker.setOnGrantedListener { //퍼미션 획득 성공일때
             startCamera()
@@ -83,6 +92,21 @@ class CameraFragment :
         } else {
             Log.d(TAG, "onViewCreated: 권한 부족")
             permissionChecker.requestPermissionLauncher.launch(permissionList) // 권한없으면 창 띄움
+        }
+    }
+
+    private fun initTts() {
+        tts = TextToSpeech(requireContext()) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                val result = tts?.setLanguage(Locale.KOREAN)
+                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    Log.e(TAG, "The Language is not supported!")
+                } else {
+                    Log.i(TAG, "TTS Initialization successful")
+                }
+            } else {
+                Log.e(TAG, "TTS Initialization failed!")
+            }
         }
     }
 
@@ -135,7 +159,7 @@ class CameraFragment :
 
                         // TODO: 카메라 전면 후면, 좌타 우타 여부 동적으로 넣어주기, 카메라 전환 버튼 빼기, 사용자의 옵션 선택에 따라 카메라 방향 전환해서 보여주기
 //                         isSelf = true
-                        isLeft = false
+//                        isLeft = false
 
                         cameraSource?.processImage(
                             cameraSource!!.getRotateBitmap(
@@ -194,6 +218,10 @@ class CameraFragment :
     }
 
     override fun onDestroy() {
+        tts?.let { t ->
+            t.stop()
+            t.shutdown()
+        }
         cameraSource?.destroy()
         super.onDestroy()
     }
@@ -386,6 +414,8 @@ class CameraFragment :
                         )!!.toBitmap()
                     )
                     text = "분석을 위해 다시 스윙해주세요!"
+                    binding.tvAlert.text = text
+                    tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
                     color = ContextCompat.getColor(fragmentContext, R.color.like_yellow)
                 }
 
@@ -407,7 +437,16 @@ class CameraFragment :
                     binding.tvAnalyzing.visibility = View.GONE
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
+                    val feedback = swingViewModel.getWorstPoseAnalysisResult()?.let { result ->
+                        if (result.feedbacks.isNotEmpty()) {
+                            result.feedbacks.random().comment
+                        } else {
+                            "이 포즈에 대한 피드백이 없습니다."
+                        }
+                    } ?: "분석 결과가 없습니다."
+                    binding.tvResultSubHeader.text = feedback
 
+                    tts?.speak(feedback, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
 
                     binding.tvCircleTempo.text = swingViewModel.tempoRatioText
                     binding.tvCircleBackswing.text = swingViewModel.backswingTimeText

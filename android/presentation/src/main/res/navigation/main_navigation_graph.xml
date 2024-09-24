@@ -11,7 +11,30 @@
             android:id="@+id/home"
             android:name="com.ijonsabae.presentation.home.HomeFragment"
             tools:label="home"
-            tools:layout="@layout/fragment_home"></fragment>
+            tools:layout="@layout/fragment_home">
+            <action
+                android:id="@+id/action_home_to_consult"
+                app:destination="@id/consult" />
+        </fragment>
+        <fragment
+            android:id="@+id/consult"
+            android:name="com.ijonsabae.presentation.consult.ConsultFragment"
+            tools:label="consult"
+            tools:layout="@layout/fragment_consult">
+
+            <action
+                android:id="@+id/action_consult_to_consult_dialog"
+                app:destination="@id/consult_dialog" />
+        </fragment>
+        <dialog
+            android:id="@+id/consult_dialog"
+            android:name="com.ijonsabae.presentation.consult.ConsultantDetailInfoDialog"
+            tools:label="consult_dialog"
+            tools:layout="@layout/dialog_consultant">
+            <argument
+                android:name="consult"
+                app:argType="com.ijonsabae.presentation.consult.model.Consultant" />
+        </dialog>
     </navigation>
     <navigation
         android:id="@+id/shot_tab"
@@ -84,7 +107,17 @@
             android:id="@+id/profile"
             android:name="com.ijonsabae.presentation.profile.ProfileFragment"
             tools:label="profile"
-            tools:layout="@layout/fragment_profile"></fragment>
+            tools:layout="@layout/fragment_profile">
+            <action
+                android:id="@+id/action_profile_to_totalReport"
+                app:destination="@id/profile_total_report" />
+        </fragment>
+
+        <fragment
+            android:id="@+id/profile_total_report"
+            android:name="com.ijonsabae.presentation.profile.TotalReportFragment"
+            tools:label="total report"
+            tools:layout="@layout/fragment_total_report" />
     </navigation>
 
 

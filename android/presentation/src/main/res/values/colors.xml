@@ -7,6 +7,7 @@
     <color name="login_dark_green">#54806F</color>
     <color name="gray">#A2A2A2</color>
     <color name="dark_gray">#5D5D5D</color>
+    <color name="chart_light_gray">#F0F0F0</color>
     <color name="highlight">#1C277A63</color>
     <color name="timeline_color">#8F8F8F</color>
     <color name="like_yellow">#F1C903</color>
@@ -24,4 +25,11 @@
     <color name="down_swing_color">#C0E7DC</color>
 
     <color name="alpha70_black">#B3000000</color>
+
+    <color name="consult_course_color">#33A4A4A4</color>
+    <color name="consult_career_color">#3397D0A5</color>
+    <color name="consult_career_text_color">#248A3D</color>
+
+    <color name="dialog_consult_top_color">#277A63</color>
+    <color name="divider_color">#F3F3F3</color>
 </resources>

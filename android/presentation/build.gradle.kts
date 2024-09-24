@@ -2,7 +2,12 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("com.google.devtools.ksp")
+    id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+    kotlin("plugin.serialization") version "2.0.20"
+    id("kotlin-parcelize")
+    id("androidx.navigation.safeargs.kotlin")
+
 }
 
 android {
@@ -40,6 +45,9 @@ android {
 dependencies {
     implementation(project(":domain"))
     implementation(libs.androidx.window)
+
+    //serialization
+    implementation(libs.kotlinx.serialization.json)
 
     // navigation
     implementation(libs.androidx.navigation.fragment.ktx)
@@ -88,7 +96,10 @@ dependencies {
 
     // Hilt 세팅
     implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
+    kapt(libs.hilt.compiler)
+    
+    // Non Error 뭐시기 에러 뜸 KSP랑 Hilt랑 뭐가 안 맞는 듯
+//    ksp(libs.hilt.compiler)
 
     // RecyclerView
     implementation(libs.androidx.recyclerview)

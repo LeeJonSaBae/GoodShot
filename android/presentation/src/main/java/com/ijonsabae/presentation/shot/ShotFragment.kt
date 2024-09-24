@@ -2,6 +2,7 @@ package com.ijonsabae.presentation.shot
 
 import android.os.Bundle
 import android.view.View
+import android.view.animation.AnimationUtils
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,12 +23,7 @@ class ShotFragment :
 
         navController = Navigation.findNavController(binding.root)
         binding.cvBtnCamera.setOnClickListener {
-//            navController.navigate(R.id.action_shot_to_camera)
-
-//            val shotDialog = ShotDialog()
-//            shotDialog.show(parentFragmentManager, shotDialog.tag)
             navController.navigate(R.id.action_shot_to_shot_dialog)
-
         }
         binding.btnCamera.setOnClickListener {
             navController.navigate(R.id.action_shot_to_shot_dialog)
@@ -38,5 +34,8 @@ class ShotFragment :
             layoutManager = LinearLayoutManager(fragmentContext)
             adapter = TimeLineAdapter(mDataList)
         }
+
+        val anim = AnimationUtils.loadAnimation(requireActivity(), R.anim.blink)
+        binding.tvCameraDescription.startAnimation(anim)
     }
 }

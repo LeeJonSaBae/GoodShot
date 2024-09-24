@@ -2,7 +2,9 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("com.google.devtools.ksp")
+    id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+
 }
 
 android {
@@ -35,9 +37,14 @@ android {
 
 dependencies {
     implementation(project(":domain"))
+
+    //serialization
+    implementation(libs.kotlinx.serialization.json)
+
     // Hilt 세팅
     implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
+    kapt(libs.hilt.compiler)
+//    ksp(libs.hilt.compiler)
 
     // Retrofit 관련 의존
     implementation(libs.retrofit)
