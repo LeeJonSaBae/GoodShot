@@ -77,18 +77,21 @@ object FoldableUtils {
             progressTitle.visibility = View.GONE
         }
 
+        alertText.layoutParams.height = WRAP_CONTENT
+        alertConstraintLayout.layoutParams.height = WRAP_CONTENT
+
         ConstraintSet().apply {
             clone(alertConstraintLayout)
             setHorizontalBias(alertIcon.id, 0.5F)
             constrainPercentHeight(alertIcon.id, 0.33F)
 
+
+            connect(alertIcon.id, ConstraintSet.TOP, alertConstraintLayout.id, ConstraintSet.TOP)
             connect(alertIcon.id, ConstraintSet.BOTTOM, alertText.id, ConstraintSet.TOP)
             connect(alertIcon.id, ConstraintSet.START, alertConstraintLayout.id, ConstraintSet.START)
             connect(alertIcon.id, ConstraintSet.END, alertConstraintLayout.id, ConstraintSet.END)
 
             connect(indicatorProgress.id, ConstraintSet.TOP, progressTitle.id, ConstraintSet.BOTTOM)
-
-            connect(alertText.id, ConstraintSet.TOP, alertIcon.id, ConstraintSet.BOTTOM)
 
             if(cameraState == CameraState.ANALYZING){
                 connect(alertText.id, ConstraintSet.TOP, indicatorProgress.id, ConstraintSet.BOTTOM)
@@ -113,7 +116,7 @@ object FoldableUtils {
             applyTo(rootConstraintLayout)
         }
 
-        alertConstraintLayout.layoutParams.height = WRAP_CONTENT
+
 
 
 
@@ -168,6 +171,9 @@ object FoldableUtils {
         resultSubHeader.visibility = View.GONE
         progressTitle.visibility = View.GONE
         val height = this.height
+
+        alertText.layoutParams.height = MATCH_CONSTRAINT
+
         animator = ValueAnimator.ofFloat(this.translationY, 0F).apply {
             duration = 300 // 애니메이션 지속 시간 (밀리초)
             interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
