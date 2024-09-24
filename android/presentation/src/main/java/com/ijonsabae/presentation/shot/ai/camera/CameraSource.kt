@@ -39,11 +39,13 @@ import android.view.PixelCopy
 import android.view.SurfaceView
 import androidx.annotation.RequiresApi
 import com.ijonsabae.presentation.shot.CameraState.*
+import com.ijonsabae.presentation.shot.PostureFeedback
 import com.ijonsabae.presentation.shot.SwingViewModel
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.*
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
+import com.ijonsabae.presentation.shot.ai.data.Pose
 import com.ijonsabae.presentation.shot.ai.ml.ModelType
 
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
@@ -333,6 +335,7 @@ class CameraSource(
     }
 
     /** !!!!!!!!!!!! 포즈 추론은 우타, 후면 카메라로 좔영했을 때 기준 !!!!!!!!!!!! **/
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun processDetectedInfo(
         person: Person,
     ) {
@@ -349,9 +352,6 @@ class CameraSource(
                 val poseIndicesWithScores = extractBestPoseIndices()
 
                 if (validateSwingPose(poseIndicesWithScores)) {
-//                    val swingData = indicesToPoses(poseIndices)
-//                    Log.d("싸피indices", "$poseIndices")
-
                     val poseFrameGroupIndices: Array<IntArray> = Array(8) { IntArray(3) }
                     poseIndicesWithScores.forEachIndexed { index, frameIndexWithScore ->
                         val frameIndex = frameIndexWithScore.first
@@ -369,8 +369,6 @@ class CameraSource(
                             )  // 일반적인 경우
                         }
                     }
-                    Log.d("싸피indices", poseFrameGroupIndices.contentDeepToString())
-
 //                    Log.d("싸피", "8개 프레임 추출 완료")
                     val swingData = indicesToPosesGroup(poseFrameGroupIndices)
                     Log.d("싸피", "8개 포즈 그룹(각 3프레임) 추출 완료")
@@ -392,33 +390,52 @@ class CameraSource(
 //                        }
 //                    }
 
-                    // 8개의 포즈 그룹(각 3프레임)을 갤러리에 저장
+//                    // 8개의 포즈 그룹(각 3프레임)을 갤러리에 저장
+//                    swingData.forEachIndexed { groupIndex, frameGroup ->
+//                        frameGroup.forEachIndexed { _, (imageData, _, originalIndex) ->
+//                            val fileName =
+//                                "swing_pose_group${groupIndex + 1}_frame${originalIndex + 1}.jpg"
+//                            val uri = saveBitmapToGallery(context, imageData.data, fileName)
+//                            uri?.let {
+//                                Log.d("싸피", "Saved image $fileName at $it")
+//                            }
+//                        }
+//                    }
                     var bitmapIndices = mutableListOf<Bitmap>()
                     val imageList = imageQueue.toList().reversed()
                     for (idx in imageQueue.size - 1  downTo swingData[0][0].third ) {
                         bitmapIndices.add(imageList[idx].data)
                     }
-                    swingData.forEachIndexed { groupIndex, frameGroup ->
-                        frameGroup.forEachIndexed { _, (imageData, _, originalIndex) ->
-                            val fileName =
-                                "swing_pose_group${groupIndex + 1}_frame${originalIndex + 1}.jpg"
-                            val uri = saveBitmapToGallery(context, imageData.data, fileName)
+                    // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
+                    swingViewModel.updateSwingTiming(analyzeSwingTime(swingData))
+                    // TODO: 피드백 분석하기
+                    val extractedKeyPoints = swingData.map { outerList ->
+                        outerList.map { triple ->
+                            Pair(triple.first.data, triple.second)
+                        }
+                    }
+                    val poseAnalysisResults = PostureFeedback.checkPosture(extractedKeyPoints)
+                    swingViewModel.setPoseAnalysisResults(poseAnalysisResults)
 
-                            uri?.let {
-                                Log.d("싸피", "Saved image $fileName at $it")
-                            }
+                    // 8개의 베스트 포즈에 대한 비트맵을 갤러리에 저장
+                    poseAnalysisResults.forEachIndexed { idx, result ->
+                        val fileName =
+                            "swing_pose_group${idx + 1}_frame.jpg"
+                        val uri = saveBitmapToGallery(context, result.bitmap, fileName)
+                        uri?.let {
+                            Log.d("싸피", "Saved image $fileName at $it")
                         }
                     }
 
-                    //스윙 템포 및 스윙 시간 계산 및 뷰모델에 값 갱신
-                    swingViewModel.updateSwingTiming(analyzeSwingTime(swingData))
+                    // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
+
                     // TODO: 피드백 분석하기
 
                     // TODO: 영상 만들기
                     convertBitmapsToVideo(bitmapIndices)
                     // TODO: 영상과 피드백 룸에 저장하기
 
-                    // TODO: 영상 서버에 저장하기 (비동기)
+                    // TODO: 영상 + 피드백 서버에 저장하기 (비동기) <- 나중에 여기서 보낸 피드백을 토대로 종합 리포트 만들어줄 예정
 
                     // TODO: 스윙 분석 결과 표시
                     swingViewModel.setCurrentState(RESULT)
@@ -539,12 +556,14 @@ class CameraSource(
         val countingArray = BooleanArray(QUEUE_SIZE) { false }
         var prevImageIndex = 100_000_000
 
+        var i = 0
         for (indexWithScore in poseIndicesWithScores) {
             val index = indexWithScore.first
             val score = indexWithScore.second
 
             // 포즈가 일정 유사도를 넘어야 정상 스윙으로 판단
             if (score < POSE_THRESHOLD) {
+                Log.d("포즈검증", "${Pose.entries[i]} 유사도 미충족!! index: $index, score: $score")
                 return false
             }
 
@@ -552,14 +571,17 @@ class CameraSource(
             if (!countingArray[index]) {
                 countingArray[index] = true
             } else {
+                Log.d("포즈검증", "중복발생!! index: $index, score: $score")
                 return false
             }
 
             // 이미지 순서가 맞아야 정상
             if (index >= prevImageIndex) {
+                Log.d("포즈검증", "이미지 순서가 맞지 않음!!")
                 return false
             }
             prevImageIndex = index
+            i++
         }
         return true
     }
@@ -736,7 +758,7 @@ class CameraSource(
                 jointData[RIGHT_WRIST.position].coordinate.x > jointData[RIGHT_SHOULDER.position].coordinate.x &&
                 jointData[RIGHT_WRIST.position].coordinate.y < jointData[RIGHT_SHOULDER.position].coordinate.y
             ) {
-                Log.d("확률", "모델 교체 준비 완료")
+                Log.d("포즈검증", "모델 교체 준비")
                 modelChangeReady = true
             }
 
@@ -746,6 +768,7 @@ class CameraSource(
                 && jointData[LEFT_WRIST.position].coordinate.x < jointData[RIGHT_SHOULDER.position].coordinate.x
                 && jointData[LEFT_WRIST.position].coordinate.y < jointData[RIGHT_SHOULDER.position].coordinate.y
             ) {
+                Log.d("포즈검증", "모델 교체 완료")
                 classifier = classifier4
                 poseLabelBias = 0
             }
