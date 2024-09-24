@@ -4,6 +4,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+
 }
 
 android {
@@ -36,6 +37,10 @@ android {
 
 dependencies {
     implementation(project(":domain"))
+
+    //serialization
+    implementation(libs.kotlinx.serialization.json)
+
     // Hilt 세팅
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)

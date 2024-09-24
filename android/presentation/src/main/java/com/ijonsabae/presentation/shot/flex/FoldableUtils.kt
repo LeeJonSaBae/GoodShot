@@ -184,7 +184,6 @@ object FoldableUtils {
 
         ConstraintSet().apply {
             clone(rootConstraintLayout)
-            connect(alertConstraintLayout.id, ConstraintSet.TOP, cameraMenuLayout.id, ConstraintSet.BOTTOM)
             connect(cameraMenuLayout.id, ConstraintSet.TOP, rootConstraintLayout.id, ConstraintSet.TOP)
             clear(cameraMenuLayout.id, ConstraintSet.BOTTOM)
             connect(this@restore.id, ConstraintSet.TOP, cameraMenuLayout.id, ConstraintSet.BOTTOM)
