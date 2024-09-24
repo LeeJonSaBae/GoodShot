@@ -55,6 +55,7 @@
                     android:layout_marginTop="15dp"
                     android:text="여기를 눌러 촬영을 시작하세요."
                     android:textColor="@color/white"
+                    android:textSize="18sp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
