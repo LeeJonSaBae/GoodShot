@@ -13,7 +13,6 @@ import android.view.WindowManager
 import android.widget.Button
 import androidx.fragment.app.DialogFragment
 import androidx.navigation.NavController
-import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.databinding.DialogShotBinding
@@ -50,12 +49,12 @@ class ShotDialog : DialogFragment() {
 
         with(binding) {
             btnDirectionLeft.setOnClickListener {
-                selectButton(btnSwingPoseFront)
-                deselectButton(btnDirectionRight)
-            }
-            btnDirectionLeft.setOnClickListener {
                 selectButton(btnDirectionLeft)
                 deselectButton(btnDirectionRight)
+            }
+            btnDirectionRight.setOnClickListener {
+                selectButton(btnDirectionRight)
+                deselectButton(btnDirectionLeft)
             }
             btnSwingPoseFront.setOnClickListener {
                 selectButton(btnSwingPoseFront)
