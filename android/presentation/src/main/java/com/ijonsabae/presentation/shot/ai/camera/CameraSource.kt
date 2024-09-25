@@ -403,11 +403,22 @@ class CameraSource(
 //                            }
 //                        }
 //                    }
-                    var bitmapIndices = mutableListOf<Bitmap>()
-                    val imageList = imageQueue.toList().reversed()
-                    for (idx in imageQueue.size - 1 downTo swingData[0][0].third) {
-                        bitmapIndices.add(imageList[idx].data)
-                    }
+
+                    val actualSwingIndices = imageQueue
+                        .toList()
+                        .takeLast(imageQueue.size - swingData[0][0].third)
+                        .map { it.data }
+
+//                  어드레스~피니쉬 이미지 갤러리에 전부 저장
+//                    actualSwingIndices.forEachIndexed { idx, bitmap ->
+//                        val fileName = "swing_pose_${swingData[0][0].third + idx}.jpg"
+//
+//                        val uri = saveBitmapToGallery(context, bitmap, fileName)
+//                        uri?.let {
+//                            Log.d("싸피", "Saved image $fileName at $it")
+//                        }
+//                    }
+
                     // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
                     swingViewModel.updateSwingTiming(analyzeSwingTime(swingData))
                     // TODO: 피드백 분석하기
@@ -434,7 +445,7 @@ class CameraSource(
                     // TODO: 피드백 분석하기
 
                     // TODO: 영상 만들기
-                    convertBitmapsToVideo(bitmapIndices)
+                    convertBitmapsToVideo(actualSwingIndices)
                     // TODO: 영상과 피드백 룸에 저장하기
 
                     // TODO: 영상 + 피드백 서버에 저장하기 (비동기) <- 나중에 여기서 보낸 피드백을 토대로 종합 리포트 만들어줄 예정
@@ -640,6 +651,7 @@ class CameraSource(
 
         bitmapIndices.forEachIndexed { index, bitmap ->
             val byteBuffer = bitmapToByteBuffer(bitmap)
+            Log.d("MainActivity_Capture", "프레임 인덱스: $index")
             videoEncoder.encodeFrame(byteBuffer)
         }
 
