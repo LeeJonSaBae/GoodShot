@@ -1,7 +1,7 @@
-package com.ijonsabae.presentation.replay
+package com.ijonsabae.domain.model
 
-data class ReplayDTO(
-    val thumbnail: Int, // 영상 썸네일 이미지
+data class Replay(
+    val thumbnail: String, // 영상 썸네일 이미지
     val title: String,
     val date: String,
     val swingPose: String, // 정면, 측면

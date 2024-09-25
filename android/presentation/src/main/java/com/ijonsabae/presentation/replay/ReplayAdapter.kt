@@ -16,27 +16,28 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.ijonsabae.domain.model.Replay
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.databinding.ItemReplayBinding
 
 private const val TAG = "SearchResultOfMountainListAdapter_싸피"
 
 class ReplayAdapter(val context: Context) :
-    ListAdapter<ReplayDTO, ReplayAdapter.ReplayViewHolder>(
+    ListAdapter<Replay, ReplayAdapter.ReplayViewHolder>(
         Comparator
     ) {
 
-    companion object Comparator : DiffUtil.ItemCallback<ReplayDTO>() {
+    companion object Comparator : DiffUtil.ItemCallback<Replay>() {
         override fun areItemsTheSame(
-            oldItem: ReplayDTO,
-            newItem: ReplayDTO
+            oldItem: Replay,
+            newItem: Replay
         ): Boolean {
             return System.identityHashCode(oldItem) == System.identityHashCode(newItem)
         }
 
         override fun areContentsTheSame(
-            oldItem: ReplayDTO,
-            newItem: ReplayDTO
+            oldItem: Replay,
+            newItem: Replay
         ): Boolean {
             return oldItem == newItem
         }
@@ -46,8 +47,8 @@ class ReplayAdapter(val context: Context) :
     private lateinit var itemClickListener: OnItemClickListener
 
     interface OnItemClickListener {
-        fun onItemClick(item: ReplayDTO)
-        fun onLikeClick(item: ReplayDTO, check: Boolean)
+        fun onItemClick(item: Replay)
+        fun onLikeClick(item: Replay, check: Boolean)
     }
 
     fun setItemClickListener(onItemClickListener: OnItemClickListener) {
@@ -61,16 +62,9 @@ class ReplayAdapter(val context: Context) :
         fun bindInfo(position: Int) {
             val replayItem = getItem(position)
 
-            if (replayItem.thumbnail == null) {
-                // 없을 경우 기본 이미지. 글라이드 : 링크이미지 받아올 때
-                Glide.with(binding.root)
-                    .load("https://images-ext-1.discordapp.net/external/9pyEBG4x_J2aG-j5BeoaA8edEpEpfQEOEO9SdmT9hIg/https/k.kakaocdn.net/dn/cwObI9/btsGqPcg5ic/UHYbwvy2M2154EdZSpK8B1/img_110x110.jpg%2C?format=webp")
-                    .into(binding.ivThumbnail)
-            } else {
-                Glide.with(binding.root)
-                    .load(replayItem.thumbnail)
-                    .into(binding.ivThumbnail)
-            }
+            Glide.with(binding.root)
+                .load(replayItem.thumbnail)
+                .into(binding.ivThumbnail)
 
             binding.tvTitle.text = replayItem.title
             binding.tvDate.text = replayItem.date
@@ -137,7 +131,7 @@ class ReplayAdapter(val context: Context) :
         }
     }
 
-    private fun showCustomDialog(replayItem: ReplayDTO, adapterPosition: Int) {
+    private fun showCustomDialog(replayItem: Replay, adapterPosition: Int) {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_delete, null)
         val dialogBuilder = AlertDialog.Builder(context, R.style.RoundedDialog)
             .setView(dialogView)
