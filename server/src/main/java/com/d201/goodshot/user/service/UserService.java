@@ -7,10 +7,7 @@ import com.d201.goodshot.user.domain.User;
 import com.d201.goodshot.user.dto.Auth;
 import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
 import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
-import com.d201.goodshot.user.exception.AlreadyLogoutException;
-import com.d201.goodshot.user.exception.DuplicateEmailException;
-import com.d201.goodshot.user.exception.LoginFailException;
-import com.d201.goodshot.user.exception.NotFoundUserException;
+import com.d201.goodshot.user.exception.*;
 import com.d201.goodshot.user.repository.RefreshTokenRepository;
 import com.d201.goodshot.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -116,6 +113,15 @@ public class UserService {
             }
         }
         throw new InvalidTokenException();
+    }
+
+    // 비밀번호 변경
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        User user = userRepository.findByEmail(email).orElseThrow(NotFoundUserException::new);
+        if(!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new InvalidCredentialException();
+        }
+        user.changePassword(passwordEncoder.encode(newPassword));
     }
 
 }

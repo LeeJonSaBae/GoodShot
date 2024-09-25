@@ -5,6 +5,8 @@ import com.d201.goodshot.global.security.dto.CustomUser;
 import com.d201.goodshot.global.security.dto.Token;
 import com.d201.goodshot.global.security.dto.TokenResponse;
 import com.d201.goodshot.global.security.exception.InvalidTokenException;
+import com.d201.goodshot.user.dto.UserRequest;
+import com.d201.goodshot.user.dto.UserRequest.ChangePasswordRequest;
 import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
 import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
 import com.d201.goodshot.user.service.UserService;
@@ -108,6 +110,22 @@ public class UserController {
         Token token = userService.reissue(refreshToken, request);
         TokenResponse response = TokenResponse.builder().accessToken(token.getAccessToken()).refreshToken(token.getRefreshToken()).build();
         return BaseResponse.created(response);
+    }
+
+    // 비밀번호 변경
+    @PutMapping("/password")
+    @Operation(summary = "비밀번호 변경", description = "")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "비밀번호 변경에 성공했습니다.",
+                    content = @Content(mediaType = "",
+                            examples = @ExampleObject(value = "")))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    public BaseResponse<Void> changePassword(@AuthenticationPrincipal CustomUser customUser, @RequestBody ChangePasswordRequest changePasswordRequest) {
+        userService.changePassword(customUser.getEmail(), changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
+        return BaseResponse.of(HttpStatus.OK, "비밀번호를 변경했습니다", null);
     }
 
 }

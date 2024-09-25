@@ -58,9 +58,6 @@ dependencies {
 	// redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-	// StringUtils
-	implementation 'org.apache.commons:commons-lang3:3.12.0'
-
 }
 
 tasks.named('test') {
