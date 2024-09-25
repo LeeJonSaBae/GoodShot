@@ -21,11 +21,11 @@ import com.ijonsabae.presentation.databinding.ItemReplayBinding
 
 private const val TAG = "SearchResultOfMountainListAdapter_싸피"
 
-class ReplayAdapter(val context: Context) :
+class ReplayAdapter() :
     ListAdapter<ReplayDTO, ReplayAdapter.ReplayViewHolder>(
         Comparator
     ) {
-
+    
     companion object Comparator : DiffUtil.ItemCallback<ReplayDTO>() {
         override fun areItemsTheSame(
             oldItem: ReplayDTO,
@@ -82,9 +82,9 @@ class ReplayAdapter(val context: Context) :
                 check = !check // Toggle the favorite state
                 binding.ivLike.imageTintList =
                     if (check) ColorStateList.valueOf(
-                        ContextCompat.getColor(context, R.color.like_yellow)
+                        ContextCompat.getColor(binding.root.context, R.color.like_yellow)
                     )
-                    else ColorStateList.valueOf(ContextCompat.getColor(context, R.color.gray))
+                    else ColorStateList.valueOf(ContextCompat.getColor(binding.root.context, R.color.gray))
                 itemClickListener.onLikeClick(replayItem, replayItem.like)
             }
 
@@ -94,7 +94,7 @@ class ReplayAdapter(val context: Context) :
 
             binding.btnDelete.setOnClickListener {
                 if (getClamped())
-                    showCustomDialog(replayItem, adapterPosition)
+                    showCustomDialog(binding.root.context, replayItem, adapterPosition)
             }
         }
 
@@ -137,7 +137,7 @@ class ReplayAdapter(val context: Context) :
         }
     }
 
-    private fun showCustomDialog(replayItem: ReplayDTO, adapterPosition: Int) {
+    private fun showCustomDialog(context: Context, replayItem: ReplayDTO, adapterPosition: Int) {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_delete, null)
         val dialogBuilder = AlertDialog.Builder(context, R.style.RoundedDialog)
             .setView(dialogView)

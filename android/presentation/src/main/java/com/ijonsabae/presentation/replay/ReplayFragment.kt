@@ -10,12 +10,14 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentReplayBinding
 import com.ijonsabae.presentation.main.MainActivity
+import javax.inject.Inject
 
 class ReplayFragment :
     BaseFragment<FragmentReplayBinding>(FragmentReplayBinding::bind, R.layout.fragment_replay) {
-
+    @Inject
+    lateinit var swipeHelper : SwipeDeleteHelper
     private val replayAdapter by lazy {
-        ReplayAdapter(requireContext()).apply {
+        ReplayAdapter().apply {
             setItemClickListener(
                 object : ReplayAdapter.OnItemClickListener {
                     override fun onItemClick(item: ReplayDTO) {
@@ -43,7 +45,7 @@ class ReplayFragment :
         mountainRecyclerView.adapter = replayAdapter
 
         // 스와이프로 삭제
-        val swipeHelper = SwipeDeleteHelper().apply {
+        swipeHelper.apply {
             setClamp(200f)
         }
         val itemTouchHelper = ItemTouchHelper(swipeHelper)
