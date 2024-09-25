@@ -40,11 +40,12 @@
                     android:background="@android:color/transparent"
                     android:scaleType="centerCrop"
                     android:src="@drawable/shot_fill"
-                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintBottom_toTopOf="@id/tv_camera_description"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHeight_percent="0.3"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_chainStyle="packed"
                     app:layout_constraintWidth_percent="0.3"
                     app:tint="@color/white" />
 
