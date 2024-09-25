@@ -11,7 +11,7 @@ import org.springframework.data.redis.core.RedisHash;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@RedisHash(value = "RefreshToken", timeToLive = 604800) // 일주일
+@RedisHash(value = "Auth", timeToLive = 604800) // 일주일
 public class Auth {
     @Id
     private String email; // key
