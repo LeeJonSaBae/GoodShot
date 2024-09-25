@@ -24,23 +24,6 @@ class SwingViewModel : ViewModel() {
         poseAnalysisResults.addAll(result)
     }
 
-    // 8개의 포즈 중에서 가장 문제인 포즈의 피드백을 반환, 만약 BadFeedback이 하나도 없으면 NiceFeedback이 가장 많은걸 반환
-    fun getWorstPoseAnalysisResult(): PoseAnalysisResult? {
-        return poseAnalysisResults.maxWithOrNull { a, b ->
-            val aBadCount = a.feedbacks.count { it is BadFeedback }
-            val bBadCount = b.feedbacks.count { it is BadFeedback }
-
-            when {
-                aBadCount > 0 || bBadCount > 0 -> aBadCount.compareTo(bBadCount)
-                else -> {
-                    val aNiceCount = a.feedbacks.count { it is NiceFeedback }
-                    val bNiceCount = b.feedbacks.count { it is NiceFeedback }
-                    aNiceCount.compareTo(bNiceCount)
-                }
-            }
-        }
-    }
-
     fun setCurrentState(newState: CameraState) {
         if (isMainThread()) {
             _currentState.value = newState
@@ -48,7 +31,6 @@ class SwingViewModel : ViewModel() {
             _currentState.postValue(newState)
         }
     }
-
 
     var backswingTimeText: String = ""
     var downswingTimeText: String = ""

@@ -344,16 +344,18 @@ class CameraSource(
         if (viewingResult) return
 
         val keyPoints = person.keyPoints
-        var isSuccess = false
 
         // 스윙 피니쉬가 인식된 시점부터 5프레임 더 받기
         if (swingViewModel.currentState.value == ANALYZING && pelvisTwisting) {
             if (swingFrameCount < 5) {
                 swingFrameCount++
             } else {
+                // 1. 8개의 프레임에 대한 (인덱스, 확률) 추출
                 val poseIndicesWithScores = extractBestPoseIndices()
 
+                // 2. 임계치, 중복 프레임, 순서 체크
                 if (validateSwingPose(poseIndicesWithScores)) {
+                    // 3. 앞 뒤 포함한 대표 24 프레임의 인덱스 추출
                     val poseFrameGroupIndices: Array<IntArray> = Array(8) { IntArray(3) }
                     poseIndicesWithScores.forEachIndexed { index, frameIndexWithScore ->
                         val frameIndex = frameIndexWithScore.first
@@ -371,7 +373,8 @@ class CameraSource(
                             )  // 일반적인 경우
                         }
                     }
-//                    Log.d("싸피", "8개 프레임 추출 완료")
+
+                    // 4. 8개 포즈의 3개 프레임의 (비트맵, 관절 좌표, 확률) 추출
                     val swingData = indicesToPosesGroup(poseFrameGroupIndices)
                     Log.d("싸피", "8개 포즈 그룹(각 3프레임) 추출 완료")
 //                    큐에 있는 60개 이미지 갤러리에 전부 저장
@@ -404,11 +407,6 @@ class CameraSource(
 //                        }
 //                    }
 
-                    val actualSwingIndices = imageQueue
-                        .toList()
-                        .takeLast(imageQueue.size - swingData[0][0].third)
-                        .map { it.data }
-
 //                  어드레스~피니쉬 이미지 갤러리에 전부 저장
 //                    actualSwingIndices.forEachIndexed { idx, bitmap ->
 //                        val fileName = "swing_pose_${swingData[0][0].third + idx}.jpg"
@@ -424,50 +422,57 @@ class CameraSource(
                     // TODO: 피드백 분석하기
                     val extractedKeyPoints = swingData.map { outerList ->
                         outerList.map { triple ->
-                            Pair(triple.first.data, triple.second)
+                            triple.second
                         }
                     }
+
+                    // 5가지 정도 피드백 체크하기
                     val poseAnalysisResults = PostureFeedback.checkPosture(extractedKeyPoints)
+                    // 24개의 프레임의 각도를 분석해서 더 정확한 대표 8개 프레임 뽑기
+                    val preciseBitmapsWithScore = extractPreciseBitmaps(swingData)
+                    val preciseBitmaps = preciseBitmapsWithScore.map { it.first }
+                    val precisePoseScores = preciseBitmapsWithScore.map { it.second }
+
                     swingViewModel.setPoseAnalysisResults(poseAnalysisResults)
 
                     // 8개의 베스트 포즈에 대한 비트맵을 갤러리에 저장
-                    poseAnalysisResults.forEachIndexed { idx, result ->
+                    preciseBitmaps.forEachIndexed { idx, bitmap ->
                         val fileName =
                             "swing_pose_group${idx + 1}_frame.jpg"
-                        val uri = saveBitmapToGallery(context, result.bitmap, fileName)
+                        val uri = saveBitmapToGallery(context, bitmap, fileName)
                         uri?.let {
                             Log.d("싸피", "Saved image $fileName at $it")
                         }
                     }
 
-                    // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
-
-                    // TODO: 피드백 분석하기
-
                     // TODO: 영상 만들기
+                    val actualSwingIndices = imageQueue
+                        .toList()
+                        .takeLast(imageQueue.size - swingData[0][0].third)
+                        .map { it.data }
+
                     convertBitmapsToVideo(actualSwingIndices)
-                    // TODO: 영상과 피드백 룸에 저장하기
+                    // TODO: 영상 룸에 저장하기
 
-                    // TODO: 영상 + 피드백 서버에 저장하기 (비동기) <- 나중에 여기서 보낸 피드백을 토대로 종합 리포트 만들어줄 예정
+                    // TODO: 영상 + 8개 비트맵 + 8개 유사도 + 피드백 리스트 서버로 보내기
 
-                    // TODO: 스윙 분석 결과 표시
+                    // TODO: 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
                     swingViewModel.setCurrentState(RESULT)
-                    isSuccess = true
+
+                    // TODO: 다이얼로그가 닫히는 순간 viewingResult와 swingViewModel.currentState 바꿔주기
+
                 } else {
                     swingViewModel.setCurrentState(AGAIN)
                     Log.d("싸피", "다시 스윙해주세요")
-                    isSuccess = false
+                    CoroutineScope(Dispatchers.Main).launch {
+                        delay(2500L)
+                        viewingResult = false
+                        swingViewModel.setCurrentState(ADDRESS)
+                    }
                 }
                 viewingResult = true
-
-                val delayTime = if (isSuccess) 4500L else 2800L
-                CoroutineScope(Dispatchers.Main).launch {
-                    delay(delayTime)
-                    viewingResult = false
-                    pelvisTwisting = false
-                    swingFrameCount = 0
-                    swingViewModel.setCurrentState(ADDRESS)
-                }
+                pelvisTwisting = false
+                swingFrameCount = 0
             }
             return
         }
@@ -520,6 +525,10 @@ class CameraSource(
         }
     }
 
+    private fun extractPreciseBitmaps(swingData: List<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>>): List<Pair<Bitmap, Float>> {
+        TODO("Not yet implemented")
+    }
+
     private fun indicesToPoses(indices: List<Int>): MutableList<Pair<TimestampedData<Bitmap>, List<KeyPoint>>> {
         val poses = mutableListOf<Pair<TimestampedData<Bitmap>, List<KeyPoint>>>()
         val jointList = jointQueue.toList().reversed()
@@ -543,7 +552,7 @@ class CameraSource(
         return poses
     }
 
-    fun analyzeSwingTime(poses: List<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>>): SwingTiming {
+    private fun analyzeSwingTime(poses: List<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>>): SwingTiming {
         //이상적인 템포 비율은 약 3:1(백스윙:다운스윙)로 알려져 있지만, 개인의 스타일과 체형에 따라 다를 수 있다.
 
         //1. 피니시, 임팩트, 탑스윙, 어드레스 ~ 테이크 어웨이 자세에 대한 Long값 추출

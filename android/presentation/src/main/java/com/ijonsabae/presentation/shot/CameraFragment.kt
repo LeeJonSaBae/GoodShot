@@ -449,16 +449,19 @@ class CameraFragment :
                     binding.tvAnalyzing.visibility = View.GONE
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
-                    val feedback = swingViewModel.getWorstPoseAnalysisResult()?.let { result ->
-                        if (result.feedbacks.isNotEmpty()) {
-                            result.feedbacks.random().comment
-                        } else {
-                            "이 포즈에 대한 피드백이 없습니다."
-                        }
-                    } ?: "분석 결과가 없습니다."
-                    binding.tvResultSubHeader.text = feedback
 
-                    tts?.speak(feedback, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
+                    // TODO: 결과 분석 다이얼로그 띄워 주기
+
+                    // TODO: TTS로 문제점과 해결방안 두세문장 읽어주기
+//                    val feedback = swingViewModel.getWorstPoseAnalysisResult()?.let { result ->
+//                        if (result.feedbacks.isNotEmpty()) {
+//                            result.feedbacks.random().comment
+//                        } else {
+//                            "이 포즈에 대한 피드백이 없습니다."
+//                        }
+//                    } ?: "분석 결과가 없습니다."
+//                    binding.tvResultSubHeader.text = feedback
+//                    tts?.speak(feedback, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
 
                     binding.tvCircleTempo.text = swingViewModel.tempoRatioText
                     binding.tvCircleBackswing.text = swingViewModel.backswingTimeText
