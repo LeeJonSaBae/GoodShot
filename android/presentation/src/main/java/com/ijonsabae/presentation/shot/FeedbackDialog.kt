@@ -46,8 +46,9 @@ class FeedbackDialog :
     }
 
     private fun initButtons() {
-
-
+        binding.btnClose.setOnClickListener {
+            dismiss()
+        }
     }
 
     private fun initVideo() {
