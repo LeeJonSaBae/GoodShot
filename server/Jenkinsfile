@@ -5,7 +5,7 @@ pipeline {
         stage('Build Backend') {
             steps {
                 script {
-                    dir('backend/Arbaguette') {
+                    
                         sh 'chmod +x ./gradlew'
                         
                         sh './gradlew clean build -x test'
@@ -23,7 +23,7 @@ if (containerNamedBackend) {
                         // Build and run the new backend container
                         sh "docker build -t backend ."
                         sh "docker run --name backend -d -p 8080:8080 backend"
-                    }
+                    
                 }
             }
         }
