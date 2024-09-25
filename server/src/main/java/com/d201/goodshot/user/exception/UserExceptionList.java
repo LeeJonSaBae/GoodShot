@@ -11,7 +11,8 @@ public enum UserExceptionList {
     DUPLICATE_USER_EMAIL("U0001", HttpStatus.CONFLICT, "이미 가입된 이메일입니다."),
     NOT_FOUND_USER("U0002", HttpStatus.NOT_FOUND, "존재하지 않는 회원입니다."),
     LOGIN_FAIL("U0003", HttpStatus.UNAUTHORIZED, "로그인에 실패했습니다."),
-    ALREADY_LOGOUT_ERROR("U0004", HttpStatus.BAD_REQUEST, "이미 로그아웃한 회원입니다.");
+    ALREADY_LOGOUT_ERROR("U0004", HttpStatus.BAD_REQUEST, "이미 로그아웃한 회원입니다."),
+    INVALID_CREDENTIAL("U0005", HttpStatus.BAD_REQUEST, "회원 정보가 올바르지 않습니다.");
 
     private final String errorCode;
     private final HttpStatus httpStatus;
