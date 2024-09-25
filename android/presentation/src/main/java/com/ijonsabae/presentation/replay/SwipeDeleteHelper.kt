@@ -3,12 +3,15 @@ package com.ijonsabae.presentation.replay
 import android.graphics.Canvas
 import android.view.View
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.ItemTouchHelper.Callback.getDefaultUIUtil
+import androidx.recyclerview.widget.ItemTouchHelper.Callback.makeMovementFlags
 import androidx.recyclerview.widget.RecyclerView
 import com.ijonsabae.presentation.R
+import javax.inject.Inject
 import kotlin.math.max
 import kotlin.math.min
 
-class SwipeDeleteHelper : ItemTouchHelper.Callback() {
+class SwipeDeleteHelper @Inject constructor() : ItemTouchHelper.Callback() {
 
     private var currentPosition: Int? = null
     private var previousPosition: Int? = null
