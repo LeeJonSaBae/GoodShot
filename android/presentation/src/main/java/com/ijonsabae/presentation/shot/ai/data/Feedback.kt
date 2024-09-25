@@ -1,7 +1,7 @@
 package com.ijonsabae.presentation.shot.ai.data
 
-open class Feedback(val isRightPose: Boolean, val comment: String)
+open class Feedback()
 
-class NiceFeedback(comment: String) : Feedback(true, comment)
+class NiceFeedback(val compliment: String) : Feedback()
 
-class BadFeedback(comment: String) : Feedback(false, comment)
+class BadFeedback(val problem: String, val solution: String) : Feedback()

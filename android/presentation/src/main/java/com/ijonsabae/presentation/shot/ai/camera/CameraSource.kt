@@ -420,19 +420,17 @@ class CameraSource(
                     // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
                     swingViewModel.updateSwingTiming(analyzeSwingTime(swingData))
                     // TODO: 피드백 분석하기
-                    val extractedKeyPoints = swingData.map { outerList ->
-                        outerList.map { triple ->
-                            triple.second
-                        }
-                    }
-
-                    // 5가지 정도 피드백 체크하기
-                    val poseAnalysisResults = PostureFeedback.checkPosture(extractedKeyPoints)
                     // 24개의 프레임의 각도를 분석해서 더 정확한 대표 8개 프레임 뽑기
-                    val preciseBitmapsWithScore = extractPreciseBitmaps(swingData)
-                    val preciseBitmaps = preciseBitmapsWithScore.map { it.first }
-                    val precisePoseScores = preciseBitmapsWithScore.map { it.second }
+                    val preciseFrames = extractPreciseBitmaps(swingData)
+                    val preciseIndices = preciseFrames.map { it.first }
+                    val preciseBitmaps = preciseFrames.map { it.second }
+                    val precisePoseScores = preciseFrames.map { it.third }
 
+                    // 백스윙, 탑스윙 각각 5가지 정도 피드백 체크하기
+                    val poseAnalysisResults = PostureFeedback.checkPosture(
+                        poseIndicesWithScores.map { it.first }, // TODO: 나중에 preciseIndices로 바꾸어주어야 함
+                        jointQueue.toList().reversed()
+                    )
                     swingViewModel.setPoseAnalysisResults(poseAnalysisResults)
 
                     // 8개의 베스트 포즈에 대한 비트맵을 갤러리에 저장
@@ -525,7 +523,8 @@ class CameraSource(
         }
     }
 
-    private fun extractPreciseBitmaps(swingData: List<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>>): List<Pair<Bitmap, Float>> {
+    /** 24개의 프레임을 분석하여 8개 프레임을 뽑음 반환 값은 (이미지 인덱스, 이미지, 유사도) **/
+    private fun extractPreciseBitmaps(swingData: List<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>>): List<Triple<Int, Bitmap, Float>> {
         TODO("Not yet implemented")
     }
 

@@ -6,8 +6,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.ijonsabae.presentation.shot.CameraState.POSITIONING
 import com.ijonsabae.presentation.shot.ai.camera.SwingTiming
-import com.ijonsabae.presentation.shot.ai.data.BadFeedback
-import com.ijonsabae.presentation.shot.ai.data.NiceFeedback
 import com.ijonsabae.presentation.shot.ai.data.PoseAnalysisResult
 
 class SwingViewModel : ViewModel() {
@@ -17,11 +15,10 @@ class SwingViewModel : ViewModel() {
     val currentState: LiveData<CameraState>
         get() = _currentState
 
-    val poseAnalysisResults: MutableList<PoseAnalysisResult> = mutableListOf()
+    private var poseAnalysisResults: PoseAnalysisResult? = null
 
-    fun setPoseAnalysisResults(result: List<PoseAnalysisResult>) {
-        poseAnalysisResults.clear()
-        poseAnalysisResults.addAll(result)
+    fun setPoseAnalysisResults(result: PoseAnalysisResult) {
+        poseAnalysisResults = result
     }
 
     fun setCurrentState(newState: CameraState) {
