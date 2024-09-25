@@ -26,4 +26,13 @@ public class UserRequest {
         private String password;
     }
 
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ChangePasswordRequest {
+        private String oldPassword;
+        private String newPassword;
+    }
+
 }

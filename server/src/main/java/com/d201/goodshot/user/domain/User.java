@@ -35,4 +35,8 @@ public class User {
 
     private boolean exitStatus;
 
+    public void changePassword(String password) {
+        this.password = password;
+    }
+
 }
