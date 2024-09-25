@@ -28,28 +28,4 @@ if (containerNamedBackend) {
             }
         }
     }
-
-    post {
-        success {
-        	script {
-                // 빌드를 실행한 사용자 정보 가져오기
-                def user = sh(script: 'git log -1 --pretty=format:"%an"', returnStdout: true).trim()
-
-                mattermostSend (color: 'good', 
-                message: "배포 성공. ${user}",
-                )
-            }
-        }
-        failure {
-        	script {
-                // 빌드를 실행한 사용자 정보 가져오기
-                // Git 정보를 통해 푸시한 사용자 확인
-                def user = sh(script: 'git log -1 --pretty=format:"%an"', returnStdout: true).trim()
-
-                mattermostSend (color: 'danger', 
-                message: "배포 실패. 범인 : ${user}",
-                )
-            }
-        }
-    }
 }
