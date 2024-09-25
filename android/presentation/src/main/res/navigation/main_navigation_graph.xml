@@ -33,7 +33,7 @@
             tools:layout="@layout/dialog_consultant">
             <argument
                 android:name="consult"
-                app:argType="com.ijonsabae.presentation.consult.model.Consultant" />
+                app:argType="com.ijonsabae.presentation.model.Consultant" />
         </dialog>
     </navigation>
     <navigation
@@ -77,7 +77,19 @@
             <action
                 android:id="@+id/action_camera_to_shot"
                 app:destination="@id/shot" />
+            <action
+                android:id="@+id/action_camera_to_feedback_dialog"
+                app:destination="@id/feedback_dialog" />
         </fragment>
+        <dialog android:id="@+id/feedback_dialog"
+            android:name="com.ijonsabae.presentation.shot.FeedbackDialog"
+            tools:label="feedback dialog"
+            tools:layout="@layout/dialog_feedback">
+
+            <argument
+                android:name="feedback"
+                app:argType="com.ijonsabae.presentation.model.FeedBack" />
+        </dialog>
     </navigation>
 
     <navigation

@@ -18,17 +18,4 @@ fun spToPx(sp: Float, context: Context): Float {
 }
 
 
-fun convertConsultant(consultant: Consultant): com.ijonsabae.presentation.consult.model.Consultant{
-    return com.ijonsabae.presentation.consult.model.Consultant(
-        name = consultant.name,
-        profileImage = consultant.profileImage,
-        career = consultant.career,
-        course = consultant.course,
-        expertise = consultant.expertise,
-        certification = consultant.certification,
-        topic = consultant.topic
-    )
-}
-
-
 
