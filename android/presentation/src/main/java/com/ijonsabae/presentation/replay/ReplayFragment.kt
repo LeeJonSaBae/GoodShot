@@ -61,10 +61,10 @@ class ReplayFragment :
 
     fun getData(): List<ReplayDTO> {
         return listOf(
-            ReplayDTO(R.drawable.dummy_img, "제목1", "2024년 9월 11일", "정면", "아이언", false),
-            ReplayDTO(R.drawable.dummy_img, "제목2", "2024년 9월 12일", "측면", "드라이버", true),
-            ReplayDTO(R.drawable.dummy_img, "제목3", "2024년 9월 13일", "측면", "아이언", false),
-            ReplayDTO(R.drawable.dummy_img, "제목4", "2024년 9월 14일", "정면", "드라이버", true)
+            ReplayDTO(R.drawable.dummy_img, "제목1", "2024년 9월 11일", "좌타", "아이언", false),
+            ReplayDTO(R.drawable.dummy_img, "제목2", "2024년 9월 12일", "우타", "드라이버", true),
+            ReplayDTO(R.drawable.dummy_img, "제목3", "2024년 9월 13일", "우타", "아이언", false),
+            ReplayDTO(R.drawable.dummy_img, "제목4", "2024년 9월 14일", "우타", "드라이버", true)
         )
     }
 

@@ -131,7 +131,7 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@id/iv_tag1"
                     app:layout_constraintTop_toTopOf="@id/iv_tag1"
-                    tools:text="정면" />
+                    tools:text="좌타" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- 태그2 -->
