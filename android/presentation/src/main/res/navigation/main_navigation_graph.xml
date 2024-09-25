@@ -33,7 +33,7 @@
             tools:layout="@layout/dialog_consultant">
             <argument
                 android:name="consult"
-                app:argType="com.ijonsabae.presentation.consult.model.Consultant" />
+                app:argType="com.ijonsabae.presentation.model.Consultant" />
         </dialog>
     </navigation>
     <navigation
@@ -86,6 +86,9 @@
             tools:label="feedback dialog"
             tools:layout="@layout/dialog_feedback">
 
+            <argument
+                android:name="feedback"
+                app:argType="com.ijonsabae.presentation.model.FeedBack" />
         </dialog>
     </navigation>
 

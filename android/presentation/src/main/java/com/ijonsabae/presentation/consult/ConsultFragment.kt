@@ -12,9 +12,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.ijonsabae.domain.model.Consultant
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
+import com.ijonsabae.presentation.model.convertConsultant
 import com.ijonsabae.presentation.databinding.FragmentConsultBinding
 import com.ijonsabae.presentation.main.MainActivity
-import com.ijonsabae.presentation.util.convertConsultant
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -28,7 +28,9 @@ class ConsultFragment :
             setItemClickListener(
                 object : ConsultantListAdapter.OnItemClickListener {
                     override fun onItemClick(item: Consultant) {
-                        navController.navigate(ConsultFragmentDirections.actionConsultToConsultDialog(convertConsultant(item)))
+                        navController.navigate(ConsultFragmentDirections.actionConsultToConsultDialog(
+                            convertConsultant(item)
+                        ))
                     }
                 }
             )

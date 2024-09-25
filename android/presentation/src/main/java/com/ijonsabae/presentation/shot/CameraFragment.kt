@@ -32,10 +32,12 @@ import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
 import androidx.window.layout.WindowInfoTracker
 import com.google.common.util.concurrent.ListenableFuture
+import com.ijonsabae.domain.usecase.shot.GetSwingFeedBackUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentCameraBinding
 import com.ijonsabae.presentation.main.MainActivity
+import com.ijonsabae.presentation.model.convertFeedBack
 import com.ijonsabae.presentation.shot.CameraState.*
 import com.ijonsabae.presentation.shot.ai.camera.CameraSource
 import com.ijonsabae.presentation.shot.flex.FoldingStateActor
@@ -73,6 +75,8 @@ class CameraFragment :
 
     private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
     private lateinit var cameraProvider: ProcessCameraProvider
+    @Inject
+    lateinit var getSwingFeedBackUseCase: GetSwingFeedBackUseCase
     private var isSelf = false
     private var isLeft = false
 
@@ -81,7 +85,12 @@ class CameraFragment :
         navController = Navigation.findNavController(binding.root)
         // 스윙 상태에 따라 카메라 상태를 변경해주기 위해 옵저버 등록
         navController = findNavController()
-        navController.navigate(R.id.action_camera_to_feedback_dialog)
+        navController.navigate(
+            CameraFragmentDirections.actionCameraToFeedbackDialog(
+                convertFeedBack(getSwingFeedBackUseCase().getOrThrow())
+            )
+        )
+
         initObservers()
         initTts()
         surfaceView = binding.camera
