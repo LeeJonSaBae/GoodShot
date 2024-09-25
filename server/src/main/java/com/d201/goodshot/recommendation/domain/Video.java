@@ -1,4 +1,4 @@
-package com.d201.goodshot.recommend.domain;
+package com.d201.goodshot.recommendation.domain;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -13,8 +13,8 @@ import org.hibernate.annotations.DynamicInsert;
 @NoArgsConstructor
 @AllArgsConstructor
 @DynamicInsert
-@Table(name = "recommend")
-public class Recommend {
+@Table(name = "video")
+public class Video {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
