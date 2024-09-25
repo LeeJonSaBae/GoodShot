@@ -131,7 +131,7 @@ class ReplayAdapter(val context: Context) :
         }
     }
 
-    private fun showCustomDialog(replayItem: ReplayDTO, adapterPosition: Int) {
+    private fun showCustomDialog(replayItem: Replay, adapterPosition: Int) {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_delete, null)
         val dialogBuilder = AlertDialog.Builder(context, R.style.RoundedDialog)
             .setView(dialogView)
