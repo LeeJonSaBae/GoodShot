@@ -2,7 +2,7 @@
 FROM openjdk:17-slim
 
 # 애플리케이션 jar 파일 위치 설정
-ARG JAR_FILE=build/libs/goodshot-0.0.1-SNAPSHOT.jar
+ARG JAR_FILE=build/libs/*.jar
 
 # 컨테이너에 jar 파일을 복사
 COPY ${JAR_FILE} app.jar
