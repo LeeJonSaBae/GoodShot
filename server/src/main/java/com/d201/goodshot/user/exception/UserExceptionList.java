@@ -12,7 +12,8 @@ public enum UserExceptionList {
     NOT_FOUND_USER(HttpStatus.NOT_FOUND.value(), "존재하지 않는 회원입니다."),
     LOGIN_FAIL(HttpStatus.UNAUTHORIZED.value(), "로그인에 실패했습니다."),
     ALREADY_LOGOUT_ERROR( HttpStatus.BAD_REQUEST.value(), "이미 로그아웃한 회원입니다."),
-    INVALID_CREDENTIAL(HttpStatus.BAD_REQUEST.value(), "회원 정보가 올바르지 않습니다.");
+    INVALID_CREDENTIAL(HttpStatus.BAD_REQUEST.value(), "회원 정보가 올바르지 않습니다."),
+    EMAIL_SEND_ERROR(HttpStatus.NOT_FOUND.value(), "이메일 발송에 실패했습니다.");
 
     private final int code;
     private final String message;
