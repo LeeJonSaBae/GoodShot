@@ -26,7 +26,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         JSONObject responseJson = new JSONObject();
         responseJson.put("timestamp", LocalDateTime.now().withNano(0).toString());
         responseJson.put("message", exceptionCode.getMessage());
-        responseJson.put("errorCode", exceptionCode.getErrorCode());
+        responseJson.put("errorCode", exceptionCode.getCode());
 
         response.getWriter().print(responseJson);
     }
@@ -34,16 +34,16 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         String exception = String.valueOf(request.getAttribute("exception"));
-        if (exception.equals(MALFORMED_TOKEN.getErrorCode()))
+        if (exception.equals(MALFORMED_TOKEN.getMessage()))
             setResponse(response, MALFORMED_TOKEN);
 
-        else if (exception.equals(ILLEGAL_TOKEN.getErrorCode()))
+        else if (exception.equals(ILLEGAL_TOKEN.getMessage()))
             setResponse(response, ILLEGAL_TOKEN);
 
-        else if (exception.equals(EXPIRED_TOKEN.getErrorCode()))
+        else if (exception.equals(EXPIRED_TOKEN.getMessage()))
             setResponse(response, EXPIRED_TOKEN);
 
-        else if (exception.equals(UNSUPPORTED_TOKEN.getErrorCode()))
+        else if (exception.equals(UNSUPPORTED_TOKEN.getMessage()))
             setResponse(response, UNSUPPORTED_TOKEN);
 
         else setResponse(response, ACCESS_DENIED);

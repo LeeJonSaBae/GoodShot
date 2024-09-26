@@ -8,10 +8,9 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ImageExceptionList {
 
-    IMAGE_EXTENSION_ERROR("I0001", HttpStatus.BAD_REQUEST, "유효하지 않은 이미지 확장자 입니다.");
+    IMAGE_EXTENSION_ERROR(HttpStatus.BAD_REQUEST.value(), "유효하지 않은 이미지 확장자 입니다.");
 
-    private final String errorCode;
-    private final HttpStatus httpStatus;
+    private final int code;
     private final String message;
 
 }

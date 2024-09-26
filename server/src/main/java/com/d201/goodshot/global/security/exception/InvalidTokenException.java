@@ -4,6 +4,6 @@ import static com.d201.goodshot.global.security.exception.SecurityExceptionList.
 
 public class InvalidTokenException extends SecurityException {
     public InvalidTokenException() {
-        super(INVALID_TOKEN.getErrorCode(), INVALID_TOKEN.getHttpStatus(), INVALID_TOKEN.getMessage());
+        super(INVALID_TOKEN.getCode(), INVALID_TOKEN.getMessage());
     }
 }
