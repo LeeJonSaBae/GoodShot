@@ -3,13 +3,17 @@ pipeline {
 
     stages {
         stage('application.yml download') {
-        	steps {
-            	withCredentials([file(credentialsId: 'application', variable: 'application_yml')]) {
-                	script {
-                    	sh 'cp $application_yml server/src/main/resources/application.yml'
+            steps {
+                withCredentials([file(credentialsId: 'application', variable: 'application_yml')]) {
+                    script {
+                        // 디렉토리가 없는 경우 생성
+                        sh 'mkdir -p server/src/main/resources'
+
+                        // application.yml 복사
+                        sh 'cp $application_yml server/src/main/resources/application.yml'
                     }
-        		}
-        	}
+                }
+            }
         }
         stage('Build Backend') {
             steps {
