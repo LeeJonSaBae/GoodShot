@@ -11,11 +11,25 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SwaggerConfig {
 
+    private static final String JWT = "JWT";
+
     @Bean
     public OpenAPI openAPI() {
+        // addList()에 추가된 항목들이 응답에 담겨서 나감
+        SecurityRequirement securityRequirement = new SecurityRequirement().addList(JWT);
+        // components들을 swagger ui 페이지에서 설정가능
+        Components components = new Components()
+                .addSecuritySchemes(JWT, new SecurityScheme()
+                        .name(JWT)
+                        .type(SecurityScheme.Type.HTTP)
+                        .scheme("bearer")
+                        .bearerFormat("JWT")
+                );
+
         return new OpenAPI()
-                .components(new Components())
-                .info(apiInfo());
+                .info(apiInfo())
+                .addSecurityItem(securityRequirement)
+                .components(components);
     }
 
     private Info apiInfo() {
