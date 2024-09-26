@@ -1,0 +1,31 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Build Backend') {
+            steps {
+                script {
+                    dir('server') {
+                        sh 'chmod +x ./gradlew'
+                        
+                        sh './gradlew clean build -x test'
+
+                        // Check if any container is named "backend"
+def containerNamedBackend = sh(script: "docker ps -a --filter 'name=backend' --format '{{.ID}}'", returnStdout: true).trim()
+
+if (containerNamedBackend) {
+    // Stop and remove the container named "backend"
+    sh "docker stop ${containerNamedBackend}"
+    sh "docker rm ${containerNamedBackend}"
+}
+
+
+                        // Build and run the new backend container
+                        sh "docker build -t backend ."
+                        sh "docker run --name backend -d -p 8080:8080 backend"
+                    }
+                }
+            }
+        }
+    }
+}

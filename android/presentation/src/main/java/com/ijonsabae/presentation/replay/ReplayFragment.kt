@@ -6,25 +6,31 @@ import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.ijonsabae.domain.model.Replay
+import com.ijonsabae.domain.usecase.replay.GetReplayUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentReplayBinding
 import com.ijonsabae.presentation.main.MainActivity
+import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class ReplayFragment :
     BaseFragment<FragmentReplayBinding>(FragmentReplayBinding::bind, R.layout.fragment_replay) {
+
     @Inject
-    lateinit var swipeHelper : SwipeDeleteHelper
+    lateinit var getReplayUseCase: GetReplayUseCase
+
     private val replayAdapter by lazy {
-        ReplayAdapter().apply {
+        ReplayAdapter(requireContext()).apply {
             setItemClickListener(
                 object : ReplayAdapter.OnItemClickListener {
-                    override fun onItemClick(item: ReplayDTO) {
+                    override fun onItemClick(item: Replay) {
                         findNavController().navigate(R.id.action_replay_to_replayReport)
                     }
 
-                    override fun onLikeClick(item: ReplayDTO, check: Boolean) {
+                    override fun onLikeClick(item: Replay, check: Boolean) {
                         Toast.makeText(context, "즐겨찾기 클릭~!", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -39,13 +45,14 @@ class ReplayFragment :
     }
 
     private fun initRecyclerView() {
-        replayAdapter.submitList(getData())
+        val list = getReplayUseCase().getOrThrow()
+        replayAdapter.submitList(list)
         val mountainRecyclerView = binding.rvReplay
         mountainRecyclerView.layoutManager = LinearLayoutManager(context)
         mountainRecyclerView.adapter = replayAdapter
 
         // 스와이프로 삭제
-        swipeHelper.apply {
+        val swipeHelper = SwipeDeleteHelper().apply {
             setClamp(200f)
         }
         val itemTouchHelper = ItemTouchHelper(swipeHelper)
@@ -58,16 +65,6 @@ class ReplayFragment :
                 false
             }
         }
-    }
-
-
-    fun getData(): List<ReplayDTO> {
-        return listOf(
-            ReplayDTO(R.drawable.dummy_img, "제목1", "2024년 9월 11일", "좌타", "아이언", false),
-            ReplayDTO(R.drawable.dummy_img, "제목2", "2024년 9월 12일", "우타", "드라이버", true),
-            ReplayDTO(R.drawable.dummy_img, "제목3", "2024년 9월 13일", "우타", "아이언", false),
-            ReplayDTO(R.drawable.dummy_img, "제목4", "2024년 9월 14일", "우타", "드라이버", true)
-        )
     }
 
 

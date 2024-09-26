@@ -11,6 +11,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
         <!-- 사용자 정보 -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/layout_user_info"
@@ -20,20 +21,18 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_chainStyle="packed">
 
+            <!-- 프로필 사진 -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/profile_cardview"
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
                 android:layout_marginTop="20dp"
                 app:cardCornerRadius="20dp"
                 app:layout_constraintBottom_toTopOf="@id/tv_name"
-                app:layout_constraintDimensionRatio="1:1"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintWidth_percent="0.3">
+                app:layout_constraintTop_toTopOf="parent">
 
-                <!-- 프로필 사진 -->
                 <ImageView
                     android:id="@+id/iv_profile_img"
                     android:layout_width="match_parent"
@@ -41,7 +40,22 @@
                     android:adjustViewBounds="true"
                     android:scaleType="centerCrop"
                     android:src="@drawable/dummy_img" />
+
             </androidx.cardview.widget.CardView>
+
+            <!-- 프로필사진 편집 버튼 -->
+            <ImageView
+                android:id="@+id/btn_edit_profile_img"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="end|bottom"
+                android:layout_marginEnd="-15dp"
+                android:layout_marginBottom="-15dp"
+                android:adjustViewBounds="true"
+                android:elevation="3dp"
+                android:src="@drawable/ic_edit_profile_image"
+                app:layout_constraintBottom_toBottomOf="@id/profile_cardview"
+                app:layout_constraintEnd_toEndOf="@id/profile_cardview" />
 
             <!-- 이름 -->
             <TextView
@@ -56,6 +70,8 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/profile_cardview"
                 app:layout_constraintVertical_bias="0" />
+
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <!-- 비번 변경 버튼 -->

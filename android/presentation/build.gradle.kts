@@ -15,7 +15,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        minSdk = 26
+        minSdk = 29
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -97,7 +97,7 @@ dependencies {
     // Hilt 세팅
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
-    
+
     // Non Error 뭐시기 에러 뜸 KSP랑 Hilt랑 뭐가 안 맞는 듯
 //    ksp(libs.hilt.compiler)
 
@@ -127,5 +127,8 @@ dependencies {
 
     // gif process
     implementation(libs.gifencoder)
+
+    // image cropper
+    implementation("com.vanniktech:android-image-cropper:4.6.0")
 
 }

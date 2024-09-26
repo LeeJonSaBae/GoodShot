@@ -2,7 +2,6 @@ package com.ijonsabae.presentation.shot
 
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +10,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.navigation.fragment.navArgs
+import com.bumptech.glide.Glide
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseDialog
 import com.ijonsabae.presentation.databinding.DialogFeedbackBinding
@@ -34,7 +34,6 @@ class FeedbackDialog :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initButtons()
-        initVideo()
         initRecyclerView()
         setArgs()
     }
@@ -51,13 +50,6 @@ class FeedbackDialog :
         }
     }
 
-    private fun initVideo() {
-        val myPlayerView = binding.pvReplayMyVideo
-        val expertPlayerView = binding.pvReplayExpertVideo
-        myPlayerView.setPlayer("android.resource://${activity?.packageName}/${R.raw.test_video}")
-        expertPlayerView.setPlayer("android.resource://${activity?.packageName}/${R.raw.test_video}")
-    }
-
     private fun initRecyclerView() {
         binding.rvCheckList.adapter = checkListAdapter
         checkListAdapter.submitList(args.feedback.feedBackCheckList)
@@ -66,6 +58,14 @@ class FeedbackDialog :
     private fun setArgs() {
         args.feedback.apply {
             binding.apply {
+                Glide.with(root)
+                    .load(R.drawable.swing_example)
+                    .into(ivMySwing)
+
+                Glide.with(root)
+                    .load(R.drawable.swing_example)
+                    .into(ivExpertSwing)
+
                 tvTempo.text = tempo.toString()
                 tvBack.text = back.toString()
                 tvDown.text = down.toString()
