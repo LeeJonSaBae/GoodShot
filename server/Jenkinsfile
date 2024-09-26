@@ -2,6 +2,15 @@ pipeline {
     agent any
 
     stages {
+        stage('application.yml download') {
+        	steps {
+            	withCredentials([file(credentialsId: 'db-credentials', variable: 'dbConfigFile')]) {
+                	script {
+                    	sh 'cp $dbConfigFile server/src/main/resources/application.yml'
+                    }
+        		}
+        	}
+        }
         stage('Build Backend') {
             steps {
                 script {
@@ -11,13 +20,13 @@ pipeline {
                         sh './gradlew clean build -x test'
 
                         // Check if any container is named "backend"
-def containerNamedBackend = sh(script: "docker ps -a --filter 'name=backend' --format '{{.ID}}'", returnStdout: true).trim()
+                        def containerNamedBackend = sh(script: "docker ps -a --filter 'name=backend' --format '{{.ID}}'", returnStdout: true).trim()
 
-if (containerNamedBackend) {
-    // Stop and remove the container named "backend"
-    sh "docker stop ${containerNamedBackend}"
-    sh "docker rm ${containerNamedBackend}"
-}
+                        if (containerNamedBackend) {
+                            // Stop and remove the container named "backend"
+                            sh "docker stop ${containerNamedBackend}"
+                            sh "docker rm ${containerNamedBackend}"
+                        }
 
 
                         // Build and run the new backend container
