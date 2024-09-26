@@ -18,11 +18,10 @@ import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.media3.ui.PlayerView
 import androidx.window.layout.DisplayFeature
 import com.ijonsabae.presentation.R
-import com.ijonsabae.presentation.shot.flex.FoldableSwingExampleUtils.moveToTopOf
 import com.ijonsabae.presentation.util.dpToPx
-import com.ijonsabae.presentation.util.spToPx
 
 object FoldableSwingExampleUtils {
     private const val TAG = "FoldableUtils 싸피"
@@ -64,7 +63,7 @@ object FoldableSwingExampleUtils {
 
     fun View.moveToTopOf(
         foldPosition: Rect,
-        swingExample: ImageView,
+        swingExample: PlayerView,
         exampleLayout: ConstraintLayout,
         menuLayout: ConstraintLayout,
         replayCardView: CardView,
@@ -93,8 +92,8 @@ object FoldableSwingExampleUtils {
                 this@moveToTopOf.requestLayout()
             }
             doOnEnd {
-                val view = this@moveToTopOf as ImageView
-                view.scaleType = ImageView.ScaleType.CENTER_INSIDE
+//                val view = this@moveToTopOf as ImageView
+//                view.scaleType = ImageView.ScaleType.CENTER_INSIDE
                 this@moveToTopOf.invalidate()
             }
         }
@@ -192,7 +191,7 @@ object FoldableSwingExampleUtils {
 
     fun View.restore(
         foldPosition: Rect,
-        swingExample: ImageView,
+        swingExample: PlayerView,
         exampleLayout: ConstraintLayout,
         menuLayout: ConstraintLayout,
         replayCardView: CardView,
@@ -286,8 +285,8 @@ object FoldableSwingExampleUtils {
             applyTo(menuLayout)
         }
 
-        val view = this@restore as ImageView
-        view.scaleType = ImageView.ScaleType.CENTER_CROP
+//        val view = this@restore as ImageView
+//        view.scaleType = ImageView.ScaleType.CENTER_CROP
         this@restore.invalidate()
 
         val height = this@restore.height

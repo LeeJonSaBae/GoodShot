@@ -7,6 +7,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.media3.ui.PlayerView
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
@@ -27,7 +28,7 @@ class FoldingStateActor @Inject constructor(private val windowInfoTracker: Windo
     suspend fun checkFoldingStateForSwingExample(
         activity: AppCompatActivity,
         exampleLayout: ConstraintLayout,
-        swingExample: ImageView,
+        swingExample: PlayerView,
         menuLayout: ConstraintLayout,
         replayCardView: CardView,
         replayLayout: ConstraintLayout,
@@ -95,7 +96,7 @@ class FoldingStateActor @Inject constructor(private val windowInfoTracker: Windo
     }
 
     private fun updateLayoutByFoldingStateForSwingExample(
-        swingExample: ImageView,
+        swingExample: PlayerView,
         exampleLayout: ConstraintLayout,
         menuLayout: ConstraintLayout,
         replayCardView: CardView,

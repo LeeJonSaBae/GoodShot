@@ -1,9 +1,14 @@
 package com.ijonsabae.presentation.shot
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.window.layout.WindowInfoTracker
@@ -28,7 +33,11 @@ class SwingExampleFragment :
         binding.layoutSwing.setOnClickListener{
             navController.navigate(R.id.action_swing_example_to_camera)
         }
+        binding.layoutReplay.setOnClickListener {
+            binding.pvSwingExample.player?.seekTo(0)
+        }
         foldingStateActor = FoldingStateActor(WindowInfoTracker.getOrCreate(fragmentContext))
+        initVideo()
     }
 
     override fun onResume() {
@@ -39,7 +48,7 @@ class SwingExampleFragment :
             foldingStateActor.checkFoldingStateForSwingExample(
                 fragmentContext as AppCompatActivity,
                 binding.layoutExample,
-                binding.ivSwingExample,
+                binding.pvSwingExample,
                 binding.layoutMenu,
                 binding.cvReplay,
                 binding.layoutReplay,
@@ -59,4 +68,25 @@ class SwingExampleFragment :
         super.onDestroyView()
         (fragmentContext as MainActivity).showBottomNavBar()
     }
+
+    private fun initVideo() {
+        val playerView = binding.pvSwingExample
+        playerView.setPlayer("android.resource://${activity?.packageName}/${R.raw.example_swing}")
+    }
+
+    private fun PlayerView.setPlayer(uri: String) {
+        val videoUri = Uri.parse(uri)
+        val mediaItem = MediaItem.fromUri(videoUri)
+        this.apply {
+            useController = false
+            player = ExoPlayer.Builder(fragmentContext).build().apply {
+                setMediaItem(mediaItem)
+                prepare()
+                playWhenReady = true // 처음에 정지 상태
+            }
+        }
+
+    }
+
+
 }
