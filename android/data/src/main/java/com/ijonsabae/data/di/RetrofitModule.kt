@@ -2,6 +2,8 @@ package com.ijonsabae.data.di
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.ijonsabae.data.BuildConfig
+import com.ijonsabae.data.retrofit.UserService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,6 +14,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.util.concurrent.TimeUnit
+
+const val SERVER_IP = BuildConfig.SERVER_IP
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -51,10 +55,15 @@ class RetrofitModule {
     @Provides
     fun provideRetrofit(client:OkHttpClient,scalarsConverterFactory: ScalarsConverterFactory, gsonConverterFactory: GsonConverterFactory): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("")
+            .baseUrl(SERVER_IP)
             .addConverterFactory(scalarsConverterFactory)
             .addConverterFactory(gsonConverterFactory)
             .client(client)
             .build()
+    }
+
+    @Provides
+    fun provideUserService(retrofit: Retrofit): UserService{
+        return retrofit.create(UserService::class.java)
     }
 }

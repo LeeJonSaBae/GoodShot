@@ -98,6 +98,9 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
 
+    // retrofit
+    implementation(libs.retrofit)
+
     // Non Error 뭐시기 에러 뜸 KSP랑 Hilt랑 뭐가 안 맞는 듯
 //    ksp(libs.hilt.compiler)
 

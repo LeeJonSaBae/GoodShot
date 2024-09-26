@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
 import androidx.viewbinding.ViewBinding
+import kotlinx.coroutines.CoroutineExceptionHandler
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -19,6 +20,16 @@ abstract class BaseFragment<B : ViewBinding>(
   private var _binding: B? = null
   protected val binding get() = _binding!!
   lateinit var fragmentContext: Context
+
+  protected val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+    // error handling
+    throwable.apply {
+      printStackTrace()
+      message?.let {
+        showToastShort(it)
+      }
+    }
+  }
 
   @Inject
   @Named("fragment")
