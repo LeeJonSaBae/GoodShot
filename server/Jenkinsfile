@@ -4,9 +4,9 @@ pipeline {
     stages {
         stage('application.yml download') {
         	steps {
-            	withCredentials([file(credentialsId: 'db-credentials', variable: 'dbConfigFile')]) {
+            	withCredentials([file(credentialsId: 'application', variable: 'application_yml')]) {
                 	script {
-                    	sh 'cp $dbConfigFile server/src/main/resources/application.yml'
+                    	sh 'cp $application_yml server/src/main/resources/application.yml'
                     }
         		}
         	}
