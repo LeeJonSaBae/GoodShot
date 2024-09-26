@@ -129,6 +129,8 @@ dependencies {
     implementation(libs.gifencoder)
 
     // image cropper
-    implementation("com.vanniktech:android-image-cropper:4.6.0")
+    implementation(libs.android.image.cropper)
 
+    // tooltip
+    implementation(libs.balloon)
 }

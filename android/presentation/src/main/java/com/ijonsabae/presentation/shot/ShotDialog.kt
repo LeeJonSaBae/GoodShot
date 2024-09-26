@@ -16,6 +16,13 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.databinding.DialogShotBinding
+import com.skydoves.balloon.ArrowOrientation
+import com.skydoves.balloon.ArrowOrientationRules
+import com.skydoves.balloon.ArrowPositionRules
+import com.skydoves.balloon.Balloon
+import com.skydoves.balloon.BalloonAnimation
+import com.skydoves.balloon.BalloonHighlightAnimation
+import com.skydoves.balloon.BalloonSizeSpec
 
 class ShotDialog : DialogFragment() {
 
@@ -36,6 +43,7 @@ class ShotDialog : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initButtons()
+        initTooltip()
     }
 
     private fun initButtons() {
@@ -73,6 +81,59 @@ class ShotDialog : DialogFragment() {
                 deselectButton(btnGolfClubIron)
             }
         }
+    }
+
+    private fun initTooltip() {
+        val balloon1 = Balloon.Builder(requireContext())
+            .setWidth(BalloonSizeSpec.WRAP)
+            .setHeight(BalloonSizeSpec.WRAP)
+            .setText("스윙할 때 마다\n템포 및 피드백을 받습니다.")
+            .setTextColorResource(R.color.black)
+            .setArrowOrientationRules(ArrowOrientationRules.ALIGN_FIXED)
+            .setArrowOrientation(ArrowOrientation.BOTTOM)
+            .setTextSize(11f)
+            .setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
+            .setArrowSize(10)
+            .setArrowPosition(0.5f)
+            .setPaddingVertical(8)
+            .setPaddingHorizontal(15)
+            .setCornerRadius(8f)
+            .setBackgroundColorResource(R.color.chart_light_gray)
+            .setBalloonAnimation(BalloonAnimation.FADE)
+            .setBalloonHighlightAnimation(BalloonHighlightAnimation.SHAKE)
+            .setLifecycleOwner(viewLifecycleOwner)
+            .setAutoDismissDuration(3000L)
+            .build()
+
+        val balloon2 = Balloon.Builder(requireContext())
+            .setWidth(BalloonSizeSpec.WRAP)
+            .setHeight(BalloonSizeSpec.WRAP)
+            .setText("스윙 촬영 전에\n프로의 모범 자세를 먼저 봅니다.")
+            .setTextColorResource(R.color.black)
+            .setArrowOrientationRules(ArrowOrientationRules.ALIGN_FIXED)
+            .setArrowOrientation(ArrowOrientation.BOTTOM)
+            .setTextSize(11f)
+            .setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
+            .setArrowSize(10)
+            .setArrowPosition(0.5f)
+            .setPaddingVertical(8)
+            .setPaddingHorizontal(15)
+            .setCornerRadius(8f)
+            .setBackgroundColorResource(R.color.chart_light_gray)
+            .setBalloonAnimation(BalloonAnimation.FADE)
+            .setBalloonHighlightAnimation(BalloonHighlightAnimation.SHAKE)
+            .setLifecycleOwner(viewLifecycleOwner)
+            .setAutoDismissDuration(3000L)
+            .build()
+
+
+        binding.ivHelp.setOnClickListener {
+            balloon1.showAlignTop(it)
+        }
+        binding.ivHelp2.setOnClickListener {
+            balloon2.showAlignTop(it)
+        }
+
     }
 
     private fun selectButton(button: Button) {
