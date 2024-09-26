@@ -1,4 +1,4 @@
-package com.ijonsabae.presentation.module
+package com.ijonsabae.presentation.di.module
 
 import android.content.Context
 import androidx.fragment.app.Fragment

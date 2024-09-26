@@ -16,11 +16,7 @@ limitations under the License.
 
 
 import VideoEncoder
-import com.ijonsabae.presentation.shot.ai.ml.MoveNet
-import com.ijonsabae.presentation.shot.ai.ml.TimestampedData
 import android.content.ContentValues
-import com.ijonsabae.presentation.shot.ai.ml.PoseClassifier
-import com.ijonsabae.presentation.shot.ai.ml.PoseDetector
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -38,17 +34,45 @@ import android.util.Log
 import android.view.PixelCopy
 import android.view.SurfaceView
 import androidx.annotation.RequiresApi
-import com.ijonsabae.presentation.shot.CameraState.*
+import com.ijonsabae.presentation.shot.CameraState
+import com.ijonsabae.presentation.shot.CameraState.ADDRESS
+import com.ijonsabae.presentation.shot.CameraState.AGAIN
+import com.ijonsabae.presentation.shot.CameraState.ANALYZING
+import com.ijonsabae.presentation.shot.CameraState.POSITIONING
+import com.ijonsabae.presentation.shot.CameraState.RESULT
+import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.PostureFeedback
 import com.ijonsabae.presentation.shot.SwingViewModel
-import com.ijonsabae.presentation.shot.ai.data.BodyPart.*
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ANKLE
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_EAR
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ELBOW
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_EYE
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_HIP
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_KNEE
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_SHOULDER
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_WRIST
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.NOSE
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_ANKLE
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_EAR
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_ELBOW
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_EYE
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_HIP
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_KNEE
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_SHOULDER
+import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_WRIST
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.data.Pose
+import com.ijonsabae.presentation.shot.ai.data.PoseAnalysisResult
 import com.ijonsabae.presentation.shot.ai.ml.ModelType
-
+import com.ijonsabae.presentation.shot.ai.ml.MoveNet
+import com.ijonsabae.presentation.shot.ai.ml.PoseClassifier
+import com.ijonsabae.presentation.shot.ai.ml.PoseDetector
+import com.ijonsabae.presentation.shot.ai.ml.TimestampedData
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
+import dagger.hilt.android.qualifiers.ActivityContext
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -62,7 +86,7 @@ import java.util.LinkedList
 import java.util.Locale
 import java.util.Queue
 import java.util.concurrent.CountDownLatch
-
+import javax.inject.Inject
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.pow
@@ -74,10 +98,12 @@ data class SwingTiming(
     val tempoRatio: Double
 )
 
-class CameraSource(
-    private val context: Context,
-    private val swingViewModel: SwingViewModel,
-    private val surfaceView: SurfaceView
+class CameraSource @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val getCurrentCameraState: () -> CameraState?,
+    private val setCurrentCameraState: (cameraState: CameraState) -> Unit,
+    private val updateSwingTiming: (swingTiming: SwingTiming) -> Unit,
+    private val setPoseAnalysisResults: (MutableList<PoseAnalysisResult>) -> Unit,
 ) : CameraSourceListener {
     private var lock = Any()
     private var classifier4: PoseClassifier? = null
@@ -105,6 +131,7 @@ class CameraSource(
 
     private var backswingStartTime: Long = 0
 
+    private lateinit var surfaceView: SurfaceView
 
     init {
         // Detector
@@ -134,6 +161,10 @@ class CameraSource(
 
         /** 포즈 유사도 임계치 */
         private const val POSE_THRESHOLD = 0.4f
+    }
+
+    fun setSurfaceView(surfaceView: SurfaceView){
+        this.surfaceView = surfaceView
     }
 
     fun getRotateBitmap(bitmap: Bitmap, self: Boolean): Bitmap {
@@ -347,7 +378,7 @@ class CameraSource(
         var isSuccess = false
 
         // 스윙 피니쉬가 인식된 시점부터 5프레임 더 받기
-        if (swingViewModel.currentState.value == ANALYZING && pelvisTwisting) {
+        if (getCurrentCameraState() == ANALYZING && pelvisTwisting) {
             if (swingFrameCount < 5) {
                 swingFrameCount++
             } else {
@@ -420,7 +451,7 @@ class CameraSource(
 //                    }
 
                     // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
-                    swingViewModel.updateSwingTiming(analyzeSwingTime(swingData))
+                    updateSwingTiming(analyzeSwingTime(swingData))
                     // TODO: 피드백 분석하기
                     val extractedKeyPoints = swingData.map { outerList ->
                         outerList.map { triple ->
@@ -428,7 +459,8 @@ class CameraSource(
                         }
                     }
                     val poseAnalysisResults = PostureFeedback.checkPosture(extractedKeyPoints)
-                    swingViewModel.setPoseAnalysisResults(poseAnalysisResults)
+
+                    setPoseAnalysisResults(poseAnalysisResults)
 
                     // 8개의 베스트 포즈에 대한 비트맵을 갤러리에 저장
                     poseAnalysisResults.forEachIndexed { idx, result ->
@@ -451,10 +483,10 @@ class CameraSource(
                     // TODO: 영상 + 피드백 서버에 저장하기 (비동기) <- 나중에 여기서 보낸 피드백을 토대로 종합 리포트 만들어줄 예정
 
                     // TODO: 스윙 분석 결과 표시
-                    swingViewModel.setCurrentState(RESULT)
+                    setCurrentCameraState(RESULT)
                     isSuccess = true
                 } else {
-                    swingViewModel.setCurrentState(AGAIN)
+                    setCurrentCameraState(AGAIN)
                     Log.d("싸피", "다시 스윙해주세요")
                     isSuccess = false
                 }
@@ -466,32 +498,32 @@ class CameraSource(
                     viewingResult = false
                     pelvisTwisting = false
                     swingFrameCount = 0
-                    swingViewModel.setCurrentState(ADDRESS)
+                    setCurrentCameraState(ADDRESS)
                 }
             }
             return
         }
 
         // 5. 스윙의 마지막 동작 체크
-        if (swingViewModel.currentState.value == SWING) {
+        if (getCurrentCameraState() == SWING) {
             // 오른어깨와 왼발이 가까워지면
             if (abs(keyPoints[RIGHT_SHOULDER.position].coordinate.x - keyPoints[LEFT_ANKLE.position].coordinate.x) < 0.05f &&
                 abs(keyPoints[RIGHT_SHOULDER.position].coordinate.y - keyPoints[RIGHT_ANKLE.position].coordinate.y) > 0.3f &&
                 keyPoints[RIGHT_ELBOW.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x
             ) {
                 pelvisTwisting = true
-                swingViewModel.setCurrentState(ANALYZING)
+                setCurrentCameraState(ANALYZING)
                 Log.d("싸피", "피니쉬 인식 완료")
             }
             return
         }
 
         // 4. 스윙하는 동안은 안내 메세지 안변하도록 유지
-        if (swingViewModel.currentState.value == SWING &&
+        if (getCurrentCameraState() == SWING &&
             ((keyPoints[LEFT_WRIST.position].coordinate.x < keyPoints[LEFT_SHOULDER.position].coordinate.x) ||
                     (keyPoints[RIGHT_WRIST.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x)).not()
         ) {
-            swingViewModel.setCurrentState(ADDRESS)
+            setCurrentCameraState(ADDRESS)
             return
         }
 
@@ -500,7 +532,7 @@ class CameraSource(
             (keyPoints[LEFT_ANKLE.position].score) < 0.3 ||
             (keyPoints[RIGHT_ANKLE.position].score < 0.3)
         ) {
-            swingViewModel.setCurrentState(POSITIONING)
+            setCurrentCameraState(POSITIONING)
         }
         // 2. 어드레스 자세 체크
         else if ((keyPoints[LEFT_WRIST.position].coordinate.y > keyPoints[LEFT_ELBOW.position].coordinate.y &&
@@ -512,11 +544,11 @@ class CameraSource(
                     abs(keyPoints[LEFT_ANKLE.position].coordinate.y - keyPoints[RIGHT_ANKLE.position].coordinate.y) < 0.01f
                     ).not()
         ) {
-            swingViewModel.setCurrentState(ADDRESS)
+            setCurrentCameraState(ADDRESS)
         }
         // 3. 스윙해주세요!
         else {
-            swingViewModel.setCurrentState(SWING)
+            setCurrentCameraState(SWING)
         }
     }
 

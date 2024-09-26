@@ -30,7 +30,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
-import androidx.window.layout.WindowInfoTracker
 import com.google.common.util.concurrent.ListenableFuture
 import com.ijonsabae.domain.usecase.shot.GetSwingFeedBackUseCase
 import com.ijonsabae.presentation.R
@@ -38,7 +37,12 @@ import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentCameraBinding
 import com.ijonsabae.presentation.main.MainActivity
 import com.ijonsabae.presentation.model.convertFeedBack
-import com.ijonsabae.presentation.shot.CameraState.*
+import com.ijonsabae.presentation.shot.CameraState.ADDRESS
+import com.ijonsabae.presentation.shot.CameraState.AGAIN
+import com.ijonsabae.presentation.shot.CameraState.ANALYZING
+import com.ijonsabae.presentation.shot.CameraState.POSITIONING
+import com.ijonsabae.presentation.shot.CameraState.RESULT
+import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.ai.camera.CameraSource
 import com.ijonsabae.presentation.shot.flex.FoldingStateActor
 import com.ijonsabae.presentation.util.PermissionChecker
@@ -71,10 +75,12 @@ class CameraFragment :
 
     /** A [SurfaceView] for camera preview.   */
     private lateinit var surfaceView: SurfaceView
-    private var cameraSource: CameraSource? = null
+
+    private lateinit var cameraSource: CameraSource
 
     private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
     private lateinit var cameraProvider: ProcessCameraProvider
+
     @Inject
     lateinit var getSwingFeedBackUseCase: GetSwingFeedBackUseCase
     private var isSelf = false
@@ -93,6 +99,7 @@ class CameraFragment :
 
         initObservers()
         initTts()
+        cameraSource.setSurfaceView(binding.camera)
         surfaceView = binding.camera
         permissionChecker = PermissionChecker(this)
         permissionChecker.setOnGrantedListener { //퍼미션 획득 성공일때
@@ -173,8 +180,8 @@ class CameraFragment :
 //                         isSelf = true
 //                        isLeft = false
 
-                        cameraSource?.processImage(
-                            cameraSource!!.getRotateBitmap(
+                        cameraSource.processImage(
+                            cameraSource.getRotateBitmap(
                                 image.toBitmap(),
                                 isSelf
                             ), isSelf, isLeft
@@ -198,7 +205,7 @@ class CameraFragment :
         (fragmentContext as MainActivity).hideBottomNavBar()
         initClickListener()
         initAiSetting()
-        cameraSource?.resume()
+        cameraSource.resume()
 
         lifecycleScope.launch {
             foldingStateActor.checkFoldingStateForCamera(
@@ -219,7 +226,7 @@ class CameraFragment :
     }
 
     override fun onPause() {
-        cameraSource?.pause()
+        cameraSource.pause()
         super.onPause()
     }
 
@@ -234,7 +241,7 @@ class CameraFragment :
             t.stop()
             t.shutdown()
         }
-        cameraSource?.destroy()
+        cameraSource.destroy()
         super.onDestroy()
     }
 
@@ -485,8 +492,14 @@ class CameraFragment :
     }
 
     private fun initAiSetting() {
-        if (cameraSource == null) {
-            cameraSource = CameraSource(fragmentContext, swingViewModel, surfaceView)
+        if (!::cameraSource.isInitialized) {
+            cameraSource = CameraSource(
+                fragmentContext,
+                { swingViewModel.currentState.value },
+                { cameraState -> swingViewModel.setCurrentState(cameraState) },
+                { swingTiming -> swingViewModel.updateSwingTiming(swingTiming) },
+                { poseAnalysisResultsList -> swingViewModel.setPoseAnalysisResults(poseAnalysisResultsList) },
+            )
         }
     }
 }

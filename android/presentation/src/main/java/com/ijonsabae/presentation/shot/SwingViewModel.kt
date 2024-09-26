@@ -9,15 +9,18 @@ import com.ijonsabae.presentation.shot.ai.camera.SwingTiming
 import com.ijonsabae.presentation.shot.ai.data.BadFeedback
 import com.ijonsabae.presentation.shot.ai.data.NiceFeedback
 import com.ijonsabae.presentation.shot.ai.data.PoseAnalysisResult
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class SwingViewModel : ViewModel() {
+@HiltViewModel
+class SwingViewModel @Inject constructor() : ViewModel() {
     private val _currentState: MutableLiveData<CameraState> = MutableLiveData(POSITIONING)
 
 
     val currentState: LiveData<CameraState>
         get() = _currentState
 
-    val poseAnalysisResults: MutableList<PoseAnalysisResult> = mutableListOf()
+    private val poseAnalysisResults: MutableList<PoseAnalysisResult> = mutableListOf()
 
     fun setPoseAnalysisResults(result: List<PoseAnalysisResult>) {
         poseAnalysisResults.clear()
