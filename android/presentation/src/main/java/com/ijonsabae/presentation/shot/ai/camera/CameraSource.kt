@@ -810,8 +810,12 @@ class CameraSource(
         val poseIndexArray = Array(8) { Pair(0, 0f) } //모델 스코어로 추론한 인덱스
         manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
 
+
+
+        //수동측정을 위한 값들
         var wristHipDist = 1f
         var minFollowThroughGap = 1f
+        var minImpactGap = 1f
 
         for ((index, jointData) in jointDataList.withIndex()) {
             if (!modelChangeReady &&
@@ -862,6 +866,11 @@ class CameraSource(
                 //팔로스루 인덱스 갱신
                 minFollowThroughGap = min(checkFollowThrough(index, jointData, minFollowThroughGap), minFollowThroughGap)
 
+                //임팩트 인덱스 갱신
+                if (jointData[LEFT_HIP.position].coordinate.y >= jointData[LEFT_WRIST.position].coordinate.y)
+                    minImpactGap = min(checkImpact(index, jointData, minImpactGap), minImpactGap)
+
+
 
 
 
@@ -882,6 +891,16 @@ class CameraSource(
             manualPoseIndexArray[6] = index
         }
         return followThroughGap
+    }
+
+    private fun checkImpact(index: Int, jointData: List<KeyPoint>, minImpactGap: Float): Float {
+        //임팩트 - 손목의 평균 좌표가 골반의 중앙과 가장 가까울 때
+        var hipCenterXCoord = (jointData[RIGHT_HIP.position].coordinate.x + jointData[LEFT_HIP.position].coordinate.x) / 2
+        var impactGap = abs(hipCenterXCoord - (jointData[RIGHT_WRIST.position].coordinate.x + jointData[LEFT_WRIST.position].coordinate.x)/2)
+        if (minImpactGap > impactGap) {
+            manualPoseIndexArray[5] = index
+        }
+        return impactGap
     }
 
 
