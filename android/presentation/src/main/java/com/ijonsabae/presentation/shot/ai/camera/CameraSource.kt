@@ -98,7 +98,7 @@ data class SwingTiming(
     val tempoRatio: Double
 )
 
-class CameraSource @Inject constructor(
+class CameraSource(
     @ApplicationContext private val context: Context,
     private val getCurrentCameraState: () -> CameraState?,
     private val setCurrentCameraState: (cameraState: CameraState) -> Unit,

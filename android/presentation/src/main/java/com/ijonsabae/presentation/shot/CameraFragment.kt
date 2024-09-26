@@ -99,7 +99,6 @@ class CameraFragment :
 
         initObservers()
         initTts()
-        cameraSource.setSurfaceView(binding.camera)
         surfaceView = binding.camera
         permissionChecker = PermissionChecker(this)
         permissionChecker.setOnGrantedListener { //퍼미션 획득 성공일때
@@ -500,6 +499,7 @@ class CameraFragment :
                 { swingTiming -> swingViewModel.updateSwingTiming(swingTiming) },
                 { poseAnalysisResultsList -> swingViewModel.setPoseAnalysisResults(poseAnalysisResultsList) },
             )
+            cameraSource.setSurfaceView(binding.camera)
         }
     }
 }
