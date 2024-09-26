@@ -89,6 +89,7 @@ import java.util.concurrent.CountDownLatch
 import javax.inject.Inject
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.pow
 
 data class SwingTiming(
@@ -115,7 +116,7 @@ class CameraSource(
     private var viewingResult = false
     private val imageQueue: Queue<TimestampedData<Bitmap>> = LinkedList()
     private val jointQueue: Queue<List<KeyPoint>> = LinkedList()
-
+    private var manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
     private var frameProcessedInOneSecondInterval = 0
     private var framesPerSecond = 1
@@ -806,9 +807,11 @@ class CameraSource(
         var poseLabelBias = 4
         var classifier = classifier8
         var modelChangeReady = false
-        val poseIndexArray = Array(8) { Pair(0, 0f) }
+        val poseIndexArray = Array(8) { Pair(0, 0f) } //모델 스코어로 추론한 인덱스
+        manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
 
         var wristHipDist = 1f
+        var minFollowThroughGap = 1f
 
         for ((index, jointData) in jointDataList.withIndex()) {
             if (!modelChangeReady &&
@@ -851,10 +854,34 @@ class CameraSource(
                     backswingStartTime = imageDataList[index].timestamp
 //                    Log.d("extractBestPoseIndices", "백스윙 시작시간 인덱스 : ${index} , $backswingStartTime")
                 }
+
+
+                //피니쉬 - 팔로스루 - 임팩트 - 다운스윙
+                //피니쉬 - checkFinish()
+
+                //팔로스루 인덱스 갱신
+                minFollowThroughGap = min(checkFollowThrough(index, jointData, minFollowThroughGap), minFollowThroughGap)
+
+
+
+
+
             }
         }
 
         return poseIndexArray.toList()
+    }
+
+    private fun checkFollowThrough(index: Int, jointData: List<KeyPoint>, minFollowThroughGap: Float) : Float {
+        //왼손목과 오른골반의 높이 이상이면서 가장 가까울때
+        val followThroughGap = abs(jointData[LEFT_WRIST.position].coordinate.y - jointData[RIGHT_HIP.position].coordinate.y)
+        if (
+            (jointData[LEFT_WRIST.position].coordinate.y > jointData[RIGHT_HIP.position].coordinate.y) and
+            (minFollowThroughGap > followThroughGap)
+        ) {
+            manualPoseIndexArray[6] = index
+        }
+        return followThroughGap
     }
 
 
