@@ -76,6 +76,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/dialog_shot_margin_top_between_options"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/layout_golf_club"
         app:layout_constraintTop_toBottomOf="@id/layout_direction">
 
@@ -125,6 +126,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/dialog_shot_margin_top_between_options"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/layout_shot_cnt"
         app:layout_constraintTop_toBottomOf="@id/layout_swing_pose">
 
@@ -201,7 +203,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="1-50 사이의 숫자를 선택해주세요."
+            android:text="1-30 사이의 숫자를 선택해주세요."
             android:textColor="@color/gray"
             android:textSize="12sp"
             app:layout_constraintStart_toStartOf="@id/tv_shot_cnt"
@@ -212,7 +214,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="10dp"
-            android:text="몇 회"
+            android:text="1 회"
             android:textSize="16sp"
             app:layout_constraintBottom_toBottomOf="@id/tv_shot_cnt_description"
             app:layout_constraintEnd_toEndOf="@id/sb_shot_cnt"
@@ -244,7 +246,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/dialog_shot_margin_top_between_options"
-        app:layout_constraintBottom_toTopOf="@id/btn_ok"
+        app:layout_constraintBottom_toTopOf="@id/layout_show_answer"
         app:layout_constraintTop_toBottomOf="@id/layout_shot_cnt">
 
         <TextView
@@ -260,9 +262,10 @@
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/iv_help"
             android:layout_width="wrap_content"
-            android:layout_height="0dp"
+            android:layout_height="40dp"
             android:adjustViewBounds="true"
-            android:padding="2dp"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="10dp"
             android:src="@drawable/ic_help"
             android:tint="#C8C8C8"
             app:layout_constraintBottom_toBottomOf="@id/tv_pose_report"
@@ -276,7 +279,51 @@
             app:layout_constraintBottom_toBottomOf="@id/tv_pose_report"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/tv_pose_report"
-            app:thumbTint="@color/white" />
+            app:thumbTint="@color/btn_toggle_thumb"
+            app:trackTint="@color/btn_toggle_track" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- 처음에 정답 영상 보기 -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_show_answer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        app:layout_constraintBottom_toTopOf="@id/btn_ok"
+        app:layout_constraintTop_toBottomOf="@id/layout_pose_report">
+
+        <TextView
+            android:id="@+id/tv_show_answer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="처음에 프로 자세 영상 보기"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/iv_help2"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:adjustViewBounds="true"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="10dp"
+            android:src="@drawable/ic_help"
+            android:tint="#C8C8C8"
+            app:layout_constraintBottom_toBottomOf="@id/tv_show_answer"
+            app:layout_constraintStart_toEndOf="@id/tv_show_answer"
+            app:layout_constraintTop_toTopOf="@id/tv_show_answer" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/tb_show_answer"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            app:layout_constraintBottom_toBottomOf="@id/tv_show_answer"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tv_show_answer"
+            app:thumbTint="@color/btn_toggle_thumb"
+            app:trackTint="@color/btn_toggle_track" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <android.widget.Button
@@ -291,6 +338,6 @@
         android:textColor="@color/white"
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layout_pose_report" />
+        app:layout_constraintTop_toBottomOf="@id/layout_show_answer" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
