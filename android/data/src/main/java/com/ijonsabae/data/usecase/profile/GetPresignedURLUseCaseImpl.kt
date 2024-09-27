@@ -3,12 +3,12 @@ package com.ijonsabae.data.usecase.profile
 import com.ijonsabae.data.model.ProfileParam
 import com.ijonsabae.data.retrofit.ProfileService
 import com.ijonsabae.domain.model.Profile
-import com.ijonsabae.domain.usecase.profile.GetProfileImgUseCase
+import com.ijonsabae.domain.usecase.profile.GetPresignedURLUseCase
 import javax.inject.Inject
 
-class GetProfileImgUseCaseImpl @Inject constructor(
+class GetPresignedURLUseCaseImpl @Inject constructor(
     private val profileService: ProfileService
-) : GetProfileImgUseCase {
+) : GetPresignedURLUseCase {
 
     override suspend fun invoke(accessToken: String, imageExtension: String): Result<Profile> =
         kotlin.runCatching {

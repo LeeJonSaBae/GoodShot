@@ -2,7 +2,7 @@ package com.ijonsabae.domain.usecase.profile
 
 import com.ijonsabae.domain.model.Profile
 
-interface GetProfileImgUseCase {
+interface GetPresignedURLUseCase {
 
     suspend operator fun invoke(
         accessToken: String,

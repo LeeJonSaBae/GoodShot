@@ -9,7 +9,6 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -61,22 +60,14 @@ class ProfileFragment :
             binding.ivProfileImg.setImageURI(croppedUri)  // 크롭된 이미지를 ImageView에 설정
 
             lifecycleScope.launch {
-                Log.d(
-                    TAG, "presignedURL = ${
-                        profileViewModel.getPresignedURL(
-                            makeHeaderByAccessToken(myAccessToken), "png"
-                        )
-                    }"
-                )
-//                Toast.makeText(
-//                    requireContext(), "presignedURL = ${
+                profileViewModel.getPresignedURL(makeHeaderByAccessToken(myAccessToken), "png")
+//                Log.d(
+//                    TAG, "presignedURL = ${
 //                        profileViewModel.getPresignedURL(
-//                            makeHeaderByAccessToken(myAccessToken),
-//                            "png"
+//                            makeHeaderByAccessToken(myAccessToken), "png"
 //                        )
-//                    }",
-//                    Toast.LENGTH_SHORT
-//                ).show()
+//                    }"
+//                )
             }
 
         } else {
