@@ -966,7 +966,7 @@ class CameraSource(
             val noseWristGap = noseX - leftWristX
             if (minTopOfSwingGap > noseWristGap) {
                 minTopOfSwingGap = noseWristGap
-                manualPoseIndexArray[4] = index
+                manualPoseIndexArray[3] = index
             }
         }
     }
@@ -995,7 +995,7 @@ class CameraSource(
             if (angleDegrees in -10.0..10.0) {
                 if (minMidBackSwingGap > leftWristX) {
                     minMidBackSwingGap = leftWristX
-                    manualPoseIndexArray[3] = index
+                    manualPoseIndexArray[2] = index
                 }
             }
         }
