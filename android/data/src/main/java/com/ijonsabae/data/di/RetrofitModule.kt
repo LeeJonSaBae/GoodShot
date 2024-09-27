@@ -2,7 +2,9 @@ package com.ijonsabae.data.di
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.ijonsabae.data.retrofit.ProfileService
+import com.ijonsabae.data.BuildConfig
+import com.ijonsabae.data.exception.ResultCallAdapterFactory
+import com.ijonsabae.data.retrofit.UserService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -13,7 +15,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.util.concurrent.TimeUnit
-import javax.inject.Singleton
+
+const val SERVER_IP = BuildConfig.SERVER_IP
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -24,7 +27,7 @@ class RetrofitModule {
     }
 
     @Provides
-    fun provideOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
+    fun provideOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor):OkHttpClient{
         return OkHttpClient.Builder()
             .readTimeout(5000, TimeUnit.MILLISECONDS)
             .connectTimeout(5000, TimeUnit.MILLISECONDS)
@@ -41,32 +44,28 @@ class RetrofitModule {
     }
 
     @Provides
-    fun provideGsonConverterFactory(gson: Gson): GsonConverterFactory {
+    fun provideGsonConverterFactory(gson: Gson): GsonConverterFactory{
         return GsonConverterFactory.create(gson)
     }
 
     @Provides
-    fun provideScalarConverterFactory(): ScalarsConverterFactory {
+    fun provideScalarConverterFactory(): ScalarsConverterFactory{
         return ScalarsConverterFactory.create()
     }
 
     @Provides
-    @Singleton
-    fun provideRetrofit(
-        client: OkHttpClient,
-        scalarsConverterFactory: ScalarsConverterFactory,
-        gsonConverterFactory: GsonConverterFactory
-    ): Retrofit {
+    fun provideRetrofit(client:OkHttpClient,scalarsConverterFactory: ScalarsConverterFactory, gsonConverterFactory: GsonConverterFactory, resultCallAdapterFactory: ResultCallAdapterFactory): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("http://j11d201.p.ssafy.io:8080/")
+            .baseUrl(SERVER_IP)
             .addConverterFactory(scalarsConverterFactory)
             .addConverterFactory(gsonConverterFactory)
+            .addCallAdapterFactory(resultCallAdapterFactory)
             .client(client)
             .build()
     }
 
     @Provides
-    fun provideProfileService(retrofit: Retrofit): ProfileService {
-        return retrofit.create(ProfileService::class.java)
+    fun provideUserService(retrofit: Retrofit): UserService{
+        return retrofit.create(UserService::class.java)
     }
 }
