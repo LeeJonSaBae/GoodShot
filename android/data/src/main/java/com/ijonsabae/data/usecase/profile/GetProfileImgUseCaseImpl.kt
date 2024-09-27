@@ -12,7 +12,7 @@ class GetProfileImgUseCaseImpl @Inject constructor(
 
     override suspend fun invoke(accessToken: String, imageExtension: String): Result<Profile> =
         kotlin.runCatching {
-            val requestBody = ProfileParam(imageExtension = imageExtension).toRequestBody()
+            val requestBody = ProfileParam(imageExtension = imageExtension)
             profileService.getProfilePresignedURL(
                 accessToken = accessToken,
                 requestBody = requestBody
