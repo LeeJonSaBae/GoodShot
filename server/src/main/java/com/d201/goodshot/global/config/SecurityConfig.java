@@ -54,6 +54,8 @@ public class SecurityConfig {
                             .requestMatchers("/users/join/**").permitAll()
                             .requestMatchers("/users/login").permitAll()
                             .requestMatchers("/users/logout").permitAll()
+                            .requestMatchers("/users/reissue").permitAll()
+                            .requestMatchers("/users/email").permitAll()
                             .anyRequest().authenticated();
                 });
 

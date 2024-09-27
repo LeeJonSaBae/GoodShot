@@ -8,13 +8,13 @@ import java.time.LocalDateTime;
 @Getter
 @RequiredArgsConstructor
 public class ErrorResponse {
-    private LocalDateTime timeStamp;
-    private String errorCode;
+
+    private int code;
     private String message;
 
-    public ErrorResponse(String errorCode, String message) {
-        this.timeStamp = LocalDateTime.now().withNano(0);
-        this.errorCode = errorCode;
+    public ErrorResponse(int code, String message) {
+        this.code = code;
         this.message = message;
     }
+
 }

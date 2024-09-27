@@ -4,6 +4,6 @@ import static com.d201.goodshot.user.exception.UserExceptionList.DUPLICATE_USER_
 
 public class DuplicateEmailException extends UserException{
     public DuplicateEmailException() {
-        super(DUPLICATE_USER_EMAIL.getErrorCode(), DUPLICATE_USER_EMAIL.getHttpStatus(), DUPLICATE_USER_EMAIL.getMessage());
+        super(DUPLICATE_USER_EMAIL.getCode(), DUPLICATE_USER_EMAIL.getMessage());
     }
 }

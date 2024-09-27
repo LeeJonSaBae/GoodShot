@@ -9,13 +9,11 @@ import static org.springframework.http.HttpStatus.*;
 public class BaseResponse<T> {
 
     private final int code;
-    private final HttpStatus status;
     private final String message;
     private final T data;
 
     private BaseResponse(HttpStatus status, String message, T data) {
         this.code = status.value();
-        this.status = status;
         this.message = message;
         this.data = data;
     }

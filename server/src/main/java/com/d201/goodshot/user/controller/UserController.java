@@ -7,8 +7,10 @@ import com.d201.goodshot.global.security.dto.TokenResponse;
 import com.d201.goodshot.global.security.exception.InvalidTokenException;
 import com.d201.goodshot.user.dto.UserRequest;
 import com.d201.goodshot.user.dto.UserRequest.ChangePasswordRequest;
+import com.d201.goodshot.user.dto.UserRequest.EmailRequest;
 import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
 import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
+import com.d201.goodshot.user.service.EmailService;
 import com.d201.goodshot.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final EmailService emailService;
 
     @PostMapping("/join")
     @Operation(summary = "회원가입", description = "프로필 이미지는 넣지 않아도 기본 이미지가 들어갑니다.")
@@ -126,6 +129,22 @@ public class UserController {
     public BaseResponse<Void> changePassword(@AuthenticationPrincipal CustomUser customUser, @RequestBody ChangePasswordRequest changePasswordRequest) {
         userService.changePassword(customUser.getEmail(), changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
         return BaseResponse.of(HttpStatus.OK, "비밀번호를 변경했습니다", null);
+    }
+
+    // 이메일 전송
+    @PostMapping("/email")
+    @Operation(summary = "인증번호 이메일 전송", description = "")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "이메일 전송에 성공했습니다.",
+                    content = @Content(mediaType = "",
+                            examples = @ExampleObject(value = "")))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    public BaseResponse<Void> sendEmail(@RequestBody EmailRequest emailRequest) {
+        emailService.sendEmail(emailRequest.getEmail());
+        return BaseResponse.of(HttpStatus.OK, "이메일 전송에 성공했습니다.", null);
     }
 
 }
