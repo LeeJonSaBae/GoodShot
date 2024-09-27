@@ -4,7 +4,7 @@ import com.ijonsabae.data.model.ProfileParam
 import com.ijonsabae.data.retrofit.ProfileService
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.Profile
-import com.ijonsabae.domain.usecase.profile.GetProfileImgUseCase
+import com.ijonsabae.domain.usecase.profile.GetPresignedURLUseCase
 import javax.inject.Inject
 
 

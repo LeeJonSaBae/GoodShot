@@ -194,6 +194,6 @@ class ProfileFragment :
     companion object {
         private const val REQUEST_PERMISSION_CODE = 1001
         private const val myAccessToken =
-            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqaWh1bkBuYXZlci5jb20iLCJpYXQiOjE3MjczOTc1MTMsImVtYWlsIjoiamlodW5AbmF2ZXIuY29tIiwiZXhwIjoxNzI3NDAxMTEzfQ.ymMMMEw22ClLGlvfaSK7BF1fFbwT_qw-k8HLuT30wsk"
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqaWh1bkBuYXZlci5jb20iLCJpYXQiOjE3Mjc0MDI3MTcsImVtYWlsIjoiamlodW5AbmF2ZXIuY29tIiwiZXhwIjoxNzI5OTk0NzE3fQ.qxVm23RVM7iy1LxdNPnkpWudqS9Gz0WheIGyfIyytvg"
     }
 }
