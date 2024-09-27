@@ -28,6 +28,6 @@ public class Expert {
 
     private String certificate;
 
-    private String topic;
+    private String phoneNumber;
 
 }
