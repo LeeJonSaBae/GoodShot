@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.ijonsabae.data.BuildConfig
 import com.ijonsabae.data.exception.ResultCallAdapterFactory
+import com.ijonsabae.data.retrofit.ProfileService
 import com.ijonsabae.data.retrofit.UserService
 import dagger.Module
 import dagger.Provides
@@ -27,7 +28,7 @@ class RetrofitModule {
     }
 
     @Provides
-    fun provideOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor):OkHttpClient{
+    fun provideOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
         return OkHttpClient.Builder()
             .readTimeout(5000, TimeUnit.MILLISECONDS)
             .connectTimeout(5000, TimeUnit.MILLISECONDS)
@@ -44,17 +45,22 @@ class RetrofitModule {
     }
 
     @Provides
-    fun provideGsonConverterFactory(gson: Gson): GsonConverterFactory{
+    fun provideGsonConverterFactory(gson: Gson): GsonConverterFactory {
         return GsonConverterFactory.create(gson)
     }
 
     @Provides
-    fun provideScalarConverterFactory(): ScalarsConverterFactory{
+    fun provideScalarConverterFactory(): ScalarsConverterFactory {
         return ScalarsConverterFactory.create()
     }
 
     @Provides
-    fun provideRetrofit(client:OkHttpClient,scalarsConverterFactory: ScalarsConverterFactory, gsonConverterFactory: GsonConverterFactory, resultCallAdapterFactory: ResultCallAdapterFactory): Retrofit {
+    fun provideRetrofit(
+        client: OkHttpClient,
+        scalarsConverterFactory: ScalarsConverterFactory,
+        gsonConverterFactory: GsonConverterFactory,
+        resultCallAdapterFactory: ResultCallAdapterFactory
+    ): Retrofit {
         return Retrofit.Builder()
             .baseUrl(SERVER_IP)
             .addConverterFactory(scalarsConverterFactory)
@@ -65,7 +71,12 @@ class RetrofitModule {
     }
 
     @Provides
-    fun provideUserService(retrofit: Retrofit): UserService{
+    fun provideProfileService(retrofit: Retrofit): ProfileService {
+        return retrofit.create(ProfileService::class.java)
+    }
+
+    @Provides
+    fun provideUserService(retrofit: Retrofit): UserService {
         return retrofit.create(UserService::class.java)
     }
 }

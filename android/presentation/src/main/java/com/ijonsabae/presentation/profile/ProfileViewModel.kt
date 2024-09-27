@@ -12,6 +12,8 @@ class ProfileViewModel @Inject constructor(
 
     suspend fun getPresignedURL(accessToken: String, imageExtension: String) {
         val result = profileImgUseCase(accessToken, imageExtension).getOrThrow()
-        val presignedURL = result.presignedUrl
+        
+        val presignedURL = result.data.presignedUrl
+        val imageURL = result.data.imageUrl
     }
 }

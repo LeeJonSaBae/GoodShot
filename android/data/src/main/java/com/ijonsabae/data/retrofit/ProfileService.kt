@@ -1,7 +1,7 @@
 package com.ijonsabae.data.retrofit
 
-import com.ijonsabae.data.model.CommonResponse
 import com.ijonsabae.data.model.ProfileParam
+import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.Profile
 import retrofit2.http.Body
 import retrofit2.http.Header
@@ -12,5 +12,5 @@ interface ProfileService {
     suspend fun getProfilePresignedURL(
         @Header("Authorization") accessToken: String,
         @Body requestBody: ProfileParam
-    ): CommonResponse<Profile>
+    ): Result<CommonResponse<Profile>>
 }

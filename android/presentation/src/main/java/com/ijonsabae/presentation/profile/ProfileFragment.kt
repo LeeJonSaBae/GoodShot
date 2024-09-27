@@ -17,7 +17,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.canhub.cropper.CropImageContract
@@ -37,10 +37,7 @@ private const val TAG = "굿샷_ProfileFragment"
 class ProfileFragment :
     BaseFragment<FragmentProfileBinding>(FragmentProfileBinding::bind, R.layout.fragment_profile) {
 
-    private val profileViewModel: ProfileViewModel by lazy {
-        ViewModelProvider(this)[ProfileViewModel::class.java]
-    }
-
+    private val profileViewModel: ProfileViewModel by viewModels()
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
@@ -60,7 +57,10 @@ class ProfileFragment :
             val croppedUri = result.uriContent
             binding.ivProfileImg.setImageURI(croppedUri)  // 크롭된 이미지를 ImageView에 설정
 
-            lifecycleScope.launch {
+            lifecycleScope.launch(coroutineExceptionHandler) {
+                profileViewModel.getPresignedURL(
+                    makeHeaderByAccessToken(myAccessToken), "png"
+                )
                 Log.d(
                     TAG, "presignedURL = ${
                         profileViewModel.getPresignedURL(
@@ -68,15 +68,6 @@ class ProfileFragment :
                         )
                     }"
                 )
-//                Toast.makeText(
-//                    requireContext(), "presignedURL = ${
-//                        profileViewModel.getPresignedURL(
-//                            makeHeaderByAccessToken(myAccessToken),
-//                            "png"
-//                        )
-//                    }",
-//                    Toast.LENGTH_SHORT
-//                ).show()
             }
 
         } else {
