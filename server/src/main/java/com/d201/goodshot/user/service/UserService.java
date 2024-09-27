@@ -31,6 +31,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final TokenUtil tokenUtil;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final EmailService emailService;
 
     // 회원가입
     public void join(JoinRequest joinRequest) {
@@ -133,7 +134,7 @@ public class UserService {
         }
         String temporaryPassword = generateRandomPassword();
         user.changePassword(passwordEncoder.encode(temporaryPassword));
-        // email 보내기 
+        emailService.sendTemporaryPasswordEmail(email, temporaryPassword);
     }
 
     public String generateRandomPassword() {

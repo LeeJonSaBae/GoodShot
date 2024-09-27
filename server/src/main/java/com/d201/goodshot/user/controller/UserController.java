@@ -6,10 +6,7 @@ import com.d201.goodshot.global.security.dto.Token;
 import com.d201.goodshot.global.security.dto.TokenResponse;
 import com.d201.goodshot.global.security.exception.InvalidTokenException;
 import com.d201.goodshot.user.dto.UserRequest;
-import com.d201.goodshot.user.dto.UserRequest.ChangePasswordRequest;
-import com.d201.goodshot.user.dto.UserRequest.EmailRequest;
-import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
-import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
+import com.d201.goodshot.user.dto.UserRequest.*;
 import com.d201.goodshot.user.service.EmailService;
 import com.d201.goodshot.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -97,7 +94,7 @@ public class UserController {
 
     // Token 재발급
     @PostMapping("/reissue")
-    @Operation(summary = "Token 재발급", description = "기존의 refresh token 으로 access, refresh token 둘 다 재발급합니다.")
+    @Operation(summary = "Token 재발급", description = "기존의 refresh token 으로 access, refresh token 둘 다 재발급")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
@@ -131,20 +128,36 @@ public class UserController {
         return BaseResponse.of(HttpStatus.OK, "비밀번호를 변경했습니다", null);
     }
 
-    // 이메일 전송
+    // 인증번호 이메일 전송
     @PostMapping("/email")
     @Operation(summary = "인증번호 이메일 전송", description = "")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "이메일 전송에 성공했습니다.",
+                    description = "인증번호 이메일 전송에 성공했습니다.",
                     content = @Content(mediaType = "",
                             examples = @ExampleObject(value = "")))
     })
     @ResponseStatus(HttpStatus.OK)
-    public BaseResponse<Void> sendEmail(@RequestBody EmailRequest emailRequest) {
-        emailService.sendEmail(emailRequest.getEmail());
+    public BaseResponse<Void> sendAuthenticationEmail(@RequestBody EmailRequest emailRequest) {
+        emailService.sendAuthenticationEmail(emailRequest.getEmail());
         return BaseResponse.of(HttpStatus.OK, "이메일 전송에 성공했습니다.", null);
+    }
+
+    // 인증번호 이메일 전송
+    @PostMapping("/temporary-password")
+    @Operation(summary = "임시 비밀번호 발급 이메일 전송", description = "이름, 이메일을 입력하면 이메일로 임시 비밀번호 발급 메일 전송")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "임시 비밀번호 발급에 성공했습니다.",
+                    content = @Content(mediaType = "",
+                            examples = @ExampleObject(value = "")))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    public BaseResponse<Void> sendTemporaryPasswordEmail(@RequestBody TemporaryPasswordRequest temporaryPasswordRequest) {
+        userService.temporaryPassword(temporaryPasswordRequest.getEmail(), temporaryPasswordRequest.getName());
+        return BaseResponse.of(HttpStatus.OK, "임시 비밀번호 발급에 성공했습니다.", null);
     }
 
 }
