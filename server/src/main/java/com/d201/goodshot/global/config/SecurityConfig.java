@@ -56,6 +56,8 @@ public class SecurityConfig {
                             .requestMatchers("/users/logout").permitAll()
                             .requestMatchers("/users/reissue").permitAll()
                             .requestMatchers("/users/email").permitAll()
+                            .requestMatchers("/users/check-email").permitAll()
+                            .requestMatchers("/users/temporary-password").permitAll()
                             .anyRequest().authenticated();
                 });
 

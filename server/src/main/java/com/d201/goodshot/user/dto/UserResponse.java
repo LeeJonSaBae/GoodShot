@@ -12,7 +12,15 @@ public class UserResponse {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class EmailResponse {
-        private boolean check;
+        private boolean checkCode;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class DuplicateResponse{
+        private boolean checkDuplicate;
     }
 
 }

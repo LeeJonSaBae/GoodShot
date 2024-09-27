@@ -8,6 +8,7 @@ import com.d201.goodshot.global.security.exception.InvalidTokenException;
 import com.d201.goodshot.user.dto.UserRequest;
 import com.d201.goodshot.user.dto.UserRequest.*;
 import com.d201.goodshot.user.dto.UserResponse;
+import com.d201.goodshot.user.dto.UserResponse.DuplicateResponse;
 import com.d201.goodshot.user.dto.UserResponse.EmailResponse;
 import com.d201.goodshot.user.service.EmailService;
 import com.d201.goodshot.user.service.UserService;
@@ -34,7 +35,7 @@ public class UserController {
     private final EmailService emailService;
 
     @PostMapping("/join")
-    @Operation(summary = "회원가입", description = "프로필 이미지는 넣지 않아도 기본 이미지가 들어갑니다.")
+    @Operation(summary = "회원가입", description = "프로필 이미지는 넣지 않아도 기본 이미지로 세팅")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
@@ -164,7 +165,7 @@ public class UserController {
 
     // 이메일 인증 확인
     @GetMapping("/email")
-    @Operation(summary = "이메일 인증 확인", description = "결과값이 true 여야 맞는것")
+    @Operation(summary = "이메일 인증 확인", description = "결과값이 true 여야 인증 성공")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -176,6 +177,22 @@ public class UserController {
     public BaseResponse<EmailResponse> checkMailCode(@RequestParam String email, @RequestParam String code) {
         EmailResponse emailResponse = emailService.checkMailCode(email, code);
         return BaseResponse.of(HttpStatus.OK, "이메일 인증에 성공했습니다.", emailResponse);
+    }
+
+    // 이메일 중복 확인
+    @GetMapping("/check-email")
+    @Operation(summary = "이메일 중복 확인", description = "결과값이 true 면 중복")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "이메일 인증에 성공했습니다.",
+                    content = @Content(mediaType = "",
+                            examples = @ExampleObject(value = "")))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    public BaseResponse<DuplicateResponse> checkDuplicateEmail(@RequestParam String email) {
+        DuplicateResponse duplicateResponse = userService.checkDuplicateEmail(email);
+        return BaseResponse.of(HttpStatus.OK, "이메일 중복 확인에 성공했습니다.", duplicateResponse);
     }
 
 }

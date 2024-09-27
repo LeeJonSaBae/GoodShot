@@ -1,11 +1,11 @@
 package com.d201.goodshot.user.service;
 
 import com.d201.goodshot.user.dto.Email;
-import com.d201.goodshot.user.dto.UserResponse;
 import com.d201.goodshot.user.dto.UserResponse.EmailResponse;
 import com.d201.goodshot.user.exception.EmailNotFoundException;
 import com.d201.goodshot.user.exception.EmailSendException;
 import com.d201.goodshot.user.repository.EmailRepository;
+import com.d201.goodshot.user.repository.UserRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
@@ -34,6 +34,7 @@ public class EmailService {
     private final JavaMailSender javaMailSender;
     private final EmailRepository emailRepository;
     private final MessageSource messageSource;
+    private final UserRepository userRepository;
 
     @Value("${spring.mail.username}")
     private String email;
@@ -111,11 +112,8 @@ public class EmailService {
         }
 
         return EmailResponse.builder()
-                .check(StringUtils.equals(findCode.get().getCertificationNumber(), code))
+                .checkCode(StringUtils.equals(findCode.get().getCertificationNumber(), code))
                 .build();
     }
-
-    // 이메일 중복 확인
-
 
 }
