@@ -134,7 +134,7 @@ public class UserController {
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "이메일 전송에 성공했습니다.",
+                    description = "인증번호 이메일 전송에 성공했습니다.",
                     content = @Content(mediaType = "",
                             examples = @ExampleObject(value = "")))
     })

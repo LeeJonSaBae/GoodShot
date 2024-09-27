@@ -1,6 +1,7 @@
 package com.d201.goodshot.user.service;
 
 import com.d201.goodshot.user.dto.Email;
+import com.d201.goodshot.user.exception.EmailNotFoundException;
 import com.d201.goodshot.user.exception.EmailSendException;
 import com.d201.goodshot.user.repository.EmailRepository;
 import jakarta.mail.MessagingException;
@@ -18,6 +19,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -71,7 +73,6 @@ public class EmailService {
             emailRepository.save(emailCertification);
             javaMailSender.send(mimeMessage);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
             throw new EmailSendException();
         }
     }
@@ -97,7 +98,17 @@ public class EmailService {
     }
 
     // 이메일 인증 번호 확인
+    @Transactional(readOnly = true)
+    public boolean checkMailCode(String email, String code) {
+        // emailRepository 에서 id 에 맞는 code 찾고
+        Optional<Email> findCode = emailRepository.findById(email);
+        if (findCode.isEmpty()) { // 없으면
+            throw new EmailNotFoundException(); // exception
+        }
 
+        // 있으면
+        return findCode.get().getCertificationNumber().equals(code);
+    }
 
     // 이메일 중복 확인
 
