@@ -21,13 +21,18 @@ class TokenRepositoryImpl @Inject constructor(
 
     override suspend fun setLocalToken(token: Token){
         tokenLocalDataSource.setToken(token)
+        tokenLocalDataSource.setLocalTokenCreatedTime()
     }
 
-    override suspend fun getClearToken() {
+    override suspend fun clearToken() {
         return tokenLocalDataSource.clear()
     }
 
-    override suspend fun reissueRemoteToken(refreshToken: String):Result<CommonResponse<Token>>{
-        return tokenRemoteDataSource.getToken(refreshToken)
+    override suspend fun reissueRemoteToken():Result<CommonResponse<Token>>{
+        return tokenRemoteDataSource.getToken()
+    }
+
+    override suspend fun getLocalTokenCreatedTime(): Long? {
+        return tokenLocalDataSource.getLocalTokenCreatedTime()
     }
 }

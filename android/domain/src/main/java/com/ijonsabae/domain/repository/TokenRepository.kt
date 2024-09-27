@@ -7,6 +7,7 @@ interface TokenRepository {
     suspend fun getLocalAccessToken(): String?
     suspend fun getLocalRefreshToken(): String?
     suspend fun setLocalToken(token: Token)
-    suspend fun getClearToken()
-    suspend fun reissueRemoteToken(refreshToken: String):Result<CommonResponse<Token>>
+    suspend fun clearToken()
+    suspend fun reissueRemoteToken():Result<CommonResponse<Token>>
+    suspend fun getLocalTokenCreatedTime(): Long?
 }
