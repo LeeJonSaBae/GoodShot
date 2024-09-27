@@ -24,7 +24,6 @@ import android.graphics.PointF
 import android.graphics.Rect
 import android.media.MediaScannerConnection
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
@@ -33,7 +32,6 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.PixelCopy
 import android.view.SurfaceView
-import androidx.annotation.RequiresApi
 import com.ijonsabae.presentation.shot.CameraState
 import com.ijonsabae.presentation.shot.CameraState.ADDRESS
 import com.ijonsabae.presentation.shot.CameraState.AGAIN
@@ -42,7 +40,6 @@ import com.ijonsabae.presentation.shot.CameraState.POSITIONING
 import com.ijonsabae.presentation.shot.CameraState.RESULT
 import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.PostureFeedback
-import com.ijonsabae.presentation.shot.SwingViewModel
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ANKLE
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_EAR
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ELBOW
@@ -71,7 +68,6 @@ import com.ijonsabae.presentation.shot.ai.ml.PoseClassifier
 import com.ijonsabae.presentation.shot.ai.ml.PoseDetector
 import com.ijonsabae.presentation.shot.ai.ml.TimestampedData
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
-import dagger.hilt.android.qualifiers.ActivityContext
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -86,10 +82,8 @@ import java.util.LinkedList
 import java.util.Locale
 import java.util.Queue
 import java.util.concurrent.CountDownLatch
-import javax.inject.Inject
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.pow
 
 data class SwingTiming(
@@ -123,6 +117,7 @@ class CameraSource(
     private var minFollowThroughGap = 1f
     private var minImpactGap = 1f
     private var minDownSwingGap = 1f
+    private var minTopOfSwingGap = 1f
     private var manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
     private var frameProcessedInOneSecondInterval = 0
@@ -375,7 +370,6 @@ class CameraSource(
     }
 
     /** !!!!!!!!!!!! 포즈 추론은 우타, 후면 카메라로 좔영했을 때 기준 !!!!!!!!!!!! **/
-    @RequiresApi(Build.VERSION_CODES.Q)
     private fun processDetectedInfo(
         person: Person,
     ) {
@@ -560,15 +554,15 @@ class CameraSource(
         }
     }
 
-    private fun indicesToPoses(indices: List<Int>): MutableList<Pair<TimestampedData<Bitmap>, List<KeyPoint>>> {
-        val poses = mutableListOf<Pair<TimestampedData<Bitmap>, List<KeyPoint>>>()
-        val jointList = jointQueue.toList().reversed()
-        val imageList = imageQueue.toList().reversed()
-        for (index in indices) {
-            poses.add(Pair(imageList[index], jointList[index]))
-        }
-        return poses
-    }
+//    private fun indicesToPoses(indices: List<Int>): MutableList<Pair<TimestampedData<Bitmap>, List<KeyPoint>>> {
+//        val poses = mutableListOf<Pair<TimestampedData<Bitmap>, List<KeyPoint>>>()
+//        val jointList = jointQueue.toList().reversed()
+//        val imageList = imageQueue.toList().reversed()
+//        for (index in indices) {
+//            poses.add(Pair(imageList[index], jointList[index]))
+//        }
+//        return poses
+//    }
 
     private fun indicesToPosesGroup(poseFrameGroupIndices: Array<IntArray>): List<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>> {
         val poses = mutableListOf<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>>()
@@ -673,7 +667,7 @@ class CameraSource(
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.Q)
+//    @RequiresApi(Build.VERSION_CODES.Q)
     private fun convertBitmapsToVideo(bitmapIndices: List<Bitmap>) {
 
 
@@ -709,7 +703,7 @@ class CameraSource(
         videoFile.delete()
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
+//    @RequiresApi(Build.VERSION_CODES.Q)
     private fun saveVideoToGallery(videoFile: File): Uri? {
         val values = ContentValues().apply {
             put(MediaStore.Video.Media.DISPLAY_NAME, videoFile.name)
@@ -823,6 +817,7 @@ class CameraSource(
         minFollowThroughGap = 1f
         minImpactGap = 1f
         minDownSwingGap = 1f
+        minTopOfSwingGap = 1f
         manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
 
 
@@ -853,22 +848,7 @@ class CameraSource(
                 }
             }
 
-            //backswing 시작 시간 추적을 위한 로직
-            if (classifier == classifier4) {
-                val hipWristDistancePow =
-                    (jointData[RIGHT_HIP.position].coordinate.x - jointData[RIGHT_WRIST.position].coordinate.x).pow(
-                        2
-                    ) +
-                            (jointData[RIGHT_HIP.position].coordinate.y - jointData[RIGHT_WRIST.position].coordinate.y).pow(
-                                2
-                            )
-                if (hipWristDistancePow < wristHipDist) {
-                    wristHipDist = hipWristDistancePow
-                    backswingStartTime = imageDataList[index].timestamp
-//                    Log.d("extractBestPoseIndices", "백스윙 시작시간 인덱스 : ${index} , $backswingStartTime")
-                }
-
-
+            if (classifier == classifier8) {
                 //피니쉬 - 팔로스루 - 임팩트 - 다운스윙
 
                 //피니쉬 검사
@@ -883,6 +863,25 @@ class CameraSource(
                 //다운스윙 검사
                 checkDownSwing(index, jointData)
 
+            }
+
+            if (classifier == classifier4) {
+                //backswing 시작 시간 추적을 위한 로직
+                val hipWristDistancePow =
+                    (jointData[RIGHT_HIP.position].coordinate.x - jointData[RIGHT_WRIST.position].coordinate.x).pow(
+                        2
+                    ) +
+                            (jointData[RIGHT_HIP.position].coordinate.y - jointData[RIGHT_WRIST.position].coordinate.y).pow(
+                                2
+                            )
+                if (hipWristDistancePow < wristHipDist) {
+                    wristHipDist = hipWristDistancePow
+                    backswingStartTime = imageDataList[index].timestamp
+//                    Log.d("extractBestPoseIndices", "백스윙 시작시간 인덱스 : ${index} , $backswingStartTime")
+                }
+
+                //탑 오브 스윙 검사
+                checkTopOfSwing(index, jointData)
 
 
 
@@ -929,6 +928,7 @@ class CameraSource(
     }
 
 
+
     private fun checkDownSwing(index: Int, jointData: List<KeyPoint>) {
         // 다운스윙 - 왼손이 가장 왼쪽에 있고 허리와 어꺠 사이에 있을때
         val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
@@ -951,17 +951,33 @@ class CameraSource(
         }
     }
 
+    private fun checkTopOfSwing(index: Int, jointData: List<KeyPoint>) {
+        // 왼 손목이 어깨보다 높을 때 and
+        // 왼손목과 코의 x 좌표가 가장 가까울 때
 
+        val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
+        val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
+        val leftShoulderY = jointData[LEFT_SHOULDER.position].coordinate.y
+        val noseX = jointData[NOSE.position].coordinate.x
 
-
-    private var lastLogTime = 0L
-
-    private fun logWithThrottle(message: String) {
-        val currentTime = System.currentTimeMillis()
-        if (currentTime - lastLogTime >= 1000) { // 1초 이상 지났는지 확인
-            Log.d("싸피", message)
-            lastLogTime = currentTime
+        if (leftWristY > leftShoulderY && leftWristX < noseX) {
+            val noseWristGap = noseX - leftWristX
+            if (minTopOfSwingGap > noseWristGap) {
+                minTopOfSwingGap = noseWristGap
+                manualPoseIndexArray[4] = index
+            }
         }
     }
+
+
+//    private var lastLogTime = 0L
+//
+//    private fun logWithThrottle(message: String) {
+//        val currentTime = System.currentTimeMillis()
+//        if (currentTime - lastLogTime >= 1000) { // 1초 이상 지났는지 확인
+//            Log.d("싸피", message)
+//            lastLogTime = currentTime
+//        }
+//    }
 
 }
