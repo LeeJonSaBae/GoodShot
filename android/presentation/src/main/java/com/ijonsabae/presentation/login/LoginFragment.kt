@@ -3,12 +3,16 @@ package com.ijonsabae.presentation.login
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.style.UnderlineSpan
+import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
-import androidx.core.widget.doOnTextChanged
+import android.view.ViewGroup
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavController
-import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.repeatOnLifecycle
 import com.ijonsabae.domain.model.LoginParam
+import com.ijonsabae.domain.model.Token
 import com.ijonsabae.domain.usecase.login.LoginUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
@@ -17,16 +21,59 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
 @AndroidEntryPoint
 class LoginFragment :
     BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::bind, R.layout.fragment_login) {
-    private lateinit var navController: NavController
+    private val loginViewModel: LoginViewModel by activityViewModels()
 
     @Inject
     lateinit var loginUseCase: LoginUseCase
 
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return super.onCreateView(inflater, container, savedInstanceState)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        hideAppBar()
+        setUnderLineText()
+        initClickListener()
+    }
+
+    private fun hideAppBar() {
+        (fragmentContext as LoginActivity).hideAppBar()
+    }
+
+    private fun initClickListener() {
+        binding.btnRegister.setOnClickListener {
+            navController.navigate(R.id.action_login_to_register)
+        }
+        binding.btnFindPassword.setOnClickListener {
+            navController.navigate(R.id.action_login_to_find_password)
+        }
+        binding.btnLogin.setOnClickListener {
+            if (binding.etEmail.text.isNullOrBlank() || binding.etPassword.text.isNullOrBlank()) {
+                showToastShort("아이디와 패스워드를 입력해주세요!")
+            } else {
+                lifecycleScope.launch(coroutineExceptionHandler) {
+                    val result = loginUseCase(
+                        LoginParam(
+                            binding.etEmail.text.toString(),
+                            binding.etPassword.text.toString()
+                        )
+                    ).getOrThrow()
+                    loginViewModel.setToken(result.data)
+                }
+            }
+        }
+    }
+
+    private fun setUnderLineText() {
         val findPasswordDescription = "비밀번호를 잊어버리셨나요?"
         val registerDescription = "회원 가입"
         val underlinePasswordDescriptionString = SpannableString(findPasswordDescription).apply {
@@ -47,39 +94,5 @@ class LoginFragment :
         }
         binding.btnFindPassword.text = underlinePasswordDescriptionString
         binding.btnRegister.text = underlineRegisterDescriptionString
-
-        binding.etPassword.doOnTextChanged { text, start, before, count ->
-
-        }
-
-        (fragmentContext as LoginActivity).hideAppBar()
-        navController = findNavController()
-
-        binding.btnRegister.setOnClickListener {
-            navController.navigate(R.id.action_login_to_register)
-        }
-        binding.btnFindPassword.setOnClickListener {
-            navController.navigate(R.id.action_login_to_find_password)
-        }
-        binding.btnLogin.setOnClickListener {
-            lifecycleScope.launch(coroutineExceptionHandler) {
-                if (binding.etEmail.text.isNullOrBlank() || binding.etPassword.text.isNullOrBlank()) {
-                    showToastShort("아이디와 패스워드를 입력해주세요!")
-                } else {
-                    val result = loginUseCase(
-                        LoginParam(
-                            binding.etEmail.text.toString(),
-                            binding.etPassword.text.toString()
-                        )
-                    ).getOrThrow()
-                    if (result.code == 201) {
-                        val loginActivity = fragmentContext as LoginActivity
-                        loginActivity.login()
-                    } else {
-                        showToastShort("${result.code} ${result.message}")
-                    }
-                }
-            }
-        }
     }
 }

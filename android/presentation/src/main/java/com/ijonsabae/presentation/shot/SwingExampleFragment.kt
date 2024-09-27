@@ -22,13 +22,11 @@ import kotlinx.coroutines.launch
 private const val TAG = "SwingExampleFragment 싸피"
 class SwingExampleFragment :
     BaseFragment<FragmentSwingExampleBinding>(FragmentSwingExampleBinding::bind, R.layout.fragment_swing_example) {
-    private lateinit var navController: NavController
     private lateinit var foldingStateActor: FoldingStateActor
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (fragmentContext as MainActivity).hideAppBar()
-        navController = Navigation.findNavController(binding.root)
 
         binding.layoutSwing.setOnClickListener{
             navController.navigate(R.id.action_swing_example_to_camera)
