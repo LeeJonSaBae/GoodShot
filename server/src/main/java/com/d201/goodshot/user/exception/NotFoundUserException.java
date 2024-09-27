@@ -1,6 +1,5 @@
 package com.d201.goodshot.user.exception;
 
-import org.springframework.http.HttpStatus;
 
 import static com.d201.goodshot.user.exception.UserExceptionList.NOT_FOUND_USER;
 
