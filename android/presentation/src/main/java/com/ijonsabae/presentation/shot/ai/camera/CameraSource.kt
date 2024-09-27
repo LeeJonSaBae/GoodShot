@@ -115,13 +115,14 @@ class CameraSource(
 
 
     //수동측정을 위한 값들
-    private var minAddressGap = 1f
+    private var minFinishGap = 1f
     private var minFollowThroughGap = 1f
     private var minImpactGap = 1f
     private var minDownSwingGap = 1f
     private var minTopOfSwingGap = 1f
     private var minMidBackSwingGap = 1f
     private var minTakeAwayGap = 1f
+    private var minAddressGap = 1f
     private lateinit var imageDataList : List<TimestampedData<Bitmap>>
     private var manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
@@ -818,13 +819,14 @@ class CameraSource(
 
 
         //수동측정을 위한 값들
-        minAddressGap = 1f
+        minFinishGap = 1f
         minFollowThroughGap = 1f
         minImpactGap = 1f
         minDownSwingGap = 1f
         minTopOfSwingGap = 1f
         minMidBackSwingGap = 1f
         minTakeAwayGap = 1f
+        minAddressGap = 1f
         manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
 
 
@@ -857,7 +859,7 @@ class CameraSource(
 
             if (classifier == classifier8) {
 
-                //피니쉬 검사
+                //피니시 검사
                 checkFinish(index, jointData)
 
                 //팔로스루 검사
@@ -891,11 +893,21 @@ class CameraSource(
         return poseIndexArray.toList()
     }
 
-    private fun checkFinish(index: Int, jointData: List<KeyPoint>) : Unit {
+    private fun checkFinish(index: Int, jointData: List<KeyPoint>) {
+        //왼쪽 어깨.x가 오른쪽 골반.x보다 오른쪽에 있고 왼손목의 x좌표가 가장 작을때
 
+        val leftShoulderX = jointData[LEFT_SHOULDER.position].coordinate.x
+        val rightHipX = jointData[RIGHT_HIP.position].coordinate.x
+        val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
+
+        if (leftShoulderX >= rightHipX) {
+            if (minFinishGap > leftWristX) {
+                minFinishGap = leftWristX
+                manualPoseIndexArray[7] = index
+            }
+        }
     }
 
-    //TODO 관절 y좌표 방향 위 아래가 0~1인걸로 다시계산
     private fun checkFollowThrough(index: Int, jointData: List<KeyPoint>) {
         // 왼손목과 오른골반의 높이 이상이면서 가장 가까울 때
         val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
