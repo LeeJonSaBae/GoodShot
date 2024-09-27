@@ -7,6 +7,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -22,6 +23,7 @@ import java.util.Random;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class EmailService {
 
     private final JavaMailSender javaMailSender;
@@ -58,7 +60,7 @@ public class EmailService {
     }
 
     // 메일 전송
-    public void sendEmail(String email) {
+    public void sendAuthenticationEmail(String email) {
         try {
             String randomCode = createRandomCode();
             MimeMessage mimeMessage = createAuthenticationMessage(email, randomCode);
@@ -69,6 +71,7 @@ public class EmailService {
             emailRepository.save(emailCertification);
             javaMailSender.send(mimeMessage);
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             throw new EmailSendException();
         }
     }

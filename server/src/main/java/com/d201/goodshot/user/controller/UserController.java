@@ -143,7 +143,7 @@ public class UserController {
     })
     @ResponseStatus(HttpStatus.OK)
     public BaseResponse<Void> sendEmail(@RequestBody EmailRequest emailRequest) {
-        emailService.sendEmail(emailRequest.getEmail());
+        emailService.sendAuthenticationEmail(emailRequest.getEmail());
         return BaseResponse.of(HttpStatus.OK, "이메일 전송에 성공했습니다.", null);
     }
 
