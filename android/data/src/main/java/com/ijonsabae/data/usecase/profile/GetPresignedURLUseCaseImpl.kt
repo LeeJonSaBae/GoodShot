@@ -1,9 +1,9 @@
 package com.ijonsabae.data.usecase.profile
 
-import com.ijonsabae.data.model.ProfileParam
+import com.ijonsabae.data.model.PresignedURLParam
 import com.ijonsabae.data.retrofit.ProfileService
 import com.ijonsabae.domain.model.CommonResponse
-import com.ijonsabae.domain.model.Profile
+import com.ijonsabae.domain.model.PresignedURL
 import com.ijonsabae.domain.usecase.profile.GetPresignedURLUseCase
 import javax.inject.Inject
 
@@ -15,11 +15,13 @@ class GetProfileImgUseCaseImpl @Inject constructor(
     override suspend operator fun invoke(
         accessToken: String,
         imageExtension: String
-    ): Result<CommonResponse<Profile>> {
-        val requestBody = ProfileParam(imageExtension = imageExtension)
+    ): Result<CommonResponse<PresignedURL>> {
+        
+        val requestBody = PresignedURLParam(imageExtension = imageExtension)
         return profileService.getProfilePresignedURL(
             accessToken = accessToken,
             requestBody = requestBody
         )
+
     }
 }
