@@ -86,6 +86,7 @@ import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.max
 import kotlin.math.pow
+import kotlin.math.sqrt
 
 data class SwingTiming(
     val backswingTime: Long,
@@ -114,13 +115,14 @@ class CameraSource(
 
 
     //수동측정을 위한 값들
-    private var wristHipDist = 1f
+    private var minAddressGap = 1f
     private var minFollowThroughGap = 1f
     private var minImpactGap = 1f
     private var minDownSwingGap = 1f
     private var minTopOfSwingGap = 1f
     private var minMidBackSwingGap = 1f
     private var minTakeAwayGap = 1f
+    private lateinit var imageDataList : List<TimestampedData<Bitmap>>
     private var manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
     private var frameProcessedInOneSecondInterval = 0
@@ -807,7 +809,7 @@ class CameraSource(
      */
     private fun extractBestPoseIndices(): List<Pair<Int, Float>> {
         val jointDataList = jointQueue.toList().reversed()
-        val imageDataList = imageQueue.toList().reversed()
+        imageDataList = imageQueue.toList().reversed()
         var poseLabelBias = 4
         var classifier = classifier8
         var modelChangeReady = false
@@ -816,7 +818,7 @@ class CameraSource(
 
 
         //수동측정을 위한 값들
-        wristHipDist = 1f
+        minAddressGap = 1f
         minFollowThroughGap = 1f
         minImpactGap = 1f
         minDownSwingGap = 1f
@@ -854,7 +856,6 @@ class CameraSource(
             }
 
             if (classifier == classifier8) {
-                //피니쉬 - 팔로스루 - 임팩트 - 다운스윙
 
                 //피니쉬 검사
                 checkFinish(index, jointData)
@@ -871,19 +872,6 @@ class CameraSource(
             }
 
             if (classifier == classifier4) {
-                //backswing 시작 시간 추적을 위한 로직
-                val hipWristDistancePow =
-                    (jointData[RIGHT_HIP.position].coordinate.x - jointData[RIGHT_WRIST.position].coordinate.x).pow(
-                        2
-                    ) +
-                            (jointData[RIGHT_HIP.position].coordinate.y - jointData[RIGHT_WRIST.position].coordinate.y).pow(
-                                2
-                            )
-                if (hipWristDistancePow < wristHipDist) {
-                    wristHipDist = hipWristDistancePow
-                    backswingStartTime = imageDataList[index].timestamp
-//                    Log.d("extractBestPoseIndices", "백스윙 시작시간 인덱스 : ${index} , $backswingStartTime")
-                }
 
                 //탑 오브 스윙 검사
                 checkTopOfSwing(index, jointData)
@@ -894,8 +882,8 @@ class CameraSource(
                 //테이크 어웨이 검사
                 checkTakeAway(index, jointData)
 
-
-
+                //어드레스 검사
+                checkAddress(index, jointData)
 
             }
         }
@@ -951,10 +939,8 @@ class CameraSource(
             rightShoulderY < leftWristY &&
             leftWristY < rightHipY
         ) {
-            val downSwingGap = leftWristX
-
-            if (minDownSwingGap > downSwingGap) {
-                minDownSwingGap = downSwingGap
+            if (minDownSwingGap > leftWristX) {
+                minDownSwingGap = leftWristX
                 manualPoseIndexArray[4] = index
             }
         }
@@ -1030,6 +1016,28 @@ class CameraSource(
             }
 
         }
+    }
 
+    private fun checkAddress(index: Int, jointData: List<KeyPoint>) {
+        // 골반과 거리가 가장 가까운 시점을 검사
+        val rightHipX = jointData[RIGHT_HIP.position].coordinate.x
+        val rightHipY = jointData[RIGHT_HIP.position].coordinate.y
+        val rightWristX = jointData[RIGHT_WRIST.position].coordinate.x
+        val rightWristY = jointData[RIGHT_WRIST.position].coordinate.y
+
+        if (rightWristY > rightHipY) {
+            // 거리 계산을 위해 제곱근을 사용
+            val hipWristDistance = sqrt(
+                (rightHipX - rightWristX).pow(2) +
+                        (rightHipY - rightWristY).pow(2)
+            )
+
+            // minAddressGap이 거리보다 큰 경우에만 업데이트
+            if (minAddressGap > hipWristDistance) {
+                minAddressGap = hipWristDistance
+                backswingStartTime = imageDataList[index].timestamp // 스윙 시작시간 갱신
+                manualPoseIndexArray[0] = index
+            }
+        }
     }
 }
