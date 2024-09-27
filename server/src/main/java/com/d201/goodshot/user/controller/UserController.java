@@ -7,6 +7,8 @@ import com.d201.goodshot.global.security.dto.TokenResponse;
 import com.d201.goodshot.global.security.exception.InvalidTokenException;
 import com.d201.goodshot.user.dto.UserRequest;
 import com.d201.goodshot.user.dto.UserRequest.*;
+import com.d201.goodshot.user.dto.UserResponse;
+import com.d201.goodshot.user.dto.UserResponse.EmailResponse;
 import com.d201.goodshot.user.service.EmailService;
 import com.d201.goodshot.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -158,6 +160,22 @@ public class UserController {
     public BaseResponse<Void> sendTemporaryPasswordEmail(@RequestBody TemporaryPasswordRequest temporaryPasswordRequest) {
         userService.temporaryPassword(temporaryPasswordRequest.getEmail(), temporaryPasswordRequest.getName());
         return BaseResponse.of(HttpStatus.OK, "임시 비밀번호 발급에 성공했습니다.", null);
+    }
+
+    // 이메일 인증 확인
+    @GetMapping("/email")
+    @Operation(summary = "이메일 인증 확인", description = "결과값이 true 여야 맞는것")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "이메일 인증에 성공했습니다.",
+                    content = @Content(mediaType = "",
+                            examples = @ExampleObject(value = "")))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    public BaseResponse<EmailResponse> checkMailCode(@RequestParam String email, @RequestParam String code) {
+        EmailResponse emailResponse = emailService.checkMailCode(email, code);
+        return BaseResponse.of(HttpStatus.OK, "이메일 인증에 성공했습니다.", emailResponse);
     }
 
 }
