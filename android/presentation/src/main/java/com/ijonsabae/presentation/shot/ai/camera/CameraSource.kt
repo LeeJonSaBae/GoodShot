@@ -116,6 +116,13 @@ class CameraSource(
     private var viewingResult = false
     private val imageQueue: Queue<TimestampedData<Bitmap>> = LinkedList()
     private val jointQueue: Queue<List<KeyPoint>> = LinkedList()
+
+
+    //수동측정을 위한 값들
+    private var wristHipDist = 1f
+    private var minFollowThroughGap = 1f
+    private var minImpactGap = 1f
+    private var minDownSwingGap = 1f
     private var manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
     private var frameProcessedInOneSecondInterval = 0
@@ -808,14 +815,16 @@ class CameraSource(
         var classifier = classifier8
         var modelChangeReady = false
         val poseIndexArray = Array(8) { Pair(0, 0f) } //모델 스코어로 추론한 인덱스
-        manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
 
 
 
         //수동측정을 위한 값들
-        var wristHipDist = 1f
-        var minFollowThroughGap = 1f
-        var minImpactGap = 1f
+        wristHipDist = 1f
+        minFollowThroughGap = 1f
+        minImpactGap = 1f
+        minDownSwingGap = 1f
+        manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
+
 
         for ((index, jointData) in jointDataList.withIndex()) {
             if (!modelChangeReady &&
@@ -861,14 +870,18 @@ class CameraSource(
 
 
                 //피니쉬 - 팔로스루 - 임팩트 - 다운스윙
-                //피니쉬 - checkFinish()
 
-                //팔로스루 인덱스 갱신
-                minFollowThroughGap = min(checkFollowThrough(index, jointData, minFollowThroughGap), minFollowThroughGap)
+                //피니쉬 검사
+                checkFinish(index, jointData)
 
-                //임팩트 인덱스 갱신
-                if (jointData[LEFT_HIP.position].coordinate.y >= jointData[LEFT_WRIST.position].coordinate.y)
-                    minImpactGap = min(checkImpact(index, jointData, minImpactGap), minImpactGap)
+                //팔로스루 검사
+                checkFollowThrough(index, jointData)
+
+                //임팩트 검사
+                checkImpact(index, jointData)
+
+                //다운스윙 검사
+                checkDownSwing(index, jointData)
 
 
 
@@ -881,27 +894,64 @@ class CameraSource(
         return poseIndexArray.toList()
     }
 
-    private fun checkFollowThrough(index: Int, jointData: List<KeyPoint>, minFollowThroughGap: Float) : Float {
-        //왼손목과 오른골반의 높이 이상이면서 가장 가까울때
-        val followThroughGap = abs(jointData[LEFT_WRIST.position].coordinate.y - jointData[RIGHT_HIP.position].coordinate.y)
-        if (
-            (jointData[LEFT_WRIST.position].coordinate.y > jointData[RIGHT_HIP.position].coordinate.y) and
-            (minFollowThroughGap > followThroughGap)
-        ) {
-            manualPoseIndexArray[6] = index
-        }
-        return followThroughGap
+    private fun checkFinish(index: Int, jointData: List<KeyPoint>) : Unit {
+
     }
 
-    private fun checkImpact(index: Int, jointData: List<KeyPoint>, minImpactGap: Float): Float {
-        //임팩트 - 손목의 평균 좌표가 골반의 중앙과 가장 가까울 때
-        var hipCenterXCoord = (jointData[RIGHT_HIP.position].coordinate.x + jointData[LEFT_HIP.position].coordinate.x) / 2
-        var impactGap = abs(hipCenterXCoord - (jointData[RIGHT_WRIST.position].coordinate.x + jointData[LEFT_WRIST.position].coordinate.x)/2)
-        if (minImpactGap > impactGap) {
-            manualPoseIndexArray[5] = index
+    private fun checkFollowThrough(index: Int, jointData: List<KeyPoint>) {
+        // 왼손목과 오른골반의 높이 이상이면서 가장 가까울 때
+        val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
+        val rightHipY = jointData[RIGHT_HIP.position].coordinate.y
+        val followThroughGap = abs(leftWristY - rightHipY)
+
+        if (leftWristY > rightHipY && minFollowThroughGap > followThroughGap) {
+            minFollowThroughGap = followThroughGap
+            manualPoseIndexArray[6] = index
         }
-        return impactGap
     }
+
+    private fun checkImpact(index: Int, jointData: List<KeyPoint>) {
+        // 임팩트 - 손목의 평균 좌표가 골반의 중앙과 가장 가까울 때
+        val leftHipY = jointData[LEFT_HIP.position].coordinate.y
+        val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
+
+        //손목이 골반 아래 위치할 때 골반 중심과 x좌표 거리가 가장 가까운 경우를 추출
+        if (leftHipY > leftWristY) {
+            val hipCenterX = (jointData[RIGHT_HIP.position].coordinate.x + jointData[LEFT_HIP.position].coordinate.x) / 2
+            val wristCenterX = (jointData[RIGHT_WRIST.position].coordinate.x + jointData[LEFT_WRIST.position].coordinate.x) / 2
+            val impactGap = abs(hipCenterX - wristCenterX)
+
+            if (minImpactGap > impactGap) {
+                minImpactGap = impactGap
+                manualPoseIndexArray[5] = index
+            }
+        }
+    }
+
+
+    private fun checkDownSwing(index: Int, jointData: List<KeyPoint>) {
+        // 다운스윙 - 왼손이 가장 왼쪽에 있고 허리와 어꺠 사이에 있을때
+        val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
+        val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
+        val rightHipX = jointData[RIGHT_HIP.position].coordinate.x
+        val rightShoulderY = jointData[RIGHT_SHOULDER.position].coordinate.y
+        val rightHipY = jointData[RIGHT_HIP.position].coordinate.y
+
+        if (
+            leftWristX < rightHipX &&
+            leftWristY < rightShoulderY &&
+            leftWristY > rightHipY
+        ) {
+            val downSwingGap = leftWristX
+
+            if (minDownSwingGap > downSwingGap) {
+                minDownSwingGap = downSwingGap
+                manualPoseIndexArray[4] = index
+            }
+        }
+    }
+
+
 
 
     private var lastLogTime = 0L
@@ -913,4 +963,5 @@ class CameraSource(
             lastLogTime = currentTime
         }
     }
+
 }
