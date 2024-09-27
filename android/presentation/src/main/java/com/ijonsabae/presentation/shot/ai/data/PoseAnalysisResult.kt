@@ -1,6 +1,7 @@
 package com.ijonsabae.presentation.shot.ai.data
 
 data class PoseAnalysisResult(
-    val backSwingFeedbacks: List<Feedback>,
-    val downSwingFeedbacks: List<Feedback>
+    val solution: Solution,
+    val backSwingFeedbacks: List<Comment>,
+    val downSwingFeedbacks: List<Comment>
 )

@@ -457,7 +457,7 @@ class CameraSource(
 
                     // 백스윙, 탑스윙 각각 5가지 정도 피드백 체크하기
                     val poseAnalysisResults = PostureFeedback.checkPosture(
-                        poseIndicesWithScores.map { it.first }, // TODO: 나중에 preciseIndices로 바꾸어주어야 함
+                        poseIndicesWithScores.map { it.first }, // TODO: 나중에 preciseIndices로 바꾸어주어야 함 + 좌타 우타 여부 동적으로 넣어주기
                         jointQueue.toList().reversed()
                     )
                     setPoseAnalysisResults(poseAnalysisResults)
