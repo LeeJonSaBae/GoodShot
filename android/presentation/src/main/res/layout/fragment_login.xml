@@ -20,12 +20,12 @@
             android:textColor="@color/white"
             android:textSize="18sp"
             android:fontFamily="@font/pretendard_regular"
-            app:layout_constraintBottom_toTopOf="@id/til_name"
+            app:layout_constraintBottom_toTopOf="@id/et_email"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_chainStyle="packed"
             />
         <EditText
-            android:id="@+id/til_name"
+            android:id="@+id/et_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/white"
@@ -47,7 +47,7 @@
             android:textColor="@color/white"
             android:textSize="18sp"
             android:fontFamily="@font/pretendard_regular"
-            app:layout_constraintTop_toBottomOf="@id/til_name"
+            app:layout_constraintTop_toBottomOf="@id/et_email"
             app:layout_constraintBottom_toTopOf="@id/et_password"
             />
 
