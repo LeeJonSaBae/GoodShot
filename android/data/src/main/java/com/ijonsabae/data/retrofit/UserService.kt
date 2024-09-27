@@ -13,7 +13,7 @@ interface UserService {
     @POST("users/join")
     suspend fun join(@Body registerParam: RegisterParam): Result<CommonResponse<Unit>>
     @POST("users/reissue")
-    suspend fun reissue(@Body refreshToken: String): Result<CommonResponse<Unit>>
+    suspend fun reissue(@Body refreshToken: String): Result<CommonResponse<Token>>
     @POST("users/exit")
     suspend fun exit(): CommonResponse<Unit>
 }

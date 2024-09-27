@@ -12,7 +12,6 @@ import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentRegisterBinding
 
 class RegisterFragment : BaseFragment<FragmentRegisterBinding>(FragmentRegisterBinding::bind, R.layout.fragment_register) {
-    private lateinit var navController: NavController
     private var chkPolicy1 = false
     private var chkPolicy2 = false
 
@@ -45,7 +44,6 @@ class RegisterFragment : BaseFragment<FragmentRegisterBinding>(FragmentRegisterB
 //        binding.policy1Detail.paintFlags = Paint.UNDERLINE_TEXT_FLAG
 //        binding.policy2Detail.paintFlags = Paint.UNDERLINE_TEXT_FLAG
         (fragmentContext as LoginActivity).showAppBar("회원가입")
-        navController = Navigation.findNavController(binding.root)
 
         binding.btnRegister.setOnClickListener {
             navController.navigate(R.id.action_register_to_login)

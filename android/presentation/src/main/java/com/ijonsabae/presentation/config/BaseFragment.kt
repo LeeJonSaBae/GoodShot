@@ -5,10 +5,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.viewModels
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.navigation.NavController
+import androidx.navigation.fragment.findNavController
 import androidx.viewbinding.ViewBinding
 import com.ijonsabae.domain.model.RetrofitException
+import com.ijonsabae.presentation.login.LoginViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import retrofit2.HttpException
 import javax.inject.Inject
@@ -21,6 +26,7 @@ abstract class BaseFragment<B : ViewBinding>(
 ) : Fragment(layoutResId) {
   private var _binding: B? = null
   protected val binding get() = _binding!!
+  protected lateinit var navController: NavController
   lateinit var fragmentContext: Context
 
   protected val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -54,6 +60,11 @@ abstract class BaseFragment<B : ViewBinding>(
   ): View? {
     _binding = bind(super.onCreateView(inflater, container, savedInstanceState)!!)
     return binding.root
+  }
+
+  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    super.onViewCreated(view, savedInstanceState)
+    navController = findNavController()
   }
 
   override fun onDestroyView() {
