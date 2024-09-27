@@ -120,6 +120,7 @@ class CameraSource(
     private var minDownSwingGap = 1f
     private var minTopOfSwingGap = 1f
     private var minMidBackSwingGap = 1f
+    private var minTakeAwayGap = 1f
     private var manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
     private var frameProcessedInOneSecondInterval = 0
@@ -821,6 +822,7 @@ class CameraSource(
         minDownSwingGap = 1f
         minTopOfSwingGap = 1f
         minMidBackSwingGap = 1f
+        minTakeAwayGap = 1f
         manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
 
 
@@ -888,6 +890,11 @@ class CameraSource(
 
                 //미드 백 스윙 검사
                 checkMidBackSwing(index, jointData)
+
+                //테이크 어웨이 검사
+                checkTakeAway(index, jointData)
+
+
 
 
             }
@@ -979,9 +986,10 @@ class CameraSource(
         val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
         val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
         val leftShoulderY = jointData[LEFT_SHOULDER.position].coordinate.y
+        val leftHipY = jointData[LEFT_HIP.position].coordinate.y
 
-        //손목이 어꺠보다 낮을 때 왼팔 손목과 팔꿈치가 +- 10도 내외 일 때 왼손목 x 좌표가 가장 0에 가까운 경우
-        if (leftWristY >= leftShoulderY) {
+        //손목이 어꺠보다 낮고 골반보다 높을 때 왼팔 손목과 팔꿈치가 +- 10도 내외 일 때 왼손목 x 좌표가 가장 0에 가까운 경우
+        if (leftWristY in leftShoulderY..leftHipY) {
             //왼 손목을 중심으로 왼 팔꿈치까지의 각도를 계산
             val deltaX = leftElbowX - leftWristX
             val deltaY = leftElbowY - leftWristY
@@ -1001,15 +1009,27 @@ class CameraSource(
         }
     }
 
+    private fun checkTakeAway(index: Int, jointData: List<KeyPoint>) {
+        //왼손목이 왼 팔꿈치보다 왼쪽아래 있을 때 왼쪽손목기준 팔꿈치가 45도와 가장 가까운 경우를 선택
+        val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
+        val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
+        val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
+        val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
 
-//    private var lastLogTime = 0L
-//
-//    private fun logWithThrottle(message: String) {
-//        val currentTime = System.currentTimeMillis()
-//        if (currentTime - lastLogTime >= 1000) { // 1초 이상 지났는지 확인
-//            Log.d("싸피", message)
-//            lastLogTime = currentTime
-//        }
-//    }
+        if (leftWristX < leftElbowX && leftWristY > leftElbowY) {
+            val deltaX = leftElbowX - leftWristX
+            val deltaY = leftElbowY - leftWristY
 
+            val angleRadians = atan2(deltaY, deltaX)
+
+            val angleDegrees = Math.toDegrees(angleRadians.toDouble())
+            val wristElbowDegreeGap = abs(45.0 - angleDegrees).toFloat()
+            if (minTakeAwayGap > wristElbowDegreeGap) {
+                minTakeAwayGap = wristElbowDegreeGap
+                manualPoseIndexArray[1] = index
+            }
+
+        }
+
+    }
 }
