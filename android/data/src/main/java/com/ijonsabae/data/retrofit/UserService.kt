@@ -9,11 +9,11 @@ import retrofit2.http.POST
 
 interface UserService {
     @POST("users/login")
-    suspend fun login(@Body loginParam: LoginParam): CommonResponse<Token>
+    suspend fun login(@Body loginParam: LoginParam): Result<CommonResponse<Token>>
     @POST("users/join")
-    suspend fun join(@Body registerParam: RegisterParam): CommonResponse<Unit>
+    suspend fun join(@Body registerParam: RegisterParam): Result<CommonResponse<Unit>>
     @POST("users/reissue")
-    suspend fun reissue(@Body refreshToken: String): CommonResponse<Unit>
+    suspend fun reissue(@Body refreshToken: String): Result<CommonResponse<Unit>>
     @POST("users/exit")
     suspend fun exit(): CommonResponse<Unit>
 }

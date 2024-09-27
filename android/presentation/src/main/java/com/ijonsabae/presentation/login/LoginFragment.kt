@@ -71,12 +71,12 @@ class LoginFragment :
                             binding.etEmail.text.toString(),
                             binding.etPassword.text.toString()
                         )
-                    )
-                    if (result.code == "201") {
+                    ).getOrThrow()
+                    if (result.code == 201) {
                         val loginActivity = fragmentContext as LoginActivity
                         loginActivity.login()
                     } else {
-                        showToastShort(result.message)
+                        showToastShort("${result.code} ${result.message}")
                     }
                 }
             }

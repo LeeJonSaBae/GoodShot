@@ -3,6 +3,7 @@ package com.ijonsabae.data.di
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.ijonsabae.data.BuildConfig
+import com.ijonsabae.data.exception.ResultCallAdapterFactory
 import com.ijonsabae.data.retrofit.UserService
 import dagger.Module
 import dagger.Provides
@@ -53,11 +54,12 @@ class RetrofitModule {
     }
 
     @Provides
-    fun provideRetrofit(client:OkHttpClient,scalarsConverterFactory: ScalarsConverterFactory, gsonConverterFactory: GsonConverterFactory): Retrofit {
+    fun provideRetrofit(client:OkHttpClient,scalarsConverterFactory: ScalarsConverterFactory, gsonConverterFactory: GsonConverterFactory, resultCallAdapterFactory: ResultCallAdapterFactory): Retrofit {
         return Retrofit.Builder()
             .baseUrl(SERVER_IP)
             .addConverterFactory(scalarsConverterFactory)
             .addConverterFactory(gsonConverterFactory)
+            .addCallAdapterFactory(resultCallAdapterFactory)
             .client(client)
             .build()
     }

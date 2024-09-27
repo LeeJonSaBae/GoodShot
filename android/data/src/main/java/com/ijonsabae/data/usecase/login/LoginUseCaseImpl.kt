@@ -8,7 +8,7 @@ import com.ijonsabae.domain.usecase.login.LoginUseCase
 import javax.inject.Inject
 
 class LoginUseCaseImpl @Inject constructor(private val userService: UserService): LoginUseCase {
-    override suspend operator fun invoke(loginParam: LoginParam): CommonResponse<Token> {
+    override suspend operator fun invoke(loginParam: LoginParam): Result<CommonResponse<Token>> {
         val result = userService.login(loginParam)
         return userService.login(loginParam)
     }
