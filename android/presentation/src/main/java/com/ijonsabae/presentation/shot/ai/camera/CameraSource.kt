@@ -83,6 +83,7 @@ import java.util.Locale
 import java.util.Queue
 import java.util.concurrent.CountDownLatch
 import kotlin.math.abs
+import kotlin.math.atan2
 import kotlin.math.max
 import kotlin.math.pow
 
@@ -118,6 +119,7 @@ class CameraSource(
     private var minImpactGap = 1f
     private var minDownSwingGap = 1f
     private var minTopOfSwingGap = 1f
+    private var minMidBackSwingGap = 1f
     private var manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
     private var frameProcessedInOneSecondInterval = 0
@@ -818,6 +820,7 @@ class CameraSource(
         minImpactGap = 1f
         minDownSwingGap = 1f
         minTopOfSwingGap = 1f
+        minMidBackSwingGap = 1f
         manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
 
 
@@ -883,8 +886,8 @@ class CameraSource(
                 //탑 오브 스윙 검사
                 checkTopOfSwing(index, jointData)
 
-
-
+                //미드 백 스윙 검사
+                checkMidBackSwing(index, jointData)
 
 
             }
@@ -897,13 +900,14 @@ class CameraSource(
 
     }
 
+    //TODO 관절 y좌표 방향 위 아래가 0~1인걸로 다시계산
     private fun checkFollowThrough(index: Int, jointData: List<KeyPoint>) {
         // 왼손목과 오른골반의 높이 이상이면서 가장 가까울 때
         val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
         val rightHipY = jointData[RIGHT_HIP.position].coordinate.y
         val followThroughGap = abs(leftWristY - rightHipY)
 
-        if (leftWristY > rightHipY && minFollowThroughGap > followThroughGap) {
+        if (leftWristY < rightHipY && minFollowThroughGap > followThroughGap) {
             minFollowThroughGap = followThroughGap
             manualPoseIndexArray[6] = index
         }
@@ -915,7 +919,7 @@ class CameraSource(
         val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
 
         //손목이 골반 아래 위치할 때 골반 중심과 x좌표 거리가 가장 가까운 경우를 추출
-        if (leftHipY > leftWristY) {
+        if (leftHipY < leftWristY) {
             val hipCenterX = (jointData[RIGHT_HIP.position].coordinate.x + jointData[LEFT_HIP.position].coordinate.x) / 2
             val wristCenterX = (jointData[RIGHT_WRIST.position].coordinate.x + jointData[LEFT_WRIST.position].coordinate.x) / 2
             val impactGap = abs(hipCenterX - wristCenterX)
@@ -927,8 +931,6 @@ class CameraSource(
         }
     }
 
-
-
     private fun checkDownSwing(index: Int, jointData: List<KeyPoint>) {
         // 다운스윙 - 왼손이 가장 왼쪽에 있고 허리와 어꺠 사이에 있을때
         val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
@@ -939,8 +941,8 @@ class CameraSource(
 
         if (
             leftWristX < rightHipX &&
-            leftWristY < rightShoulderY &&
-            leftWristY > rightHipY
+            rightShoulderY < leftWristY &&
+            leftWristY < rightHipY
         ) {
             val downSwingGap = leftWristX
 
@@ -960,11 +962,41 @@ class CameraSource(
         val leftShoulderY = jointData[LEFT_SHOULDER.position].coordinate.y
         val noseX = jointData[NOSE.position].coordinate.x
 
-        if (leftWristY > leftShoulderY && leftWristX < noseX) {
+        if (leftWristY < leftShoulderY && leftWristX < noseX) {
             val noseWristGap = noseX - leftWristX
             if (minTopOfSwingGap > noseWristGap) {
                 minTopOfSwingGap = noseWristGap
                 manualPoseIndexArray[4] = index
+            }
+        }
+    }
+
+
+    private fun checkMidBackSwing(index: Int, jointData: List<KeyPoint>) {
+
+        val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
+        val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
+        val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
+        val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
+        val leftShoulderY = jointData[LEFT_SHOULDER.position].coordinate.y
+
+        //손목이 어꺠보다 낮을 때 왼팔 손목과 팔꿈치가 +- 10도 내외 일 때 왼손목 x 좌표가 가장 0에 가까운 경우
+        if (leftWristY >= leftShoulderY) {
+            //왼 손목을 중심으로 왼 팔꿈치까지의 각도를 계산
+            val deltaX = leftElbowX - leftWristX
+            val deltaY = leftElbowY - leftWristY
+
+            //라디안 값 반환
+            val angleRadians = atan2(deltaY, deltaX)
+
+            //라디안을 degree 단위로 변환
+            val angleDegrees = Math.toDegrees(angleRadians.toDouble())
+
+            if (angleDegrees in -10.0..10.0) {
+                if (minMidBackSwingGap > leftWristX) {
+                    minMidBackSwingGap = leftWristX
+                    manualPoseIndexArray[3] = index
+                }
             }
         }
     }
