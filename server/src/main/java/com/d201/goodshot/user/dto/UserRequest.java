@@ -43,4 +43,13 @@ public class UserRequest {
         private String email;
     }
 
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class TemporaryPasswordRequest {
+        private String name;
+        private String email;
+    }
+
 }
