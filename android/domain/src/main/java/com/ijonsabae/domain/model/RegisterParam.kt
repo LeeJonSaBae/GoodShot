@@ -1,4 +1,4 @@
-package com.ijonsabae.data.model
+package com.ijonsabae.domain.model
 
 import kotlinx.serialization.Serializable
 
