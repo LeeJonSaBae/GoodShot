@@ -13,10 +13,10 @@
         android:layout_marginHorizontal="20dp"
         >
         <TextView
-            android:id="@+id/tv_name"
+            android:id="@+id/tv_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="닉네임"
+            android:text="이메일"
             android:textColor="@color/white"
             android:textSize="18sp"
             android:fontFamily="@font/pretendard_regular"
@@ -36,7 +36,7 @@
             app:layout_constraintBottom_toTopOf="@id/tv_password"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_name"
+            app:layout_constraintTop_toBottomOf="@id/tv_email"
             />
 
         <TextView
