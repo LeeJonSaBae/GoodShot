@@ -11,12 +11,14 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.ijonsabae.domain.model.CheckCode
+import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentRegisterBinding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
-
 @AndroidEntryPoint
 class RegisterFragment : BaseFragment<FragmentRegisterBinding>(
     FragmentRegisterBinding::bind, R.layout.fragment_register
@@ -29,7 +31,7 @@ class RegisterFragment : BaseFragment<FragmentRegisterBinding>(
         initTextChangeListener()
         initClickListener()
         initFlow()
-        (fragmentContext as LoginActivity).showAppBar("회원가입")
+        showAppBar("회원가입")
     }
 
     private fun initUnderLineText() {
@@ -42,9 +44,7 @@ class RegisterFragment : BaseFragment<FragmentRegisterBinding>(
     private fun initClickListener() {
         binding.btnRegister.setOnClickListener {
             if(checkValidation()){
-                lifecycleScope.launch {
-                    registerViewModel.setValidation(true)
-                }
+                setValidationTrue()
             }else{
                 showToastShort("회원 가입에 필요한 정보 및 동의가 부족합니다!")
             }
@@ -52,7 +52,7 @@ class RegisterFragment : BaseFragment<FragmentRegisterBinding>(
 
         binding.btnEmailAuth.setOnClickListener {
             lifecycleScope.launch(coroutineExceptionHandler) {
-                registerViewModel.requestAuthCode().getOrThrow()
+                requestAuthCode()
                 showToastShort("이메일로 인증 코드가 전송되었습니다!")
                 showToastShort("5분 내로 입력해주세요!")
             }
@@ -60,52 +60,25 @@ class RegisterFragment : BaseFragment<FragmentRegisterBinding>(
 
         binding.btnVerifyAuth.setOnClickListener {
             lifecycleScope.launch(coroutineExceptionHandler) {
-                val result = registerViewModel.verifyAuthCode().getOrThrow()
+                val result = getAuthCodeVerificationResult()
                 if(result.data.checkCode){
                     // 이메일하고 이메일 인증 창 입력 막음
-                    binding.btnVerifyAuth.visibility = View.INVISIBLE
-                    binding.btnEmailAuth.visibility = View.INVISIBLE
-                    binding.tilEmailVerify.focusable = NOT_FOCUSABLE
-                    binding.tilEmailVerify.isEnabled = false
-                    binding.tilEmail.focusable = NOT_FOCUSABLE
-                    binding.tilEmail.isEnabled = false
-                    binding.tilEmailVerify.boxBackgroundColor = ContextCompat.getColor(fragmentContext,R.color.gray)
-                    binding.tilEmail.boxBackgroundColor = ContextCompat.getColor(fragmentContext,R.color.gray)
+                    setEmailLayerTilDisEnable()
                     showToastShort("이메일 인증에 성공했습니다!")
-                    registerViewModel.setAuthCheckedStatus(true)
+                    setAuthCheckStatusTrue()
                 }
             }
         }
 
         binding.btnCheckPolicy1.setOnClickListener {
-            if (!registerViewModel.policy1Confirmed.value) {
-                lifecycleScope.launch {
-                    registerViewModel.setPolicy1ConfirmStatus(true)
-                    it.backgroundTintList =
-                        ContextCompat.getColorStateList(fragmentContext, R.color.dark_green)
-                }
-            } else {
-                lifecycleScope.launch {
-                    registerViewModel.setPolicy1ConfirmStatus(false)
-                    it.backgroundTintList =
-                        ContextCompat.getColorStateList(fragmentContext, android.R.color.darker_gray)
-                }
+            lifecycleScope.launch {
+                togglePolicy1ConfirmStatus()
             }
         }
 
         binding.btnCheckPolicy2.setOnClickListener {
-            if (!registerViewModel.policy2Confirmed.value) {
-                lifecycleScope.launch {
-                    registerViewModel.setPolicy2ConfirmStatus(true)
-                    it.backgroundTintList =
-                        ContextCompat.getColorStateList(fragmentContext, R.color.dark_green)
-                }
-            } else {
-                lifecycleScope.launch {
-                    registerViewModel.setPolicy2ConfirmStatus(false)
-                    it.backgroundTintList =
-                        ContextCompat.getColorStateList(fragmentContext, android.R.color.darker_gray)
-                }
+            lifecycleScope.launch {
+                togglePolicy2ConfirmStatus()
             }
         }
     }
@@ -188,6 +161,40 @@ class RegisterFragment : BaseFragment<FragmentRegisterBinding>(
         lifecycleScope.launch(coroutineExceptionHandler) {
             repeatOnLifecycle(Lifecycle.State.STARTED){
                 launch {
+                    registerViewModel.policy1Confirmed.collect{ confirmed ->
+                        if(confirmed){
+                            lifecycleScope.launch {
+                                registerViewModel.setPolicy1ConfirmStatus(true)
+                                binding.btnCheckPolicy1.backgroundTintList =
+                                    ContextCompat.getColorStateList(fragmentContext, R.color.dark_green)
+                            }
+                        }else {
+                            lifecycleScope.launch {
+                                registerViewModel.setPolicy1ConfirmStatus(false)
+                                binding.btnCheckPolicy1.backgroundTintList =
+                                    ContextCompat.getColorStateList(fragmentContext, android.R.color.darker_gray)
+                            }
+                        }
+                    }
+                }
+                launch {
+                    registerViewModel.policy2Confirmed.collect{ confirmed ->
+                        if(confirmed){
+                            lifecycleScope.launch {
+                                registerViewModel.setPolicy2ConfirmStatus(true)
+                                binding.btnCheckPolicy2.backgroundTintList =
+                                    ContextCompat.getColorStateList(fragmentContext, R.color.dark_green)
+                            }
+                        }else {
+                            lifecycleScope.launch {
+                                registerViewModel.setPolicy2ConfirmStatus(false)
+                                binding.btnCheckPolicy2.backgroundTintList =
+                                    ContextCompat.getColorStateList(fragmentContext, android.R.color.darker_gray)
+                            }
+                        }
+                    }
+                }
+                launch {
                     registerViewModel.validation.collect{pass ->
                         if(pass){
                             registerViewModel.join().getOrThrow()
@@ -207,9 +214,51 @@ class RegisterFragment : BaseFragment<FragmentRegisterBinding>(
         }
     }
 
+    private fun showAppBar(title: String){
+        (fragmentContext as LoginActivity).showAppBar(title)
+    }
+
+    private suspend fun togglePolicy1ConfirmStatus(){
+        registerViewModel.setPolicy1ConfirmStatus(!registerViewModel.policy1Confirmed.value)
+    }
+
+    private suspend fun togglePolicy2ConfirmStatus(){
+        registerViewModel.setPolicy2ConfirmStatus(!registerViewModel.policy2Confirmed.value)
+    }
+
+    private fun setEmailLayerTilDisEnable(){
+        binding.btnVerifyAuth.visibility = View.INVISIBLE
+        binding.btnEmailAuth.visibility = View.INVISIBLE
+        binding.tilEmailVerify.focusable = NOT_FOCUSABLE
+        binding.tilEmailVerify.isEnabled = false
+        binding.tilEmail.focusable = NOT_FOCUSABLE
+        binding.tilEmail.isEnabled = false
+        binding.tilEmailVerify.boxBackgroundColor = ContextCompat.getColor(fragmentContext,R.color.gray)
+        binding.tilEmail.boxBackgroundColor = ContextCompat.getColor(fragmentContext,R.color.gray)
+    }
+
+    private suspend fun getAuthCodeVerificationResult(): CommonResponse<CheckCode> {
+        return registerViewModel.verifyAuthCode().getOrThrow()
+    }
+
+    private suspend fun requestAuthCode(){
+        registerViewModel.requestAuthCode().getOrThrow()
+    }
+
+    private suspend fun setAuthCheckStatusTrue(){
+        registerViewModel.setAuthCheckedStatus(true)
+    }
+
+    private fun setValidationTrue(){
+        lifecycleScope.launch {
+            registerViewModel.setValidation(true)
+        }
+    }
+
     private fun checkValidation(): Boolean {
         return registerViewModel.let {
             !(it.name.value.isBlank() || it.password.value.isBlank() || it.passwordRepeat.value.isBlank() || it.password.value != it.passwordRepeat.value || !it.authChecked.value || !it.policy1Confirmed.value || !it.policy2Confirmed.value)
         }
     }
 }
+
