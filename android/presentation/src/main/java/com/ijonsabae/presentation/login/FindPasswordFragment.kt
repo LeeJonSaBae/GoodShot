@@ -11,11 +11,9 @@ import com.ijonsabae.presentation.databinding.FragmentFindPasswordBinding
 import com.ijonsabae.presentation.databinding.FragmentLoginBinding
 
 class FindPasswordFragment : BaseFragment<FragmentFindPasswordBinding>(FragmentFindPasswordBinding::bind, R.layout.fragment_find_password) {
-    private lateinit var navController: NavController
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (fragmentContext as LoginActivity).showAppBar("비밀번호 찾기")
-        navController = Navigation.findNavController(binding.root)
 
         binding.btnSendPassword.setOnClickListener {
             navController.navigate(R.id.action_find_password_to_login)

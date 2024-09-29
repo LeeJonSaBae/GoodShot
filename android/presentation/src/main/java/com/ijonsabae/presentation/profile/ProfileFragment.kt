@@ -9,6 +9,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +17,8 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
@@ -24,12 +27,17 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentProfileBinding
 import com.ijonsabae.presentation.main.MainActivity
+import com.ijonsabae.presentation.util.makeHeaderByAccessToken
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 private const val TAG = "굿샷_ProfileFragment"
 
+@AndroidEntryPoint
 class ProfileFragment :
     BaseFragment<FragmentProfileBinding>(FragmentProfileBinding::bind, R.layout.fragment_profile) {
 
+    private val profileViewModel: ProfileViewModel by viewModels()
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
@@ -48,6 +56,20 @@ class ProfileFragment :
         if (result.isSuccessful) {
             val croppedUri = result.uriContent
             binding.ivProfileImg.setImageURI(croppedUri)  // 크롭된 이미지를 ImageView에 설정
+
+            lifecycleScope.launch(coroutineExceptionHandler) {
+                profileViewModel.getPresignedURL(
+                    makeHeaderByAccessToken(myAccessToken), "png"
+                )
+                Log.d(
+                    TAG, "presignedURL = ${
+                        profileViewModel.getPresignedURL(
+                            makeHeaderByAccessToken(myAccessToken), "png"
+                        )
+                    }"
+                )
+            }
+
         } else {
             val error = result.error
             Toast.makeText(requireContext(), "Crop failed: ${error?.message}", Toast.LENGTH_SHORT)
@@ -171,5 +193,7 @@ class ProfileFragment :
 
     companion object {
         private const val REQUEST_PERMISSION_CODE = 1001
+        private const val myAccessToken =
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqaWh1bkBuYXZlci5jb20iLCJpYXQiOjE3MjczOTc1MTMsImVtYWlsIjoiamlodW5AbmF2ZXIuY29tIiwiZXhwIjoxNzI3NDAxMTEzfQ.ymMMMEw22ClLGlvfaSK7BF1fFbwT_qw-k8HLuT30wsk"
     }
 }

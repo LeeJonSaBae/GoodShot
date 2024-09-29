@@ -7,6 +7,7 @@ import com.d201.goodshot.user.domain.User;
 import com.d201.goodshot.user.dto.Auth;
 import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
 import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
+import com.d201.goodshot.user.dto.UserResponse.DuplicateResponse;
 import com.d201.goodshot.user.exception.*;
 import com.d201.goodshot.user.repository.RefreshTokenRepository;
 import com.d201.goodshot.user.repository.UserRepository;
@@ -31,6 +32,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final TokenUtil tokenUtil;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final EmailService emailService;
 
     // 회원가입
     public void join(JoinRequest joinRequest) {
@@ -133,7 +135,7 @@ public class UserService {
         }
         String temporaryPassword = generateRandomPassword();
         user.changePassword(passwordEncoder.encode(temporaryPassword));
-        // email 보내기 
+        emailService.sendTemporaryPasswordEmail(email, temporaryPassword);
     }
 
     public String generateRandomPassword() {
@@ -160,5 +162,12 @@ public class UserService {
         }
 
         return sb.toString();
+    }
+
+    // 이메일 중복 확인
+    public DuplicateResponse checkDuplicateEmail(String email) {
+        return DuplicateResponse.builder()
+                .checkDuplicate(userRepository.existsByEmail(email))
+                .build();
     }
 }

@@ -57,7 +57,7 @@ class ConsultantListAdapter :
             Log.d(TAG, "bindInfo: ${consultant.profileImage}")
             binding.tvName.text = consultant.name
             binding.tvCareerTitle.text = "경력 ${consultant.career}년"
-            binding.tvCourse.text = "${consultant.course} 과정"
+            binding.tvCourse.text = "${consultant.course}"
 
             binding.root.setOnClickListener { itemClickListener.onItemClick(consultant) }
         }
