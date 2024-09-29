@@ -391,21 +391,32 @@ class CameraSource(
             if (swingFrameCount < 5) {
                 swingFrameCount++
             } else {
-//                val poseIndicesWithScores = extractBestPoseIndices()
-                //TODO : extractBestPoseIndices도 수정하기 (반환형 및 다른것들)
-                extractBestPoseIndices() // void 반환
-                //TODO : 그룹으로 쓰는거 다 지우기,
-                //TODO : validateSwingPose 바꾸고 기존 함수지우기
-                //자료형을 수정하고(8개의 비트탭타임스탬프 배열을 전달하자)
-                //TODO : 스윙템포에 대한것도 수동 추출한것에서 꺼내쓰게하기 ( 자료형 맞춰주고 수정하자)
 
-
-
+                extractBestPoseIndices()
                 if (validateSwingPose(manualPoseIndexArray)) {
 
-//                    Log.d("싸피", "8개 프레임 추출 완료")
-                    val swingData = indicesToPosesGroup(poseFrameGroupIndices)
-                    Log.d("싸피", "8개 포즈 그룹(각 3프레임) 추출 완료")
+                    val poseFrameGroupIndices: Array<IntArray> = Array(8) { IntArray(3) }
+                    manualPoseIndexArray.forEachIndexed { index, manualPoseIndex ->
+                        poseFrameGroupIndices[index] = when (manualPoseIndex) {
+                            0 -> intArrayOf(1, 0, 0)  // 첫 번째 프레임인 경우
+                            QUEUE_SIZE - 1 -> intArrayOf(
+                                QUEUE_SIZE - 1,
+                                QUEUE_SIZE - 1,
+                                QUEUE_SIZE - 2
+                            )  // 마지막 프레임인 경우
+                            else -> intArrayOf(
+                                manualPoseIndex + 1,
+                                manualPoseIndex,
+                                manualPoseIndex - 1
+                            )  // 일반적인 경우
+                        }
+                    }
+
+                    //swingData -> 수동으로 뽑은 8개의 프레임
+                    val swingData = indicesToPoses(manualPoseIndexArray)
+                    //swingGroupData -> 전후 프레임까지 포함한 묶음
+                    val swingGroupData = indicesToPosesGroup(poseFrameGroupIndices)
+
 //                    큐에 있는 60개 이미지 갤러리에 전부 저장
 //                    imageQueue.toList().forEachIndexed { index, (imageData, _) ->
 //                        val fileName = "swing_pose_${index + 1}.jpg"
@@ -415,39 +426,11 @@ class CameraSource(
 //                        }
 //                    }
 
-
-                    // 8개의 비트맵을 갤러리에 저장
-//                    swingData.forEachIndexed { index, (imageData, _) ->
-//                        val fileName = "swing_pose_${index + 1}.jpg"
-//                        val uri = saveBitmapToGallery(context, imageData.data, fileName)
-//                        uri?.let {
-//                            Log.d("싸피", "Saved image $fileName at $it")
-//                        }
-//                    }
-
-//                    // 8개의 포즈 그룹(각 3프레임)을 갤러리에 저장
-//                    swingData.forEachIndexed { groupIndex, frameGroup ->
-//                        frameGroup.forEachIndexed { _, (imageData, _, originalIndex) ->
-//                            val fileName =
-//                                "swing_pose_group${groupIndex + 1}_frame${originalIndex + 1}.jpg"
-//                            val uri = saveBitmapToGallery(context, imageData.data, fileName)
-//                            uri?.let {
-//                                Log.d("싸피", "Saved image $fileName at $it")
-//                            }
-//                        }
-//                    }
-
-//                    val actualSwingIndices = imageQueue
-//                        .toList()
-//                        .takeLast(imageQueue.size - swingData[0][0].third)
-//                        .map { it.data }
-
                     //수동으로 뽑은 이미지 포즈들을 기반으로 첫 시작 시간 추정 후 영상 제작
                     val actualSwingIndices = imageQueue
                         .toList()
                         .takeLast(imageQueue.size - manualPoseIndexArray[0])
                         .map { it.data }
-
 
 //                  어드레스~피니쉬 이미지 갤러리에 전부 저장
 //                    actualSwingIndices.forEachIndexed { idx, bitmap ->
@@ -459,10 +442,10 @@ class CameraSource(
 //                        }
 //                    }
 
-                    // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
+                    // 템포, 백스윙, 다운스윙 시간 분석하기
                     updateSwingTiming(analyzeSwingTime(swingData))
-                    // TODO: 피드백 분석하기
-                    val extractedKeyPoints = swingData.map { outerList ->
+                    // 피드백 분석하기
+                    val extractedKeyPoints = swingGroupData.map { outerList ->
                         outerList.map { triple ->
                             Pair(triple.first.data, triple.second)
                         }
@@ -481,21 +464,18 @@ class CameraSource(
 //                        }
 //                    }
 
-                    Log.d("수동측정", "수동측정이미지 inx : ${Arrays.toString(manualPoseIndexArray)}")
-                    // 8개의 수동 측정 포즈에 대한 비트맵을 갤러리에 저장
-                    manualPoseIndexArray.forEachIndexed { idx, poseImageIndex ->
-                        val fileName = "swing_pose_group${idx + 1}_frame.jpg"
-                        val uri = saveBitmapToGallery(context, imageDataList[poseImageIndex].data, fileName)
-                        uri?.let {
-//                            Log.d("수동측정", "수동측정이미지 저장 ${idx + 1} frameidx_${poseImageIndex}_frame.jpg")
-                        }
-                    }
+//                    Log.d("수동측정", "수동측정이미지 inx : ${Arrays.toString(manualPoseIndexArray)}")
+//                    // 8개의 수동 측정 포즈에 대한 비트맵을 갤러리에 저장
+//                    manualPoseIndexArray.forEachIndexed { idx, poseImageIndex ->
+//                        val fileName = "swing_pose_group${idx + 1}_frame.jpg"
+//                        val uri = saveBitmapToGallery(context, imageDataList[poseImageIndex].data, fileName)
+//                        uri?.let {
+////                            Log.d("수동측정", "수동측정이미지 저장 ${idx + 1} frameidx_${poseImageIndex}_frame.jpg")
+//                        }
+//                    }
 
-                    // TODO: 템포, 백스윙, 다운스윙 시간 분석하기
 
-                    // TODO: 피드백 분석하기
-
-                    // TODO: 영상 만들기
+                    // 영상 만들기
                     convertBitmapsToVideo(actualSwingIndices)
                     // TODO: 영상과 피드백 룸에 저장하기
 
@@ -571,19 +551,17 @@ class CameraSource(
         }
     }
 
-//    private fun indicesToPoses(indices: List<Int>): MutableList<Pair<TimestampedData<Bitmap>, List<KeyPoint>>> {
-//        val poses = mutableListOf<Pair<TimestampedData<Bitmap>, List<KeyPoint>>>()
-//        val jointList = jointQueue.toList().reversed()
-//        val imageList = imageQueue.toList().reversed()
-//        for (index in indices) {
-//            poses.add(Pair(imageList[index], jointList[index]))
-//        }
-//        return poses
-//    }
+    private fun indicesToPoses(indices: Array<Int>): List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>> {
+        //TimestampedData, 관절좌표, 해당 시점의 프레임 인덱스 번호를 Triple 객체로 반환하는 함수
+        val poses = mutableListOf<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>()
+        val jointList = jointQueue.toList().reversed()
+        for (index in indices) {
+            poses.add(Triple(imageDataList[index], jointList[index], QUEUE_SIZE - 1 - index))
+        }
+        return poses
+    }
 
     private fun indicesToPosesGroup(poseFrameGroupIndices: Array<IntArray>): List<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>> {
-        //TODO : 이 함수룰 길이가 8인 TimeStamp Bitamp을
-
         val poses = mutableListOf<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>>()
         val jointList = jointQueue.toList().reversed()
         val imageList = imageQueue.toList().reversed()
@@ -596,13 +574,13 @@ class CameraSource(
         return poses
     }
 
-    fun analyzeSwingTime(poses: List<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>>): SwingTiming {
+    fun analyzeSwingTime(poses: List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>): SwingTiming {
         //이상적인 템포 비율은 약 3:1(백스윙:다운스윙)로 알려져 있지만, 개인의 스타일과 체형에 따라 다를 수 있다.
 
         //1. 피니시, 임팩트, 탑스윙, 어드레스 ~ 테이크 어웨이 자세에 대한 Long값 추출
-        val finishTime = poses[7][1].first.timestamp
-        val impactTime = poses[5][1].first.timestamp
-        val topTime = poses[3][1].first.timestamp
+        val finishTime = poses[7].first.timestamp
+        val impactTime = poses[5].first.timestamp
+        val topTime = poses[3].first.timestamp //TODO : 탑스윙 정지 시간에 대한 고려 해서 분석 시간 테스트 하기 [ ex) topStart, topEnd 구하기 ]
         val addressTime = backswingStartTime
         //2. 전체 스윙 시간, 백스윙, 다운스윙 추출
         val backswingTime = topTime - addressTime
@@ -621,9 +599,7 @@ class CameraSource(
 
     }
 
-
     private fun validateSwingPose(poseIndices: Array<Int>): Boolean {
-
         // 중복 검사
         val uniqueIndices = poseIndices.toSet()
         if (uniqueIndices.size != poseIndices.size) return false
@@ -635,40 +611,6 @@ class CameraSource(
             }
         }
 
-        return true
-    }
-
-    private fun validateSwingPose(poseIndicesWithScores: List<Pair<Int, Float>>): Boolean {
-        val countingArray = BooleanArray(QUEUE_SIZE) { false }
-        var prevImageIndex = 100_000_000
-
-        var i = 0
-        for (indexWithScore in poseIndicesWithScores) {
-            val index = indexWithScore.first
-            val score = indexWithScore.second
-
-            // 포즈가 일정 유사도를 넘어야 정상 스윙으로 판단
-            if (score < POSE_THRESHOLD) {
-                Log.d("포즈검증", "${Pose.entries[i]} 유사도 미충족!! index: $index, score: $score")
-                return false
-            }
-
-            // 이미지 인덱스에 중복이 없어야 정상
-            if (!countingArray[index]) {
-                countingArray[index] = true
-            } else {
-                Log.d("포즈검증", "중복발생!! index: $index, score: $score")
-                return false
-            }
-
-            // 이미지 순서가 맞아야 정상
-            if (index >= prevImageIndex) {
-                Log.d("포즈검증", "이미지 순서가 맞지 않음!!")
-                return false
-            }
-            prevImageIndex = index
-            i++
-        }
         return true
     }
 
