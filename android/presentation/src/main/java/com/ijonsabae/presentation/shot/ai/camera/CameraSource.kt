@@ -24,6 +24,7 @@ import android.graphics.PointF
 import android.graphics.Rect
 import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
@@ -32,6 +33,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.PixelCopy
 import android.view.SurfaceView
+import androidx.annotation.RequiresApi
 import com.ijonsabae.presentation.shot.CameraState
 import com.ijonsabae.presentation.shot.CameraState.ADDRESS
 import com.ijonsabae.presentation.shot.CameraState.AGAIN
@@ -40,6 +42,7 @@ import com.ijonsabae.presentation.shot.CameraState.POSITIONING
 import com.ijonsabae.presentation.shot.CameraState.RESULT
 import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.PostureFeedback
+import com.ijonsabae.presentation.shot.SwingViewModel
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ANKLE
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_EAR
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ELBOW
@@ -60,6 +63,7 @@ import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_WRIST
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
+import com.ijonsabae.presentation.shot.ai.data.Pose
 import com.ijonsabae.presentation.shot.ai.data.PoseAnalysisResult
 import com.ijonsabae.presentation.shot.ai.ml.ModelType
 import com.ijonsabae.presentation.shot.ai.ml.MoveNet
@@ -67,6 +71,7 @@ import com.ijonsabae.presentation.shot.ai.ml.PoseClassifier
 import com.ijonsabae.presentation.shot.ai.ml.PoseDetector
 import com.ijonsabae.presentation.shot.ai.ml.TimestampedData
 import com.ijonsabae.presentation.shot.ai.utils.VisualizationUtils
+import dagger.hilt.android.qualifiers.ActivityContext
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -99,7 +104,7 @@ class CameraSource(
     private val getCurrentCameraState: () -> CameraState?,
     private val setCurrentCameraState: (cameraState: CameraState) -> Unit,
     private val updateSwingTiming: (swingTiming: SwingTiming) -> Unit,
-    private val setPoseAnalysisResults: (MutableList<PoseAnalysisResult>) -> Unit,
+    private val setPoseAnalysisResults: (PoseAnalysisResult) -> Unit,
 ) : CameraSourceListener {
     private var lock = Any()
     private var classifier4: PoseClassifier? = null
@@ -122,8 +127,9 @@ class CameraSource(
     private var minMidBackSwingGap = 1f
     private var minTakeAwayGap = 1f
     private var minAddressGap = 1f
-    private lateinit var imageDataList : List<TimestampedData<Bitmap>>
+    private lateinit var imageDataList: List<TimestampedData<Bitmap>>
     private var manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
+
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
     private var frameProcessedInOneSecondInterval = 0
     private var framesPerSecond = 1
@@ -171,7 +177,7 @@ class CameraSource(
         private const val POSE_THRESHOLD = 0.4f
     }
 
-    fun setSurfaceView(surfaceView: SurfaceView){
+    fun setSurfaceView(surfaceView: SurfaceView) {
         this.surfaceView = surfaceView
     }
 
@@ -235,6 +241,7 @@ class CameraSource(
         classifier8 = null
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     fun processImage(bitmap: Bitmap, isSelfCamera: Boolean, isLeftHanded: Boolean) {
         frameCount++
 
@@ -370,11 +377,13 @@ class CameraSource(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onDetectedInfo(person: Person) {
         processDetectedInfo(person)
     }
 
     /** !!!!!!!!!!!! 포즈 추론은 우타, 후면 카메라로 좔영했을 때 기준 !!!!!!!!!!!! **/
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun processDetectedInfo(
         person: Person,
     ) {
@@ -382,7 +391,6 @@ class CameraSource(
         if (viewingResult) return
 
         val keyPoints = person.keyPoints
-        var isSuccess = false
 
         // 스윙 피니쉬가 인식된 시점부터 5프레임 더 받기
         if (getCurrentCameraState() == ANALYZING && pelvisTwisting) {
@@ -442,13 +450,18 @@ class CameraSource(
 
                     // 템포, 백스윙, 다운스윙 시간 분석하기
                     updateSwingTiming(analyzeSwingTime(swingData))
-                    // 피드백 분석하기
-                    val extractedKeyPoints = swingGroupData.map { outerList ->
-                        outerList.map { triple ->
-                            Pair(triple.first.data, triple.second)
-                        }
-                    }
-                    val poseAnalysisResults = PostureFeedback.checkPosture(extractedKeyPoints)
+
+                    // 백스윙, 탑스윙 피드백 체크하기
+                    val preciseIndices = swingData.map { it.third }
+                    val preciseBitmaps = swingData.map { it.first }
+                    val precisePoseScores = classifyPoseScores(swingData.map { it.second })
+
+                    val poseAnalysisResults = PostureFeedback.checkPosture(
+                        preciseIndices,
+                        jointQueue.toList().reversed(),
+                        true // TODO: 좌타 우타 여부 동적으로 넣어주기
+                    )
+                    Log.d("분석결과", "$poseAnalysisResults")
 
                     setPoseAnalysisResults(poseAnalysisResults)
 
@@ -472,31 +485,29 @@ class CameraSource(
 //                        }
 //                    }
 
-
                     // 영상 만들기
                     convertBitmapsToVideo(actualSwingIndices)
                     // TODO: 영상과 피드백 룸에 저장하기
 
-                    // TODO: 영상 + 피드백 서버에 저장하기 (비동기) <- 나중에 여기서 보낸 피드백을 토대로 종합 리포트 만들어줄 예정
+                    // TODO: 영상 + 8개 비트맵 + 8개 유사도 + 피드백 리스트 서버로 보내기
 
-                    // TODO: 스윙 분석 결과 표시
+                    // TODO: 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
                     setCurrentCameraState(RESULT)
-                    isSuccess = true
+
+                    // TODO: 다이얼로그가 닫히는 순간 viewingResult와 swingViewModel.currentState 바꿔주기
+
                 } else {
                     setCurrentCameraState(AGAIN)
                     Log.d("싸피", "다시 스윙해주세요")
-                    isSuccess = false
+                    CoroutineScope(Dispatchers.Main).launch {
+                        delay(2500L)
+                        viewingResult = false
+                        setCurrentCameraState(ADDRESS)
+                    }
                 }
                 viewingResult = true
-
-                val delayTime = if (isSuccess) 4500L else 2800L
-                CoroutineScope(Dispatchers.Main).launch {
-                    delay(delayTime)
-                    viewingResult = false
-                    pelvisTwisting = false
-                    swingFrameCount = 0
-                    setCurrentCameraState(ADDRESS)
-                }
+                pelvisTwisting = false
+                swingFrameCount = 0
             }
             return
         }
@@ -549,6 +560,26 @@ class CameraSource(
         }
     }
 
+    private fun classifyPoseScores(poseIndices: List<List<KeyPoint>>): List<Float> {
+        val scores = FloatArray(8) { 0f }
+
+        for (i in 0..3) {
+            val classificationResult = classifier4?.classify(poseIndices[i])
+            classificationResult?.let {
+                scores[i] = it[i].second
+            }
+        }
+
+        for (i in 4..7) {
+            val classificationResult = classifier8?.classify(poseIndices[i])
+            classificationResult?.let {
+                scores[i] = it[i - 4].second
+            }
+        }
+
+        return scores.toList()
+    }
+
     private fun indicesToPoses(indices: Array<Int>): List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>> {
         //TimestampedData, 관절좌표, 해당 시점의 프레임 인덱스 번호를 Triple 객체로 반환하는 함수
         val poses = mutableListOf<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>()
@@ -572,13 +603,14 @@ class CameraSource(
         return poses
     }
 
-    fun analyzeSwingTime(poses: List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>): SwingTiming {
+    private fun analyzeSwingTime(poses: List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>): SwingTiming {
         //이상적인 템포 비율은 약 3:1(백스윙:다운스윙)로 알려져 있지만, 개인의 스타일과 체형에 따라 다를 수 있다.
 
         //1. 피니시, 임팩트, 탑스윙, 어드레스 ~ 테이크 어웨이 자세에 대한 Long값 추출
         val finishTime = poses[7].first.timestamp
         val impactTime = poses[5].first.timestamp
-        val topTime = poses[3].first.timestamp //TODO : 탑스윙 정지 시간에 대한 고려 해서 분석 시간 테스트 하기 [ ex) topStart, topEnd 구하기 ]
+        val topTime =
+            poses[3].first.timestamp //TODO : 탑스윙 정지 시간에 대한 고려 해서 분석 시간 테스트 하기 [ ex) topStart, topEnd 구하기 ]
         val addressTime = backswingStartTime
         //2. 전체 스윙 시간, 백스윙, 다운스윙 추출
         val backswingTime = topTime - addressTime
@@ -598,6 +630,9 @@ class CameraSource(
     }
 
     private fun validateSwingPose(poseIndices: Array<Int>): Boolean {
+        Log.d("분석결과", "파라미터 : $poseIndices")
+
+
         // 중복 검사
         val uniqueIndices = poseIndices.toSet()
         if (uniqueIndices.size != poseIndices.size) return false
@@ -643,7 +678,7 @@ class CameraSource(
     }
 
 
-//    @RequiresApi(Build.VERSION_CODES.Q)
+    //    @RequiresApi(Build.VERSION_CODES.Q)
     private fun convertBitmapsToVideo(bitmapIndices: List<Bitmap>) {
 
 
@@ -679,7 +714,7 @@ class CameraSource(
         videoFile.delete()
     }
 
-//    @RequiresApi(Build.VERSION_CODES.Q)
+    //    @RequiresApi(Build.VERSION_CODES.Q)
     private fun saveVideoToGallery(videoFile: File): Uri? {
         val values = ContentValues().apply {
             put(MediaStore.Video.Media.DISPLAY_NAME, videoFile.name)
@@ -786,8 +821,6 @@ class CameraSource(
         var modelChangeReady = false
         val poseIndexArray = Array(8) { Pair(0, 0f) } //모델 스코어로 추론한 인덱스
 
-
-
         //수동측정을 위한 값들
         minFinishGap = 100f
         minFollowThroughGap = 100f
@@ -820,12 +853,12 @@ class CameraSource(
                 poseLabelBias = 0
             }
 
-            val classificationResults = classifier?.classify(jointData)
-            classificationResults?.forEachIndexed { poseIndex, result ->
-                if (result.second > poseIndexArray[poseIndex + poseLabelBias].second) {
-                    poseIndexArray[poseIndex + poseLabelBias] = Pair(index, result.second)
-                }
-            }
+//            val classificationResults = classifier?.classify(jointData)
+//            classificationResults?.forEachIndexed { poseIndex, result ->
+//                if (result.second > poseIndexArray[poseIndex + poseLabelBias].second) {
+//                    poseIndexArray[poseIndex + poseLabelBias] = Pair(index, result.second)
+//                }
+//            }
 
             if (classifier == classifier8) {
 
