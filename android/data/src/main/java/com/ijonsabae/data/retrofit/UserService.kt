@@ -21,4 +21,6 @@ interface UserService {
     suspend fun sendEmailAuthCode(@Body email: RequestEmailAuthCodeParam): Result<CommonResponse<Unit>>
     @GET("users/email")
     suspend fun checkEmailAuthCode(@Query("email") email: String, @Query("code") code: String): Result<CommonResponse<Boolean>>
+    @GET("users/check-email")
+    suspend fun checkEmailDuplicated(@Query("email") email: String): Result<CommonResponse<Boolean>>
 }

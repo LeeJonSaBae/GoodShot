@@ -51,10 +51,13 @@ class RegisterFragment : BaseFragment<FragmentRegisterBinding>(
 
         binding.btnEmailAuth.setOnClickListener {
             lifecycleScope.launch(coroutineExceptionHandler) {
-
-                requestAuthCode()
-                showToastShort("이메일로 인증 코드가 전송되었습니다!")
-                showToastShort("5분 내로 입력해주세요!")
+                if(emailIsNotDuplicated()){
+                    requestAuthCode()
+                    showToastShort("이메일로 인증 코드가 전송되었습니다!")
+                    showToastShort("5분 내로 입력해주세요!")
+                }else{
+                    showToastShort("이미 존재하는 이메일입니다!")
+                }
             }
         }
 
@@ -259,6 +262,10 @@ class RegisterFragment : BaseFragment<FragmentRegisterBinding>(
         return registerViewModel.let {
             !(it.name.value.isBlank() || it.password.value.isBlank() || it.passwordRepeat.value.isBlank() || it.password.value != it.passwordRepeat.value || !it.authChecked.value || !it.policy1Confirmed.value || !it.policy2Confirmed.value)
         }
+    }
+
+    private suspend fun emailIsNotDuplicated(): Boolean{
+        return !registerViewModel.checkEmailDuplicated().getOrThrow().data
     }
 }
 

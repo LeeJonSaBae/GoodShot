@@ -25,4 +25,7 @@ class UserRepositoryImpl @Inject constructor(private val userRemoteDataSource: U
         return userRemoteDataSource.verifyEmailAuthCode(email, emailAuthCode)
     }
 
+    override suspend fun checkEmailDuplicated(email: String): Result<CommonResponse<Boolean>>{
+        return userRemoteDataSource.checkEmailDuplicated(email)
+    }
 }

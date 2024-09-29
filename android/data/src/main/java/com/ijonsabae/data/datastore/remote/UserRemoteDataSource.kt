@@ -24,4 +24,8 @@ class UserRemoteDataSource @Inject constructor(private val userService: UserServ
     suspend fun verifyEmailAuthCode(email: String, emailAuthCode: String): Result<CommonResponse<Boolean>>{
         return userService.checkEmailAuthCode(email, emailAuthCode)
     }
+
+    suspend fun checkEmailDuplicated(email: String): Result<CommonResponse<Boolean>>{
+        return userService.checkEmailDuplicated(email)
+    }
 }
