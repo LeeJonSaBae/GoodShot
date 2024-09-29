@@ -188,9 +188,8 @@ public class UserController {
                             examples = @ExampleObject(value = "")))
     })
     @ResponseStatus(HttpStatus.OK)
-    public BaseResponse<DuplicateResponse> checkDuplicateEmail(@RequestParam String email) {
-        DuplicateResponse duplicateResponse = userService.checkDuplicateEmail(email);
-        return BaseResponse.of(HttpStatus.OK, "이메일 중복 확인에 성공했습니다.", duplicateResponse);
+    public BaseResponse<Boolean> checkDuplicateEmail(@RequestParam String email) {
+        return BaseResponse.of(HttpStatus.OK, "이메일 중복 확인에 성공했습니다.", userService.checkDuplicateEmail(email));
     }
 
 }

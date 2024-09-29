@@ -15,12 +15,4 @@ public class UserResponse {
         private boolean checkCode;
     }
 
-    @Getter
-    @Builder
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class DuplicateResponse{
-        private boolean checkDuplicate;
-    }
-
 }

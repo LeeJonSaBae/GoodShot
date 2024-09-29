@@ -165,9 +165,7 @@ public class UserService {
     }
 
     // 이메일 중복 확인
-    public DuplicateResponse checkDuplicateEmail(String email) {
-        return DuplicateResponse.builder()
-                .checkDuplicate(userRepository.existsByEmail(email))
-                .build();
+    public boolean checkDuplicateEmail(String email) {
+        return userRepository.existsByEmail(email);
     }
 }
