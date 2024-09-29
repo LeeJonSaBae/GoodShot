@@ -30,7 +30,7 @@ public class SwaggerConfig {
                 );
 
         Server server = new Server();
-        server.setUrl("https://j11d201.p.ssafy.io/");
+        server.setUrl("https://j11d201.p.ssafy.io/api/");
 
         return new OpenAPI()
                 .info(apiInfo())
