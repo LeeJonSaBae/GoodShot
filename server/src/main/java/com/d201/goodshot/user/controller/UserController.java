@@ -6,6 +6,8 @@ import com.d201.goodshot.global.security.dto.Token;
 import com.d201.goodshot.global.security.dto.TokenResponse;
 import com.d201.goodshot.global.security.exception.InvalidTokenException;
 import com.d201.goodshot.user.dto.UserRequest.*;
+import com.d201.goodshot.user.dto.UserResponse;
+import com.d201.goodshot.user.dto.UserResponse.ProfileResponse;
 import com.d201.goodshot.user.service.EmailService;
 import com.d201.goodshot.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -187,6 +189,21 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public BaseResponse<Boolean> checkDuplicateEmail(@RequestParam String email) {
         return BaseResponse.of(HttpStatus.OK, "이메일 중복 확인에 성공했습니다.", userService.checkDuplicateEmail(email));
+    }
+
+    @GetMapping("/profile")
+    @Operation(summary = "내 프로필 조회", description = "")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "프로필 조회에 성공했습니다.",
+                    content = @Content(mediaType = "",
+                            examples = @ExampleObject(value = "")))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    public BaseResponse<ProfileResponse> getProfile(@AuthenticationPrincipal CustomUser customUser) {
+        ProfileResponse profileResponse = userService.getProfile(customUser.getEmail());
+        return BaseResponse.of(HttpStatus.OK, "프로필 조회에 성공했습니다.", profileResponse);
     }
 
 }

@@ -7,6 +7,8 @@ import com.d201.goodshot.user.domain.User;
 import com.d201.goodshot.user.dto.Auth;
 import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
 import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
+import com.d201.goodshot.user.dto.UserResponse;
+import com.d201.goodshot.user.dto.UserResponse.ProfileResponse;
 import com.d201.goodshot.user.exception.*;
 import com.d201.goodshot.user.repository.RefreshTokenRepository;
 import com.d201.goodshot.user.repository.UserRepository;
@@ -166,5 +168,16 @@ public class UserService {
     // 이메일 중복 확인
     public boolean checkDuplicateEmail(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    // 내 프로필 조회
+    public ProfileResponse getProfile(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(NotFoundUserException::new);
+
+        return ProfileResponse
+                .builder()
+                .profileUrl(user.getProfileUrl())
+                .name(user.getName())
+                .build();
     }
 }
