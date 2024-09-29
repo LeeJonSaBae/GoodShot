@@ -1,7 +1,6 @@
 package com.d201.goodshot.user.service;
 
 import com.d201.goodshot.user.dto.Email;
-import com.d201.goodshot.user.dto.UserResponse.EmailResponse;
 import com.d201.goodshot.user.exception.EmailNotFoundException;
 import com.d201.goodshot.user.exception.EmailSendException;
 import com.d201.goodshot.user.repository.EmailRepository;
@@ -103,7 +102,7 @@ public class EmailService {
 
     // 이메일 인증 번호 확인
     @Transactional(readOnly = true)
-    public EmailResponse checkMailCode(String email, String code) {
+    public boolean checkMailCode(String email, String code) {
 
         // emailRepository 에서 id 에 맞는 code 찾고
         Optional<Email> findCode = emailRepository.findById(email);
@@ -111,9 +110,7 @@ public class EmailService {
             throw new EmailNotFoundException(); // exception
         }
 
-        return EmailResponse.builder()
-                .checkCode(StringUtils.equals(findCode.get().getCertificationNumber(), code))
-                .build();
+        return StringUtils.equals(findCode.get().getCertificationNumber(), code);
     }
 
 }
