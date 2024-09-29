@@ -25,6 +25,8 @@ enum class BackSwingProblem(
             Direction.BOTTOM -> "아래쪽"
             Direction.LEFT -> if (isRightHanded) "왼쪽" else "오른쪽"
             Direction.RIGHT -> if (isRightHanded) "오른쪽" else "왼쪽"
+            Direction.FRONT -> "앞쪽"
+            Direction.BACK ->  "뒤쪽"
             Direction.CENTER -> "중앙"
         }
         return badCommentTemplate.format(directionText)

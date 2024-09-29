@@ -458,8 +458,10 @@ class CameraSource(
                     // 백스윙, 탑스윙 각각 5가지 정도 피드백 체크하기
                     val poseAnalysisResults = PostureFeedback.checkPosture(
                         poseIndicesWithScores.map { it.first }, // TODO: 나중에 preciseIndices로 바꾸어주어야 함 + 좌타 우타 여부 동적으로 넣어주기
-                        jointQueue.toList().reversed()
+                        jointQueue.toList().reversed(),
+                        true
                     )
+                    Log.d("분석결과", "$poseAnalysisResults")
                     setPoseAnalysisResults(poseAnalysisResults)
 
                     // 8개의 베스트 포즈에 대한 비트맵을 갤러리에 저장

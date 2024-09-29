@@ -15,12 +15,12 @@ import com.ijonsabae.presentation.shot.ai.data.Pose
 import com.ijonsabae.presentation.shot.ai.data.Pose.*
 import com.ijonsabae.presentation.shot.ai.data.PoseAnalysisResult
 import com.ijonsabae.presentation.shot.ai.data.Solution
+import com.ijonsabae.presentation.shot.ai.data.Solution.*
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
 
 object PostureFeedback {
-
     private lateinit var frameIndexes: List<Int>
     private lateinit var jointList: List<List<KeyPoint>>
     private var isRightHanded: Boolean = true
@@ -36,16 +36,40 @@ object PostureFeedback {
 
         val backSwingProblems = checkBackSwing()
         val downSwingProblems = checkDownSwing()
-        val analysisResult = determineSolutionAndComment()
-        return PoseAnalysisResult(analysisResult, checkBackSwing(), checkDownSwing())
+        val analysisResult = determineSolutionAndComment(backSwingProblems, downSwingProblems)
+        return PoseAnalysisResult(analysisResult, backSwingProblems, downSwingProblems)
     }
 
-    private fun determineSolutionAndComment(): Solution {
+    private fun determineSolutionAndComment(
+        backSwingProblems: List<Comment>,
+        downSwingProblems: List<Comment>
+    ): Solution {
+        var solution: Solution? = null
+        // BackSwing - 상체들림(0,4) 익스텐션(2) 체중이동(3) 무게중심(1)
+        if (backSwingProblems[0] is BadComment || backSwingProblems[4] is BadComment) {
+            solution = BACK_BODY_LIFT
+        } else if (backSwingProblems[2] is BadComment) {
+            solution = BACK_ARM_EXTENSION
+        } else if (backSwingProblems[3] is BadComment) {
+            solution = BACK_WEIGHT_TRANSFER
+        } else if (backSwingProblems[1] is BadComment) {
+            solution = BACK_BODY_BALANCE
+        }
 
-        // BackSwing - 상체들림(1,5) 익스텐션(3) 체중이동(4) 무게중심(2)
-
-
-        // DownSwing - 상체들림(1,3) 체중이동(4,5) 무게중심(2)
+        // DownSwing - 상체들림(0,2) 체중이동(3,4) 무게중심(1)
+        if (solution == null) {
+            solution =
+                if (downSwingProblems[0] is BadComment || downSwingProblems[2] is BadComment) {
+                    DOWN_BODY_LIFT
+                } else if (downSwingProblems[3] is BadComment || downSwingProblems[4] is BadComment) {
+                    DOWN_WEIGHT_TRANSFER
+                } else if (downSwingProblems[1] is BadComment) {
+                    DOWN_BODY_BALANCE
+                } else {
+                    GOOD_SHOT
+                }
+        }
+        return solution
     }
 
     private fun checkBackSwing(): List<Comment> {
@@ -90,6 +114,38 @@ object PostureFeedback {
         return analysisResult
     }
 
+    private fun checkDownSwingHeadPositionImpact(): Comment {
+        val impactFrame = frameIndexes[IMPACT.ordinal]
+
+        val noseX = jointList[impactFrame][NOSE.ordinal].coordinate.x
+        val leftHipX = jointList[impactFrame][LEFT_HIP.ordinal].coordinate.x
+        val rightHipX = jointList[impactFrame][RIGHT_HIP.ordinal].coordinate.x
+
+        val hipCenterX = (leftHipX + rightHipX) / 2
+
+        val headOffset = hipCenterX - noseX
+        val leftThreshold = 0.07f  // 코가 골반 중심보다 왼쪽에 있어야 하는 최소 거리
+        val rightThreshold = -0.05f
+
+        val isProblem =
+            headOffset > leftThreshold || headOffset < rightThreshold // 머리가 공보다 너무 앞이나 뒤에 있으면 문제
+
+        val deviationDirection = if (headOffset > 0) BACK else FRONT
+
+        val problem = if (isRightHanded)
+            DownSwingProblem.RIGHT_HEAD_POSITION_IMPACT
+        else
+            DownSwingProblem.LEFT_HEAD_POSITION_IMPACT
+
+        val comment = if (isProblem) {
+            BadComment(problem.getBadComment(deviationDirection))
+        } else {
+            NiceComment(problem.getNiceComment())
+        }
+
+        return comment
+    }
+
     private fun checkDownSwingKneeSway(): Comment {
         val leadingKneeIndex = LEFT_KNEE.ordinal
         val trailingKneeIndex = RIGHT_KNEE.ordinal
@@ -100,7 +156,7 @@ object PostureFeedback {
             jointList[frameIndexes[Pose.TOP.ordinal]][trailingKneeIndex].coordinate.x
 
         var maxSway = 0f
-        val threshold = 0.1f  // 무릎 이동을 문제로 간주할 임계값
+        val threshold = 0.07f  // 무릎 이동을 문제로 간주할 임계값
         var isProblem = false
         var swayDirection: Direction = CENTER
 
@@ -108,8 +164,8 @@ object PostureFeedback {
             val currentLeadingKneeX = jointList[frameIndex][leadingKneeIndex].coordinate.x
             val currentTrailingKneeX = jointList[frameIndex][trailingKneeIndex].coordinate.x
 
-            val leadingKneeSway = currentLeadingKneeX - initialLeadingKneeX
-            val trailingKneeSway = currentTrailingKneeX - initialTrailingKneeX
+            val leadingKneeSway = initialLeadingKneeX - currentLeadingKneeX
+            val trailingKneeSway = initialTrailingKneeX - currentTrailingKneeX
 
             val totalSway = leadingKneeSway + trailingKneeSway
 
@@ -120,11 +176,7 @@ object PostureFeedback {
 
         // maxSway가 음수면 올바른 방향(우타의 경우 왼쪽, 좌타의 경우 오른쪽)으로 이동한 것
         isProblem = abs(maxSway) > threshold
-        swayDirection = if (maxSway < 0) {
-            if (isRightHanded) RIGHT else LEFT
-        } else {
-            if (isRightHanded) LEFT else RIGHT
-        }
+        swayDirection = if (maxSway > 0) RIGHT else LEFT
 
         val problem =
             if (isRightHanded) DownSwingProblem.RIGHT_KNEE_SWAY else DownSwingProblem.LEFT_KNEE_SWAY
@@ -310,7 +362,7 @@ object PostureFeedback {
             jointList[frameIndexes[ADDRESS.ordinal]][LEFT_HIP.ordinal].coordinate.y
         val initialRightHipY =
             jointList[frameIndexes[ADDRESS.ordinal]][RIGHT_HIP.ordinal].coordinate.y
-        val initialHipDifference = kotlin.math.abs(initialLeftHipY - initialRightHipY)
+        val initialHipDifference = abs(initialLeftHipY - initialRightHipY)
 
         var isProblem = false
         val threshold = 0.05f  // 힙 회전을 판단하기 위한 임계값, 필요에 따라 조정 가능
@@ -318,9 +370,9 @@ object PostureFeedback {
         for (frameIndex in frameIndexes[ADDRESS.ordinal] downTo frameIndexes[Pose.TOP.ordinal]) {
             val currentLeftHipY = jointList[frameIndex][LEFT_HIP.ordinal].coordinate.y
             val currentRightHipY = jointList[frameIndex][RIGHT_HIP.ordinal].coordinate.y
-            val currentHipDifference = kotlin.math.abs(currentLeftHipY - currentRightHipY)
+            val currentHipDifference = abs(currentLeftHipY - currentRightHipY)
 
-            if (kotlin.math.abs(currentHipDifference - initialHipDifference) > threshold) {
+            if (abs(currentHipDifference - initialHipDifference) > threshold) {
                 isProblem = true
                 break
             }
