@@ -1,5 +1,7 @@
 package com.d201.goodshot.swing.domain;
 
+import com.d201.goodshot.swing.enums.FeedbackType;
+import com.d201.goodshot.swing.enums.PoseType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,8 +15,8 @@ import org.hibernate.annotations.DynamicInsert;
 @NoArgsConstructor
 @AllArgsConstructor
 @DynamicInsert
-@Table(name = "pose")
-public class Pose {
+@Table(name = "feedback")
+public class Feedback {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,13 +26,9 @@ public class Pose {
     @JoinColumn(name = "swing_id")
     private Swing swing;
 
-    private int code; // 포즈 번호
+    private PoseType poseType;
 
-    private String feedback;
+    private FeedbackType feedbackType;
 
-    @Lob
-    private byte[] swingImage;
-
-    private double similarity; 
-
+    private String comment;
 }

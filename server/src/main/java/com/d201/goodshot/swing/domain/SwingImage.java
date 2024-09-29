@@ -1,6 +1,5 @@
 package com.d201.goodshot.swing.domain;
 
-import com.d201.goodshot.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,25 +13,20 @@ import org.hibernate.annotations.DynamicInsert;
 @NoArgsConstructor
 @AllArgsConstructor
 @DynamicInsert
-@Table(name = "swing")
-public class Swing {
+@Table(name = "swingImage")
+public class SwingImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "swing_id")
+    private Swing swing;
+
+    private int poseIndex;
 
     @Lob
-    private byte[] swingVideo;
-
-    private boolean likeStatus; // 즐겨찾기 상태
-
-    @Column(columnDefinition = "JSON")
-    private String similarity;
-
-    private String solution;
+    private byte[] swingImage;
 
 }
