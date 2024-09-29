@@ -13,19 +13,19 @@
         android:layout_marginHorizontal="20dp"
         >
         <TextView
-            android:id="@+id/tv_name"
+            android:id="@+id/tv_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="닉네임"
+            android:text="이메일"
             android:textColor="@color/white"
             android:textSize="18sp"
             android:fontFamily="@font/pretendard_regular"
-            app:layout_constraintBottom_toTopOf="@id/til_name"
+            app:layout_constraintBottom_toTopOf="@id/et_email"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_chainStyle="packed"
             />
         <EditText
-            android:id="@+id/til_name"
+            android:id="@+id/et_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/white"
@@ -36,7 +36,7 @@
             app:layout_constraintBottom_toTopOf="@id/tv_password"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_name"
+            app:layout_constraintTop_toBottomOf="@id/tv_email"
             />
 
         <TextView
@@ -47,7 +47,7 @@
             android:textColor="@color/white"
             android:textSize="18sp"
             android:fontFamily="@font/pretendard_regular"
-            app:layout_constraintTop_toBottomOf="@id/til_name"
+            app:layout_constraintTop_toBottomOf="@id/et_email"
             app:layout_constraintBottom_toTopOf="@id/et_password"
             />
 

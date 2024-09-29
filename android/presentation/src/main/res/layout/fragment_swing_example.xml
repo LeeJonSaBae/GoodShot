@@ -7,12 +7,11 @@
     android:layout_height="match_parent"
     tools:context=".main.MainActivity">
 
-    <ImageView
-        android:id="@+id/iv_swing_example"
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/pv_swing_example"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:src="@drawable/swing_example"
-        android:scaleType="centerCrop"
+        app:resize_mode="zoom"
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout

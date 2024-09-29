@@ -6,17 +6,8 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
-import com.github.mikephil.charting.charts.BarChart
-import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
-import com.github.mikephil.charting.interfaces.datasets.IBarDataSet
 import com.ijonsabae.presentation.R
-import com.ijonsabae.presentation.config.BarChartRender
 import com.ijonsabae.presentation.config.BaseActivity
-import com.ijonsabae.presentation.config.GolfSwingValueFormatter
-import com.ijonsabae.presentation.databinding.ActivityLoginBinding
 import com.ijonsabae.presentation.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -29,7 +20,6 @@ class MainActivity: BaseActivity<ActivityMainBinding>(ActivityMainBinding::infla
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
             this.navigationIcon = ContextCompat.getDrawable(this@MainActivity, R.drawable.back)
         }
-        setContentView(binding.root)
         hideAppBar()
     }
 

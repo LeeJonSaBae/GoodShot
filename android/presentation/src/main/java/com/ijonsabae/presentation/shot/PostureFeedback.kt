@@ -2,6 +2,7 @@ package com.ijonsabae.presentation.shot
 
 
 import android.graphics.PointF
+import android.util.Log
 import com.ijonsabae.presentation.shot.ai.data.BackSwingProblem.*
 import com.ijonsabae.presentation.shot.ai.data.BadComment
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.*
@@ -194,7 +195,7 @@ object PostureFeedback {
         val impactHandY = jointList[frameIndexes[IMPACT.ordinal]][LEFT_WRIST.ordinal].coordinate.y
 
         val heightDifference = impactHandY - addressHandY
-        val threshold = 0.05f  // 손 높이 차이를 문제로 간주할 임계값
+        val threshold = 0.1f  // 손 높이 차이를 문제로 간주할 임계값
 
         val isProblem = abs(heightDifference) > threshold
         val deviationDirection = if (heightDifference > 0) BOTTOM else Direction.TOP

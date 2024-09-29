@@ -2,7 +2,6 @@ package com.ijonsabae.presentation.util
 
 import android.content.Context
 import android.util.TypedValue
-import com.ijonsabae.domain.model.Consultant
 
 fun dpToPx(dp: Float, context: Context): Float {
     val density = context.resources.displayMetrics.density
@@ -16,6 +15,11 @@ fun spToPx(sp: Float, context: Context): Float {
         context.resources.displayMetrics
     )
 }
+
+fun makeHeaderByAccessToken(accessToken: String): String {
+    return "Bearer $accessToken"
+}
+
 
 
 

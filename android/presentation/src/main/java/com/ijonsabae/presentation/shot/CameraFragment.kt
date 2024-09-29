@@ -59,7 +59,6 @@ private const val TAG = "CameraFragment_싸피"
 @AndroidEntryPoint
 class CameraFragment :
     BaseFragment<FragmentCameraBinding>(FragmentCameraBinding::bind, R.layout.fragment_camera) {
-    private lateinit var navController: NavController
 
     @Inject
     lateinit var foldingStateActor: FoldingStateActor
@@ -90,7 +89,6 @@ class CameraFragment :
         super.onViewCreated(view, savedInstanceState)
         navController = Navigation.findNavController(binding.root)
         // 스윙 상태에 따라 카메라 상태를 변경해주기 위해 옵저버 등록
-        navController = findNavController()
         navController.navigate(
             CameraFragmentDirections.actionCameraToFeedbackDialog(
                 convertFeedBack(getSwingFeedBackUseCase().getOrThrow())

@@ -28,13 +28,11 @@ public class Swing {
     @Lob
     private byte[] swingVideo;
 
-    @Column(columnDefinition = "JSON")
-    private String jointPoint;
-
-    private double backSwingTime;
-
-    private double downSwingTime;
-
     private boolean likeStatus; // 즐겨찾기 상태
+
+    @Column(columnDefinition = "JSON")
+    private String similarity;
+
+    private String solution;
 
 }

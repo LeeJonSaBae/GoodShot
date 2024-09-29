@@ -23,8 +23,7 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
         response.setStatus(HttpStatus.FORBIDDEN.value());
 
         JSONObject jsonResponse = new JSONObject();
-        jsonResponse.put("timeStamp", LocalDateTime.now().withNano(0).toString());
-        jsonResponse.put("errorCode", exception.getErrorCode());
+        jsonResponse.put("code", exception.getCode());
         jsonResponse.put("message", exception.getMessage());
 
         response.getWriter().print(jsonResponse);

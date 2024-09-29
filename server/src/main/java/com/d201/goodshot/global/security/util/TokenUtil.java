@@ -42,7 +42,8 @@ public class TokenUtil {
 
     @Value("${security.secret-key}")
     private String secret;
-    private final Long accessTokenExpireTime = 60 * 60L; // 1시간
+//    private final Long accessTokenExpireTime = 60 * 60L; // 1시간
+    private final Long accessTokenExpireTime = 30 * 24 * 60 * 60L; // 임시 : 한달로 변경
     private final Long refreshTokenExpireTime = 60 * 60 * 24 * 7L;
     private SecretKey secretKey;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -116,19 +117,19 @@ public class TokenUtil {
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             log.info("잘못된 JWT 서명입니다.");
-            request.setAttribute("exception", MALFORMED_TOKEN.getErrorCode());
+            request.setAttribute("exception", MALFORMED_TOKEN.getMessage());
         } catch (ExpiredJwtException e) {
             log.info("만료된 JWT 토큰입니다.");
-            request.setAttribute("exception", EXPIRED_TOKEN.getErrorCode());
+            request.setAttribute("exception", EXPIRED_TOKEN.getMessage());
         } catch (UnsupportedJwtException e) {
             log.info("지원되지 않는 JWT 토큰입니다.");
-            request.setAttribute("exception", UNSUPPORTED_TOKEN.getErrorCode());
+            request.setAttribute("exception", UNSUPPORTED_TOKEN.getMessage());
         } catch (IllegalArgumentException e) {
             log.info("JWT 토큰이 잘못되었습니다.");
-            request.setAttribute("exception", ILLEGAL_TOKEN.getErrorCode());
+            request.setAttribute("exception", ILLEGAL_TOKEN.getMessage());
         } catch (Exception e) {
             log.info(e.getMessage());
-            request.setAttribute("exception", ACCESS_DENIED.getErrorCode());
+            request.setAttribute("exception", ACCESS_DENIED.getMessage());
         }
         return false;
     }

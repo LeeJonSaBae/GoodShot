@@ -4,8 +4,7 @@ import static com.d201.goodshot.global.s3.exception.ImageExceptionList.IMAGE_EXT
 
 public class ImageExtensionException extends ImageException {
     public ImageExtensionException(){
-        super(IMAGE_EXTENSION_ERROR.getErrorCode(),
-                IMAGE_EXTENSION_ERROR.getHttpStatus(),
+        super(IMAGE_EXTENSION_ERROR.getCode(),
                 IMAGE_EXTENSION_ERROR.getMessage());
     }
 }
