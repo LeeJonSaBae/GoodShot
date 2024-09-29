@@ -5,8 +5,10 @@ import com.d201.goodshot.global.security.exception.InvalidTokenException;
 import com.d201.goodshot.global.security.util.TokenUtil;
 import com.d201.goodshot.user.domain.User;
 import com.d201.goodshot.user.dto.Auth;
+import com.d201.goodshot.user.dto.UserRequest;
 import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
 import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
+import com.d201.goodshot.user.dto.UserRequest.ProfileRequest;
 import com.d201.goodshot.user.dto.UserResponse;
 import com.d201.goodshot.user.dto.UserResponse.ProfileResponse;
 import com.d201.goodshot.user.exception.*;
@@ -180,4 +182,11 @@ public class UserService {
                 .name(user.getName())
                 .build();
     }
+
+    // 내 프로필 수정
+    public void updateProfile(String email, ProfileRequest profileRequest) {
+        User user = userRepository.findByEmail(email).orElseThrow(NotFoundUserException::new);
+        user.updateProfileUrl(profileRequest.getProfileUrl());
+    }
+
 }

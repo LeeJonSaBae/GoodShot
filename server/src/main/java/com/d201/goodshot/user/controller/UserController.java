@@ -206,4 +206,19 @@ public class UserController {
         return BaseResponse.of(HttpStatus.OK, "프로필 조회에 성공했습니다.", profileResponse);
     }
 
+    @PutMapping("/profile")
+    @Operation(summary = "내 프로필 수정", description = "")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "프로필 수정에 성공했습니다.",
+                    content = @Content(mediaType = "",
+                            examples = @ExampleObject(value = "")))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    public BaseResponse<ProfileResponse> updateProfile(@AuthenticationPrincipal CustomUser customUser, @RequestBody ProfileRequest profileRequest) {
+        userService.updateProfile(customUser.getEmail(), profileRequest);
+        return BaseResponse.of(HttpStatus.OK, "프로필 수정에 성공했습니다.", null);
+    }
+
 }
