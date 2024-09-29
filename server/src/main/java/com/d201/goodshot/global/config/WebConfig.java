@@ -10,7 +10,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/v3/api-docs/**")
-                .allowedOrigins("https://j11d201.p.ssafy.io:8080/swagger-ui", "http://j11d201.p.ssafy.io:8080/swagger-ui")
+                .allowedOrigins("https://j11d201.p.ssafy.io/swagger-ui", "https://j11d201.p.ssafy.io/api/swagger-ui", "http://j11d201.p.ssafy.io:8080/swagger-ui")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)
