@@ -24,10 +24,13 @@ public class Expert {
 
     private int expYears;
 
-    private String fields;
+    private String field;
 
     private String certificate;
 
     private String phoneNumber;
+
+    @Column(columnDefinition = "TEXT")
+    private String profileUrl;
 
 }
