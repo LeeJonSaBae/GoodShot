@@ -1,5 +1,6 @@
 package com.ijonsabae.data.retrofit
 
+import com.ijonsabae.data.model.GenerateTemporaryPassWordParam
 import com.ijonsabae.data.model.RequestEmailAuthCodeParam
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.LoginParam
@@ -23,4 +24,6 @@ interface UserService {
     suspend fun checkEmailAuthCode(@Query("email") email: String, @Query("code") code: String): Result<CommonResponse<Boolean>>
     @GET("users/check-email")
     suspend fun checkEmailDuplicated(@Query("email") email: String): Result<CommonResponse<Boolean>>
+    @POST("users/temporary-password")
+    suspend fun generateTemporaryPassWord(@Body generatedTemporaryPassWordParam: GenerateTemporaryPassWordParam): Result<CommonResponse<Unit>>
 }

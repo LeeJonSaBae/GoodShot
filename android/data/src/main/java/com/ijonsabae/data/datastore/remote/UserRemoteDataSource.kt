@@ -1,5 +1,6 @@
 package com.ijonsabae.data.datastore.remote
 
+import com.ijonsabae.data.model.GenerateTemporaryPassWordParam
 import com.ijonsabae.data.model.RequestEmailAuthCodeParam
 import com.ijonsabae.data.retrofit.UserService
 import com.ijonsabae.domain.model.CommonResponse
@@ -27,5 +28,12 @@ class UserRemoteDataSource @Inject constructor(private val userService: UserServ
 
     suspend fun checkEmailDuplicated(email: String): Result<CommonResponse<Boolean>>{
         return userService.checkEmailDuplicated(email)
+    }
+
+    suspend fun generateTemporaryPassWord(name: String, email: String): Result<CommonResponse<Unit>>{
+        return userService.generateTemporaryPassWord(GenerateTemporaryPassWordParam(
+            name = name,
+            email = email
+        ))
     }
 }

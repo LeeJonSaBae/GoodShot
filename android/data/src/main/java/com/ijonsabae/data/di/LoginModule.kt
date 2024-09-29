@@ -4,6 +4,7 @@ import com.ijonsabae.data.repository.TokenRepositoryImpl
 import com.ijonsabae.data.repository.UserRepositoryImpl
 import com.ijonsabae.data.usecase.login.CheckEmailDuplicatedUseCaseImpl
 import com.ijonsabae.data.usecase.login.ClearLocalTokenUseCaseImpl
+import com.ijonsabae.data.usecase.login.GenerateTemporaryPassWordUseCaseImpl
 import com.ijonsabae.data.usecase.login.GetLocalAccessTokenCreatedTimeUseCaseImpl
 import com.ijonsabae.data.usecase.login.GetLocalAccessTokenUseCaseImpl
 import com.ijonsabae.data.usecase.login.GetLocalRefreshTokenUseCaseImpl
@@ -17,6 +18,7 @@ import com.ijonsabae.domain.repository.TokenRepository
 import com.ijonsabae.domain.repository.UserRepository
 import com.ijonsabae.domain.usecase.login.CheckEmailDuplicatedUseCase
 import com.ijonsabae.domain.usecase.login.ClearLocalTokenUseCase
+import com.ijonsabae.domain.usecase.login.GenerateTemporaryPassWordUseCase
 import com.ijonsabae.domain.usecase.login.GetLocalAccessTokenCreatedTimeUseCase
 import com.ijonsabae.domain.usecase.login.GetLocalAccessTokenUseCase
 import com.ijonsabae.domain.usecase.login.GetLocalRefreshTokenUseCase
@@ -66,6 +68,9 @@ abstract class LoginModule {
 
     @Binds
     abstract fun bindCheckEmailDuplicatedUseCase(uc: CheckEmailDuplicatedUseCaseImpl): CheckEmailDuplicatedUseCase
+
+    @Binds
+    abstract fun bindGenerateTemporaryPassWordUseCase(uc: GenerateTemporaryPassWordUseCaseImpl): GenerateTemporaryPassWordUseCase
 
     @Binds
     abstract fun bindUserRepository(uc: UserRepositoryImpl): UserRepository

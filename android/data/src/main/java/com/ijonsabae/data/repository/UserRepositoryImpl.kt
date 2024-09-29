@@ -28,4 +28,11 @@ class UserRepositoryImpl @Inject constructor(private val userRemoteDataSource: U
     override suspend fun checkEmailDuplicated(email: String): Result<CommonResponse<Boolean>>{
         return userRemoteDataSource.checkEmailDuplicated(email)
     }
+
+    override suspend fun generateTemporaryPassWord(
+        name: String,
+        email: String
+    ): Result<CommonResponse<Unit>> {
+        return userRemoteDataSource.generateTemporaryPassWord(name, email)
+    }
 }

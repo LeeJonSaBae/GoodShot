@@ -42,6 +42,12 @@ abstract class BaseFragment<B : ViewBinding>(
         showToastShort("통신 에러 : $message")
       }
     }
+    else{
+      throwable.apply {
+        printStackTrace()
+        showToastShort("$message")
+      }
+    }
   }
 
   @Inject
