@@ -1,7 +1,6 @@
 package com.ijonsabae.presentation.login
 
 import androidx.lifecycle.ViewModel
-import com.ijonsabae.domain.model.CheckCode
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.RegisterParam
 import com.ijonsabae.domain.usecase.login.RegisterUseCase
@@ -48,7 +47,7 @@ class RegisterViewModel @Inject constructor(
         return requestEmailAuthCodeUseCase(email.value)
     }
 
-    suspend fun verifyAuthCode(): Result<CommonResponse<CheckCode>>{
+    suspend fun verifyAuthCode(): Result<CommonResponse<Boolean>>{
         return verifyEmailAuthCodeUseCase(email.value, authCode.value)
     }
 

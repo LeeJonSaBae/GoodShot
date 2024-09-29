@@ -11,14 +11,13 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.ijonsabae.domain.model.CheckCode
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentRegisterBinding
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
+
 @AndroidEntryPoint
 class RegisterFragment : BaseFragment<FragmentRegisterBinding>(
     FragmentRegisterBinding::bind, R.layout.fragment_register
@@ -52,6 +51,7 @@ class RegisterFragment : BaseFragment<FragmentRegisterBinding>(
 
         binding.btnEmailAuth.setOnClickListener {
             lifecycleScope.launch(coroutineExceptionHandler) {
+
                 requestAuthCode()
                 showToastShort("이메일로 인증 코드가 전송되었습니다!")
                 showToastShort("5분 내로 입력해주세요!")
@@ -61,7 +61,7 @@ class RegisterFragment : BaseFragment<FragmentRegisterBinding>(
         binding.btnVerifyAuth.setOnClickListener {
             lifecycleScope.launch(coroutineExceptionHandler) {
                 val result = getAuthCodeVerificationResult()
-                if(result.data.checkCode){
+                if(result.data){
                     // 이메일하고 이메일 인증 창 입력 막음
                     setEmailLayerTilDisEnable()
                     showToastShort("이메일 인증에 성공했습니다!")
@@ -237,7 +237,7 @@ class RegisterFragment : BaseFragment<FragmentRegisterBinding>(
         binding.tilEmail.boxBackgroundColor = ContextCompat.getColor(fragmentContext,R.color.gray)
     }
 
-    private suspend fun getAuthCodeVerificationResult(): CommonResponse<CheckCode> {
+    private suspend fun getAuthCodeVerificationResult(): CommonResponse<Boolean> {
         return registerViewModel.verifyAuthCode().getOrThrow()
     }
 
