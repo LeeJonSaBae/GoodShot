@@ -77,6 +77,7 @@ import java.io.File
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
+import java.util.Arrays
 import java.util.Date
 import java.util.LinkedList
 import java.util.Locale
@@ -390,26 +391,18 @@ class CameraSource(
             if (swingFrameCount < 5) {
                 swingFrameCount++
             } else {
-                val poseIndicesWithScores = extractBestPoseIndices()
+//                val poseIndicesWithScores = extractBestPoseIndices()
+                //TODO : extractBestPoseIndices도 수정하기 (반환형 및 다른것들)
+                extractBestPoseIndices() // void 반환
+                //TODO : 그룹으로 쓰는거 다 지우기,
+                //TODO : validateSwingPose 바꾸고 기존 함수지우기
+                //자료형을 수정하고(8개의 비트탭타임스탬프 배열을 전달하자)
+                //TODO : 스윙템포에 대한것도 수동 추출한것에서 꺼내쓰게하기 ( 자료형 맞춰주고 수정하자)
 
-                if (validateSwingPose(poseIndicesWithScores)) {
-                    val poseFrameGroupIndices: Array<IntArray> = Array(8) { IntArray(3) }
-                    poseIndicesWithScores.forEachIndexed { index, frameIndexWithScore ->
-                        val frameIndex = frameIndexWithScore.first
-                        poseFrameGroupIndices[index] = when (frameIndex) {
-                            0 -> intArrayOf(1, 0, 0)  // 첫 번째 프레임인 경우
-                            QUEUE_SIZE - 1 -> intArrayOf(
-                                QUEUE_SIZE - 1,
-                                QUEUE_SIZE - 1,
-                                QUEUE_SIZE - 2
-                            )  // 마지막 프레임인 경우
-                            else -> intArrayOf(
-                                frameIndex + 1,
-                                frameIndex,
-                                frameIndex - 1
-                            )  // 일반적인 경우
-                        }
-                    }
+
+
+                if (validateSwingPose(manualPoseIndexArray)) {
+
 //                    Log.d("싸피", "8개 프레임 추출 완료")
                     val swingData = indicesToPosesGroup(poseFrameGroupIndices)
                     Log.d("싸피", "8개 포즈 그룹(각 3프레임) 추출 완료")
@@ -488,6 +481,7 @@ class CameraSource(
 //                        }
 //                    }
 
+                    Log.d("수동측정", "수동측정이미지 inx : ${Arrays.toString(manualPoseIndexArray)}")
                     // 8개의 수동 측정 포즈에 대한 비트맵을 갤러리에 저장
                     manualPoseIndexArray.forEachIndexed { idx, poseImageIndex ->
                         val fileName = "swing_pose_group${idx + 1}_frame.jpg"
@@ -588,6 +582,8 @@ class CameraSource(
 //    }
 
     private fun indicesToPosesGroup(poseFrameGroupIndices: Array<IntArray>): List<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>> {
+        //TODO : 이 함수룰 길이가 8인 TimeStamp Bitamp을
+
         val poses = mutableListOf<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>>()
         val jointList = jointQueue.toList().reversed()
         val imageList = imageQueue.toList().reversed()
@@ -623,6 +619,23 @@ class CameraSource(
             tempoRatio = tempoRatio
         )
 
+    }
+
+
+    private fun validateSwingPose(poseIndices: Array<Int>): Boolean {
+
+        // 중복 검사
+        val uniqueIndices = poseIndices.toSet()
+        if (uniqueIndices.size != poseIndices.size) return false
+
+        // 지속적으로 감소하는지 검사 -> 순서 보장
+        for (i in 0 until poseIndices.size - 1) {
+            if (poseIndices[i] <= poseIndices[i + 1]) {
+                return false
+            }
+        }
+
+        return true
     }
 
     private fun validateSwingPose(poseIndicesWithScores: List<Pair<Int, Float>>): Boolean {
@@ -825,7 +838,7 @@ class CameraSource(
     /**
      * 8동작의 비트맵과 관절 좌표를 반환
      */
-    private fun extractBestPoseIndices(): List<Pair<Int, Float>> {
+    private fun extractBestPoseIndices() {
         val jointDataList = jointQueue.toList().reversed()
         imageDataList = imageQueue.toList().reversed()
         var poseLabelBias = 4
@@ -906,8 +919,6 @@ class CameraSource(
 
             }
         }
-
-        return poseIndexArray.toList()
     }
 
     private fun checkFinish(index: Int, jointData: List<KeyPoint>) {
