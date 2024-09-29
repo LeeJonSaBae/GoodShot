@@ -6,8 +6,6 @@ import com.d201.goodshot.global.security.dto.Token;
 import com.d201.goodshot.global.security.dto.TokenResponse;
 import com.d201.goodshot.global.security.exception.InvalidTokenException;
 import com.d201.goodshot.user.dto.UserRequest.*;
-import com.d201.goodshot.user.dto.UserResponse.DuplicateResponse;
-import com.d201.goodshot.user.dto.UserResponse.EmailResponse;
 import com.d201.goodshot.user.service.EmailService;
 import com.d201.goodshot.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -172,9 +170,8 @@ public class UserController {
                             examples = @ExampleObject(value = "")))
     })
     @ResponseStatus(HttpStatus.OK)
-    public BaseResponse<EmailResponse> checkMailCode(@RequestParam String email, @RequestParam String code) {
-        EmailResponse emailResponse = emailService.checkMailCode(email, code);
-        return BaseResponse.of(HttpStatus.OK, "이메일 인증에 성공했습니다.", emailResponse);
+    public BaseResponse<Boolean> checkMailCode(@RequestParam String email, @RequestParam String code) {
+        return BaseResponse.of(HttpStatus.OK, "이메일 인증에 성공했습니다.", emailService.checkMailCode(email, code));
     }
 
     // 이메일 중복 확인
@@ -188,9 +185,8 @@ public class UserController {
                             examples = @ExampleObject(value = "")))
     })
     @ResponseStatus(HttpStatus.OK)
-    public BaseResponse<DuplicateResponse> checkDuplicateEmail(@RequestParam String email) {
-        DuplicateResponse duplicateResponse = userService.checkDuplicateEmail(email);
-        return BaseResponse.of(HttpStatus.OK, "이메일 중복 확인에 성공했습니다.", duplicateResponse);
+    public BaseResponse<Boolean> checkDuplicateEmail(@RequestParam String email) {
+        return BaseResponse.of(HttpStatus.OK, "이메일 중복 확인에 성공했습니다.", userService.checkDuplicateEmail(email));
     }
 
 }

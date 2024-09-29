@@ -7,7 +7,6 @@ import com.d201.goodshot.user.domain.User;
 import com.d201.goodshot.user.dto.Auth;
 import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
 import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
-import com.d201.goodshot.user.dto.UserResponse.DuplicateResponse;
 import com.d201.goodshot.user.exception.*;
 import com.d201.goodshot.user.repository.RefreshTokenRepository;
 import com.d201.goodshot.user.repository.UserRepository;
@@ -165,9 +164,7 @@ public class UserService {
     }
 
     // 이메일 중복 확인
-    public DuplicateResponse checkDuplicateEmail(String email) {
-        return DuplicateResponse.builder()
-                .checkDuplicate(userRepository.existsByEmail(email))
-                .build();
+    public boolean checkDuplicateEmail(String email) {
+        return userRepository.existsByEmail(email);
     }
 }
