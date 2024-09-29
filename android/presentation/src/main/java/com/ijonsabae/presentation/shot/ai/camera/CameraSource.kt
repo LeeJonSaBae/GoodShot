@@ -81,6 +81,7 @@ import java.io.File
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
+import java.util.Arrays
 import java.util.Date
 import java.util.LinkedList
 import java.util.Locale
@@ -487,9 +488,9 @@ class CameraSource(
 
                     // 영상 만들기
                     convertBitmapsToVideo(actualSwingIndices)
-                    // TODO: 영상과 피드백 룸에 저장하기
+                    // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) 룸에 저장하기
 
-                    // TODO: 영상 + 8개 비트맵 + 8개 유사도 + 피드백 리스트 서버로 보내기
+                    // TODO: 영상 + 8개 비트맵 + 8개 유사도 + 피드백 서버로 보내기
 
                     // TODO: 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
                     setCurrentCameraState(RESULT)
@@ -630,7 +631,7 @@ class CameraSource(
     }
 
     private fun validateSwingPose(poseIndices: Array<Int>): Boolean {
-        Log.d("분석결과", "파라미터 : $poseIndices")
+        Log.d("분석결과", "파라미터 : ${Arrays.toString(poseIndices)}")
 
 
         // 중복 검사
