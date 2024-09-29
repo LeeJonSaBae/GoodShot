@@ -1,6 +1,8 @@
 package com.d201.goodshot.user.service;
 
+import com.d201.goodshot.user.domain.User;
 import com.d201.goodshot.user.dto.Email;
+import com.d201.goodshot.user.exception.DuplicateEmailException;
 import com.d201.goodshot.user.exception.EmailNotFoundException;
 import com.d201.goodshot.user.exception.EmailSendException;
 import com.d201.goodshot.user.repository.EmailRepository;
@@ -66,6 +68,10 @@ public class EmailService {
 
     // 이메일 인증 메일 전송
     public void sendAuthenticationEmail(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if(user.isPresent()) {
+            throw new DuplicateEmailException();
+        }
         try {
             String randomCode = createRandomCode();
             MimeMessage mimeMessage = createAuthenticationMessage(email, randomCode);
