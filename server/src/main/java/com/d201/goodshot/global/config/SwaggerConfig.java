@@ -29,14 +29,10 @@ public class SwaggerConfig {
                         .bearerFormat("JWT")
                 );
 
-        Server server = new Server();
-        server.setUrl("https://j11d201.p.ssafy.io/api/");
-
         return new OpenAPI()
                 .info(apiInfo())
                 .addSecurityItem(securityRequirement)
-                .components(components)
-                .servers(List.of(server));
+                .components(components);
     }
 
     private Info apiInfo() {
