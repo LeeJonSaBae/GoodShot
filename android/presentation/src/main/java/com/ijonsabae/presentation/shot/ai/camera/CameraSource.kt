@@ -60,7 +60,6 @@ import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_WRIST
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
-import com.ijonsabae.presentation.shot.ai.data.Pose
 import com.ijonsabae.presentation.shot.ai.data.PoseAnalysisResult
 import com.ijonsabae.presentation.shot.ai.ml.ModelType
 import com.ijonsabae.presentation.shot.ai.ml.MoveNet
@@ -77,7 +76,6 @@ import java.io.File
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
-import java.util.Arrays
 import java.util.Date
 import java.util.LinkedList
 import java.util.Locale
