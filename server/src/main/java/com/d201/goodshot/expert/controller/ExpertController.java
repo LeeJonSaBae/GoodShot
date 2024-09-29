@@ -1,6 +1,7 @@
 package com.d201.goodshot.expert.controller;
 
 import com.d201.goodshot.expert.dto.ExpertResponse;
+import com.d201.goodshot.expert.dto.ExpertResponse.ExpertDetailItem;
 import com.d201.goodshot.expert.dto.ExpertResponse.ExpertItemResponse;
 import com.d201.goodshot.expert.service.ExpertService;
 import com.d201.goodshot.global.base.BaseResponse;
@@ -36,7 +37,22 @@ public class ExpertController {
     @ResponseStatus(HttpStatus.OK)
     public BaseResponse<ExpertItemResponse> getExpertList(@RequestParam(value = "pageNo") int pageNo, @RequestParam(value = "pageSize") int pageSize) {
         ExpertItemResponse expertItemResponse = expertService.getExpertList(pageNo, pageSize);
-        return BaseResponse.of(HttpStatus.OK, "이메일 중복 확인에 성공했습니다.", expertItemResponse);
+        return BaseResponse.of(HttpStatus.OK, "전문가 목록 조회를 성공했습니다.", expertItemResponse);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "전문가 상세 목록 조회", description = "")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "전문가 상세 목록 조회를 성공했습니다.",
+                    content = @Content(mediaType = "",
+                            examples = @ExampleObject(value = "")))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    public BaseResponse<ExpertDetailItem> getExpertDetail(@PathVariable int id) {
+        ExpertDetailItem expertDetailItem = expertService.getExpertDetail(id);
+        return BaseResponse.of(HttpStatus.OK, "전문가 상세 목록 조회를 성공했습니다.", expertDetailItem);
     }
 
 }

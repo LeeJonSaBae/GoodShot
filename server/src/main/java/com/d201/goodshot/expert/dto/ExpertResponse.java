@@ -31,4 +31,15 @@ public class ExpertResponse {
         String field; // 분야
     }
 
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ExpertDetailItem{
+        String imageUrl;
+        String name;
+        int expYears;
+        List<String> certificates;
+    }
+
 }
