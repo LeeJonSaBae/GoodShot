@@ -5,8 +5,12 @@ import com.d201.goodshot.global.security.exception.InvalidTokenException;
 import com.d201.goodshot.global.security.util.TokenUtil;
 import com.d201.goodshot.user.domain.User;
 import com.d201.goodshot.user.dto.Auth;
+import com.d201.goodshot.user.dto.UserRequest;
 import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
 import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
+import com.d201.goodshot.user.dto.UserRequest.ProfileRequest;
+import com.d201.goodshot.user.dto.UserResponse;
+import com.d201.goodshot.user.dto.UserResponse.ProfileResponse;
 import com.d201.goodshot.user.exception.*;
 import com.d201.goodshot.user.repository.RefreshTokenRepository;
 import com.d201.goodshot.user.repository.UserRepository;
@@ -31,6 +35,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final TokenUtil tokenUtil;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final EmailService emailService;
 
     // 회원가입
     public void join(JoinRequest joinRequest) {
@@ -133,7 +138,7 @@ public class UserService {
         }
         String temporaryPassword = generateRandomPassword();
         user.changePassword(passwordEncoder.encode(temporaryPassword));
-        // email 보내기 
+        emailService.sendTemporaryPasswordEmail(email, temporaryPassword);
     }
 
     public String generateRandomPassword() {
@@ -161,4 +166,27 @@ public class UserService {
 
         return sb.toString();
     }
+
+    // 이메일 중복 확인
+    public boolean checkDuplicateEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    // 내 프로필 조회
+    public ProfileResponse getProfile(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(NotFoundUserException::new);
+
+        return ProfileResponse
+                .builder()
+                .profileUrl(user.getProfileUrl())
+                .name(user.getName())
+                .build();
+    }
+
+    // 내 프로필 수정
+    public void updateProfile(String email, ProfileRequest profileRequest) {
+        User user = userRepository.findByEmail(email).orElseThrow(NotFoundUserException::new);
+        user.updateProfileUrl(profileRequest.getProfileUrl());
+    }
+
 }

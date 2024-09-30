@@ -68,6 +68,10 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
 
+    // datastore 사용
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.datastore)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

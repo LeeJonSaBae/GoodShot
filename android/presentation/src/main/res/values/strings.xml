@@ -2,4 +2,7 @@
     <string name="app_name">GoodShot</string>
     <string name="home_youtube_link"><u>자세히 보러가기</u></string>
     <string name="resign"><u>회원탈퇴</u></string>
+    <string name="home_recommendation_news">자세 교정에 대해 알아볼까요?</string>
+    <string name="home_recommendation_youtube">떠오르는 골프 영상을 확인해보세요!</string>
+    <string name="home_need_consultant_question">전문가의 상담이 필요하신가요?</string>
 </resources>

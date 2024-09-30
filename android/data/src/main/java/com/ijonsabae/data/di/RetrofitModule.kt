@@ -5,7 +5,11 @@ import com.google.gson.GsonBuilder
 import com.ijonsabae.data.BuildConfig
 import com.ijonsabae.data.exception.ResultCallAdapterFactory
 import com.ijonsabae.data.retrofit.ProfileService
+import com.ijonsabae.data.retrofit.RefreshTokenAuthorizationInterceptor
+import com.ijonsabae.data.retrofit.TokenInterceptor
+import com.ijonsabae.data.retrofit.TokenService
 import com.ijonsabae.data.retrofit.UserService
+import com.ijonsabae.domain.repository.TokenRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,6 +20,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.util.concurrent.TimeUnit
+import javax.inject.Named
 
 const val SERVER_IP = BuildConfig.SERVER_IP
 
@@ -28,11 +33,24 @@ class RetrofitModule {
     }
 
     @Provides
-    fun provideOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
+    @Named("default_okhttp_client")
+    fun provideDefaultOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor, tokenInterceptor: TokenInterceptor): OkHttpClient {
         return OkHttpClient.Builder()
             .readTimeout(5000, TimeUnit.MILLISECONDS)
             .connectTimeout(5000, TimeUnit.MILLISECONDS)
             .addInterceptor(httpLoggingInterceptor)
+            .addInterceptor(tokenInterceptor)
+            .build()
+    }
+
+    @Provides
+    @Named("refresh_token_okhttp_client")
+    fun provideRefreshTokenOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor, refreshTokenAuthorizationInterceptor: RefreshTokenAuthorizationInterceptor): OkHttpClient {
+        return OkHttpClient.Builder()
+            .readTimeout(5000, TimeUnit.MILLISECONDS)
+            .connectTimeout(5000, TimeUnit.MILLISECONDS)
+            .addInterceptor(httpLoggingInterceptor)
+            .addInterceptor(refreshTokenAuthorizationInterceptor)
             .build()
     }
 
@@ -55,8 +73,9 @@ class RetrofitModule {
     }
 
     @Provides
-    fun provideRetrofit(
-        client: OkHttpClient,
+    @Named("default_retrofit")
+    fun provideDefaultRetrofit(
+        @Named("default_okhttp_client")client: OkHttpClient,
         scalarsConverterFactory: ScalarsConverterFactory,
         gsonConverterFactory: GsonConverterFactory,
         resultCallAdapterFactory: ResultCallAdapterFactory
@@ -71,12 +90,34 @@ class RetrofitModule {
     }
 
     @Provides
-    fun provideProfileService(retrofit: Retrofit): ProfileService {
+    @Named("refresh_token_retrofit")
+    fun provideRefreshTokenHeaderRetrofit(
+        @Named("refresh_token_okhttp_client")client: OkHttpClient,
+        scalarsConverterFactory: ScalarsConverterFactory,
+        gsonConverterFactory: GsonConverterFactory,
+        resultCallAdapterFactory: ResultCallAdapterFactory
+    ): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(SERVER_IP)
+            .addConverterFactory(scalarsConverterFactory)
+            .addConverterFactory(gsonConverterFactory)
+            .addCallAdapterFactory(resultCallAdapterFactory)
+            .client(client)
+            .build()
+    }
+
+    @Provides
+    fun provideProfileService(@Named("default_retrofit")retrofit: Retrofit): ProfileService {
         return retrofit.create(ProfileService::class.java)
     }
 
     @Provides
-    fun provideUserService(retrofit: Retrofit): UserService {
+    fun provideUserService(@Named("default_retrofit")retrofit: Retrofit): UserService {
         return retrofit.create(UserService::class.java)
+    }
+
+    @Provides
+    fun provideTokenService(@Named("refresh_token_retrofit")retrofit: Retrofit): TokenService {
+        return retrofit.create(TokenService::class.java)
     }
 }

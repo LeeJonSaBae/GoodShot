@@ -12,6 +12,8 @@ import android.view.WindowManager
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
+import androidx.navigation.NavController
+import androidx.navigation.fragment.findNavController
 import androidx.viewbinding.ViewBinding
 import javax.inject.Inject
 import javax.inject.Named
@@ -24,6 +26,7 @@ abstract class BaseDialog<B : ViewBinding>(
   private var _binding: B? = null
   protected val binding get() = _binding!!
   lateinit var fragmentContext: Context
+  protected lateinit var navController: NavController
 
   @Inject
   @Named("fragment")
@@ -41,6 +44,11 @@ abstract class BaseDialog<B : ViewBinding>(
   ): View {
     _binding = bind(super.onCreateView(inflater, container, savedInstanceState)!!)
     return binding.root
+  }
+
+  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    super.onViewCreated(view, savedInstanceState)
+    navController = findNavController()
   }
 
   override fun onDestroyView() {

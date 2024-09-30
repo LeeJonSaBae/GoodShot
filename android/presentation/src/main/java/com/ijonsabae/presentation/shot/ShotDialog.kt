@@ -1,20 +1,15 @@
 package com.ijonsabae.presentation.shot
 
-import android.content.Context
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
-import android.util.DisplayMetrics
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.view.WindowInsets
-import android.view.WindowManager
 import android.widget.Button
-import androidx.fragment.app.DialogFragment
-import androidx.navigation.NavController
-import androidx.navigation.fragment.findNavController
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.ijonsabae.presentation.R
+import com.ijonsabae.presentation.config.BaseDialog
 import com.ijonsabae.presentation.databinding.DialogShotBinding
 import com.skydoves.balloon.ArrowOrientation
 import com.skydoves.balloon.ArrowOrientationRules
@@ -23,46 +18,49 @@ import com.skydoves.balloon.Balloon
 import com.skydoves.balloon.BalloonAnimation
 import com.skydoves.balloon.BalloonHighlightAnimation
 import com.skydoves.balloon.BalloonSizeSpec
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
-class ShotDialog : DialogFragment() {
-
-    private var _binding: DialogShotBinding? = null
-    private val binding get() = _binding!!
-    private lateinit var navController: NavController
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = DialogShotBinding.inflate(inflater, container, false)
-        dialog?.window?.setBackgroundDrawableResource(R.drawable.rounded_dialog_background)
-        navController = findNavController()
-        return binding.root
-    }
-
+private const val TAG = "ShotDialog 싸피"
+@AndroidEntryPoint
+class ShotDialog : BaseDialog<DialogShotBinding>(
+    DialogShotBinding::bind,
+    R.layout.dialog_shot
+) {
+    private val shotDialogViewModel: ShotSettingViewModel by activityViewModels()
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        dialog?.window?.setBackgroundDrawableResource(R.drawable.rounded_dialog_background)
+        initFlow()
         initButtons()
         initTooltip()
     }
 
     private fun initButtons() {
-        binding.btnOk.setOnClickListener {
-            saveResult()
-            navController.navigate(R.id.action_shot_dialog_to_swing_example)
-        }
         binding.sbShotCnt.addOnChangeListener { slider, value, fromUser ->
-            binding.tvSliderValue.text = "${value.toInt()} 회"
+            lifecycleScope.launch {
+                shotDialogViewModel.setShotCnt(value.toInt())
+            }
         }
 
         with(binding) {
+            btnOk.setOnClickListener {
+                saveResult()
+                if(tbShowAnswer.isChecked){
+                    navController.navigate(R.id.action_shot_dialog_to_swing_example)
+                }else{
+                    navController.navigate(R.id.action_shot_dialog_to_camera)
+                }
+            }
             btnDirectionLeft.setOnClickListener {
-                selectButton(btnDirectionLeft)
-                deselectButton(btnDirectionRight)
+                lifecycleScope.launch {
+                    shotDialogViewModel.setIsLeftStatus(true)
+                }
             }
             btnDirectionRight.setOnClickListener {
-                selectButton(btnDirectionRight)
-                deselectButton(btnDirectionLeft)
+                lifecycleScope.launch {
+                    shotDialogViewModel.setIsLeftStatus(false)
+                }
             }
             btnSwingPoseFront.setOnClickListener {
                 selectButton(btnSwingPoseFront)
@@ -79,6 +77,11 @@ class ShotDialog : DialogFragment() {
             btnGolfClubDriver.setOnClickListener {
                 selectButton(btnGolfClubDriver)
                 deselectButton(btnGolfClubIron)
+            }
+            tbPoseReport.setOnClickListener {
+                lifecycleScope.launch {
+                    setShowPoseReportStatus(tbPoseReport.isChecked)
+                }
             }
         }
     }
@@ -136,6 +139,29 @@ class ShotDialog : DialogFragment() {
 
     }
 
+    private fun initFlow(){
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED){
+                launch {
+                    shotDialogViewModel.isLeft.collect(){
+                        if(it){
+                            selectButton(binding.btnDirectionLeft)
+                            deselectButton(binding.btnDirectionRight)
+                        }else{
+                            selectButton(binding.btnDirectionRight)
+                            deselectButton(binding.btnDirectionLeft)
+                        }
+                    }
+                }
+                launch {
+                    shotDialogViewModel.showCnt.collect(){cnt->
+                        binding.tvSliderValue.text = "${cnt} 회"
+                    }
+                }
+            }
+        }
+    }
+
     private fun selectButton(button: Button) {
         button.isSelected = true
         button.setTextColor(Color.WHITE)
@@ -152,30 +178,13 @@ class ShotDialog : DialogFragment() {
         val selectedShotCnt = if (binding.btnGolfClubIron.isSelected) "아이언" else "드라이버"
     }
 
+    private suspend fun setShowPoseReportStatus(status: Boolean){
+        shotDialogViewModel.setShowMidReportStatus(status)
+    }
+
 
     override fun onStart() {
         super.onStart()
-        val displayMetrics = DisplayMetrics()
-        requireActivity().windowManager.defaultDisplay.getMetrics(displayMetrics)
-        val screenWidth = getScreenWidth(this.requireContext())
-
-        val newWidth = (screenWidth * 0.8).toInt()
-        val layoutParams = requireView().layoutParams
-        layoutParams.width = newWidth
-        requireView().layoutParams = layoutParams
-    }
-
-    private fun getScreenWidth(context: Context): Int {
-        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val windowMetrics = wm.currentWindowMetrics
-            val insets = windowMetrics.windowInsets
-                .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
-            windowMetrics.bounds.width() - insets.left - insets.right
-        } else {
-            val displayMetrics = DisplayMetrics()
-            wm.defaultDisplay.getMetrics(displayMetrics)
-            displayMetrics.widthPixels
-        }
+        setScreenWidthPercentage(0.8F)
     }
 }

@@ -1,54 +1,62 @@
 package com.ijonsabae.presentation.login
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
+import android.util.Log
 import android.view.View
+import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
-import com.github.mikephil.charting.charts.BarChart
-import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
-import com.github.mikephil.charting.interfaces.datasets.IBarDataSet
+import com.ijonsabae.domain.model.Token
 import com.ijonsabae.presentation.R
-import com.ijonsabae.presentation.config.BarChartRender
 import com.ijonsabae.presentation.config.BaseActivity
-import com.ijonsabae.presentation.config.GolfSwingValueFormatter
 import com.ijonsabae.presentation.databinding.ActivityLoginBinding
 import com.ijonsabae.presentation.main.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 
 
-private const val TAG = "LoginActivity_싸피"
 @AndroidEntryPoint
-class LoginActivity: BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::inflate) {
+class LoginActivity : BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::inflate) {
 
     private lateinit var splashScreen: SplashScreen
+    private val loginViewModel: LoginViewModel by viewModels()
+    private var waiting = true
+    // 화면 전환 완료되면 false 값을 보내줄 것임,
+    // 이 값을 waiting으로 설정해서 splash Screen의 대기 화면을 종료시킴
+    private val mMessageReceiver = object : BroadcastReceiver() {
+        override fun onReceive(p0: Context, intent: Intent) {
+            waiting = intent.getBooleanExtra("complete", true)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        registerLocalBroadCastReceiver()
+        initFlow()
         splashScreen = installSplashScreen().apply {
-            setKeepOnScreenCondition{
-                // 1초 지연
-                runBlocking {
-                    delay(1000)
-                }
-                false
+            setKeepOnScreenCondition {
+                waiting
             }
         }
         //startSplash()
         super.onCreate(savedInstanceState)
+
         binding.loginToolbar.apply {
             setSupportActionBar(this)
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
             this.navigationIcon = ContextCompat.getDrawable(this@LoginActivity, R.drawable.back)
         }
-        setContentView(binding.root)
     }
 
     override fun onStart() {
@@ -68,18 +76,43 @@ class LoginActivity: BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::in
         }
     }
 
-    fun login(){
-        val intent = Intent(this, MainActivity::class.java).apply {
+    private fun registerLocalBroadCastReceiver() {
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+            mMessageReceiver, IntentFilter("loading")
+        )
+    }
+
+    private fun initFlow() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                loginViewModel.token.collect {
+                    if (it != Token("", "")) {
+                       login()
+                    }
+                    else{
+                        waiting = false
+                    }
+                }
+            }
+        }
+
+    }
+
+    fun login() {
+        val intent = Intent(this@LoginActivity, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         startActivity(intent)
         finish()
+
     }
-    fun showAppBar(title: String){
+
+    fun showAppBar(title: String) {
         binding.layoutAppbar.visibility = View.VISIBLE
         binding.loginToolbar.title = title
     }
-    fun hideAppBar(){
+
+    fun hideAppBar() {
         binding.layoutAppbar.visibility = View.GONE
     }
 
