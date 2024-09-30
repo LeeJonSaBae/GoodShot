@@ -1,7 +1,6 @@
 package com.ijonsabae.data.repository
 
 import com.ijonsabae.data.datastore.remote.UserRemoteDataSource
-import com.ijonsabae.domain.model.CheckCode
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.LoginParam
 import com.ijonsabae.domain.model.RegisterParam
@@ -22,8 +21,18 @@ class UserRepositoryImpl @Inject constructor(private val userRemoteDataSource: U
         return userRemoteDataSource.requestEmailAuthCode(email)
     }
 
-    override suspend fun verifyEmailAuthCode(email: String, emailAuthCode: String): Result<CommonResponse<CheckCode>>{
+    override suspend fun verifyEmailAuthCode(email: String, emailAuthCode: String): Result<CommonResponse<Boolean>>{
         return userRemoteDataSource.verifyEmailAuthCode(email, emailAuthCode)
     }
 
+    override suspend fun checkEmailDuplicated(email: String): Result<CommonResponse<Boolean>>{
+        return userRemoteDataSource.checkEmailDuplicated(email)
+    }
+
+    override suspend fun generateTemporaryPassWord(
+        name: String,
+        email: String
+    ): Result<CommonResponse<Unit>> {
+        return userRemoteDataSource.generateTemporaryPassWord(name, email)
+    }
 }
