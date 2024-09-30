@@ -29,6 +29,7 @@ import com.canhub.cropper.CropImageOptions
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentProfileBinding
+import com.ijonsabae.presentation.login.LoginActivity
 import com.ijonsabae.presentation.main.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -87,7 +88,7 @@ class ProfileFragment :
                 .show()
         }
     }
-    
+
     private fun startCrop(uri: Uri) {
         cropImage.launch(
             CropImageContractOptions(
@@ -163,8 +164,12 @@ class ProfileFragment :
             lifecycleScope.launch {
                 val logoutResult = profileViewModel.logout()
                 if (logoutResult == 200) {
-                    Toast.makeText(requireContext(), "로그아웃되었습니다!", Toast.LENGTH_SHORT).show()
-                    navController.navigate(R.id.action_logout)
+                    Toast.makeText(requireContext(), "로그아웃 되었습니다!", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(requireContext(), LoginActivity::class.java).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    startActivity(intent)
+                    requireActivity().finish()
                 }
             }
 
