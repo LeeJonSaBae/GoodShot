@@ -96,55 +96,42 @@
         </androidx.cardview.widget.CardView>
 
         <TextView
-            android:id="@+id/tv_down_title"
+            android:id="@+id/tv_tempo_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="13dp"
             android:fontFamily="@font/pretendard_semibold"
-            android:text="다운"
-            android:textColor="@color/dark_green"
-            android:textSize="11sp"
-            app:layout_constraintEnd_toStartOf="@id/tv_tempo_title"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/cv_my_swing" />
-
-        <TextView
-            android:id="@+id/tv_tempo_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/pretendard_semibold"
             android:text="템포"
             android:textColor="@color/dark_green"
             android:textSize="11sp"
-            app:layout_constraintBottom_toBottomOf="@id/tv_down_title"
             app:layout_constraintEnd_toStartOf="@id/tv_back_title"
-            app:layout_constraintStart_toEndOf="@id/tv_down_title"
-            app:layout_constraintTop_toTopOf="@id/tv_down_title" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cv_my_swing" />
 
         <TextView
             android:id="@+id/tv_back_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/pretendard_semibold"
-            android:text="백"
+            android:text="백스윙"
             android:textColor="@color/dark_green"
             android:textSize="11sp"
             app:layout_constraintBottom_toBottomOf="@id/tv_down_title"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tv_down_title"
             app:layout_constraintStart_toEndOf="@id/tv_tempo_title"
-            app:layout_constraintTop_toTopOf="@id/tv_down_title" />
+            app:layout_constraintTop_toTopOf="@id/tv_tempo_title" />
 
         <TextView
-            android:id="@+id/tv_down"
+            android:id="@+id/tv_down_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/pretendard_regular"
-            android:textColor="@color/black"
+            android:fontFamily="@font/pretendard_semibold"
+            android:text="다운스윙"
+            android:textColor="@color/dark_green"
             android:textSize="11sp"
-            app:layout_constraintEnd_toEndOf="@id/tv_down_title"
-            app:layout_constraintStart_toStartOf="@id/tv_down_title"
-            app:layout_constraintTop_toBottomOf="@id/tv_down_title"
-            tools:text="0.40" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/tv_back_title"
+            app:layout_constraintTop_toTopOf="@id/tv_tempo_title" />
 
         <TextView
             android:id="@+id/tv_tempo"
@@ -155,8 +142,8 @@
             android:textSize="11sp"
             app:layout_constraintEnd_toEndOf="@id/tv_tempo_title"
             app:layout_constraintStart_toStartOf="@id/tv_tempo_title"
-            app:layout_constraintTop_toBottomOf="@id/tv_down_title"
-            tools:text="1.67" />
+            app:layout_constraintTop_toBottomOf="@id/tv_tempo_title"
+            tools:text="0.40" />
 
         <TextView
             android:id="@+id/tv_back"
@@ -167,6 +154,18 @@
             android:textSize="11sp"
             app:layout_constraintEnd_toEndOf="@id/tv_back_title"
             app:layout_constraintStart_toStartOf="@id/tv_back_title"
+            app:layout_constraintTop_toBottomOf="@id/tv_back_title"
+            tools:text="1.67" />
+
+        <TextView
+            android:id="@+id/tv_down"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/pretendard_regular"
+            android:textColor="@color/black"
+            android:textSize="11sp"
+            app:layout_constraintEnd_toEndOf="@id/tv_down_title"
+            app:layout_constraintStart_toStartOf="@id/tv_down_title"
             app:layout_constraintTop_toBottomOf="@id/tv_down_title"
             tools:text="0.67" />
 
@@ -180,7 +179,7 @@
             android:foregroundGravity="center_vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintHeight_percent="0.4"
-            app:layout_constraintTop_toBottomOf="@id/tv_down">
+            app:layout_constraintTop_toBottomOf="@id/tv_tempo">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"

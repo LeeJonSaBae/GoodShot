@@ -660,6 +660,11 @@ class CameraSource(
 
         val tempoRatio = backswingTime.toDouble() / downswingTime.toDouble()
 
+        // TODO: backswingEndTime - backswingStartTime가 음수로 나오는 현상 수정하기
+        Log.d("타이밍", "1: $backswingEndTime, $backswingStartTime")
+        Log.d("타이밍", "2: $downswingEndTime, $downswingStartTime")
+
+
         return SwingTiming(
             backswingTime = backswingTime,
             downswingTime = downswingTime,
@@ -1031,13 +1036,12 @@ class CameraSource(
         }
 
         //코보다 왼손 높이가 커지는 시점을 갱신
-        if (leftWristY >= noseY && isDownSwingEnd == false) {
+        if (leftWristY < noseY && isDownSwingEnd == false) {
             downswingStartTime = imageDataList[index - 2].timestamp
             isDownSwingEnd = true
-        } else if (leftWristY < noseY && isDownSwingEnd) {
+        } else if (leftWristY >= noseY && isDownSwingEnd) {
             backswingEndTime = imageDataList[index - 2].timestamp
         }
-
     }
 
 
@@ -1113,6 +1117,9 @@ class CameraSource(
                 if (index + 2 < imageDataList.size) {
                     backswingStartTime = imageDataList[index + 2].timestamp // 스윙 시작시간 갱신
                     manualPoseIndexArray[0] = index + 2
+                } else {
+                    backswingStartTime = imageDataList[index].timestamp // 스윙 시작시간 갱신
+                    manualPoseIndexArray[0] = index
                 }
             }
         }
