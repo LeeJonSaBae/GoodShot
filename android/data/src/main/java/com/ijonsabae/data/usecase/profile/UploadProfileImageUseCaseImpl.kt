@@ -2,8 +2,8 @@ package com.ijonsabae.data.usecase.profile
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import com.ijonsabae.data.retrofit.ProfileService
-import com.ijonsabae.domain.model.UploadProfileResponse
 import com.ijonsabae.domain.usecase.profile.UploadProfileImageUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -22,10 +22,12 @@ class UploadProfileImageUseCaseImpl @Inject constructor(
     override suspend fun invoke(
         presignedUrl: String,
         imageURI: URI
-    ): Result<UploadProfileResponse> {
+    ): Result<Int> {
         val requestBody = createRequestBodyFromUri(imageURI)
+        val result = profileService.uploadProfileImage(presignedUrl, requestBody)
+        Log.d(TAG, "UploadProfileImageUseCaseImpl 까지 왔음 -> isSuccess? = ${result.isSuccess}")
 
-        return profileService.uploadProfileImage(presignedUrl, requestBody)
+        return result
     }
 
     private fun createRequestBodyFromUri(uri: URI): RequestBody {

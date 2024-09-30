@@ -2,7 +2,7 @@ package com.ijonsabae.presentation.profile
 
 import android.content.Context
 import android.net.Uri
-import android.widget.Toast
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.ijonsabae.domain.model.Profile
 import com.ijonsabae.domain.usecase.profile.GetPresignedURLUseCase
@@ -37,19 +37,20 @@ class ProfileViewModel @Inject constructor(
         _profileInfo.value = Profile(profileUrl = result.data.profileUrl, name = result.data.name)
     }
 
-    suspend fun getPresignedURL(accessToken: String, imageExtension: String) {
+    suspend fun getPresignedURL(imageExtension: String) {
 
-        val result = getPresignedURLUseCase(accessToken, imageExtension).getOrThrow()
+        val result = getPresignedURLUseCase(imageExtension).getOrThrow()
         _presignedUrl.value = result.data.presignedUrl
     }
 
     suspend fun uploadProfileImage(presignedUrl: String, image: Uri) {
         val result = uploadProfileImageUseCase(presignedUrl, URI(image.toString())).getOrThrow()
-        Toast.makeText(
-            context,
-            "uploadProfileImage() : etag = ${result.etag}, requestId = ${result.requestId}",
-            Toast.LENGTH_SHORT
-        ).show()
+        Log.d(TAG, "uploadProfileImage: result = ${result}")
+//        Toast.makeText(
+//            context,
+//            "uploadProfileImage() : etag = ${result.etag}, requestId = ${result.requestId}",
+//            Toast.LENGTH_SHORT
+//        ).show()
     }
 
 

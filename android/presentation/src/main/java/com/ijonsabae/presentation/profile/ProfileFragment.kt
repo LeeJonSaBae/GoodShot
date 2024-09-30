@@ -22,6 +22,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
@@ -29,7 +30,6 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentProfileBinding
 import com.ijonsabae.presentation.main.MainActivity
-import com.ijonsabae.presentation.util.makeHeaderByAccessToken
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -64,17 +64,14 @@ class ProfileFragment :
                         getImageExtension(requireContext().contentResolver, croppedUri)
 //                    Log.d(TAG, "확장자: $imageExtension")
                     if (imageExtension != null) {
-                        profileViewModel.getPresignedURL(
-                            makeHeaderByAccessToken(myAccessToken),
-                            imageExtension
-                        )
+                        profileViewModel.getPresignedURL(imageExtension)
                     } else {
                         Toast.makeText(requireContext(), "확장자가 없습니다!", Toast.LENGTH_SHORT).show()
                     }
 
                     // 프로필 이미지 upload
                     profileViewModel.presignedUrl.collect { presignedUrl ->
-//                        Log.d(TAG, "presignedUrl: $presignedUrl")
+                        Log.d(TAG, "presignedUrl: $presignedUrl")
                         presignedUrl?.let {
                             profileViewModel.uploadProfileImage(
                                 presignedUrl, croppedUri
@@ -110,7 +107,7 @@ class ProfileFragment :
         savedInstanceState: Bundle?
     ): View? {
         getUserInfo()
-        
+
         return super.onCreateView(inflater, container, savedInstanceState)
     }
 
@@ -136,7 +133,9 @@ class ProfileFragment :
     }
 
     private fun setUserProfileImage(profileImgUrl: Uri) {
-        binding.ivProfileImg.setImageURI(profileImgUrl)
+        Glide.with(this)
+            .load(profileImgUrl)
+            .into(binding.ivProfileImg)
     }
 
     private fun setUserProfileName(name: String) {
