@@ -2,8 +2,8 @@ package com.ijonsabae.data.usecase.profile
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
-import com.ijonsabae.data.retrofit.ProfileService
+import com.ijonsabae.data.retrofit.UploadImageService
+import com.ijonsabae.domain.model.UploadProfileResponse
 import com.ijonsabae.domain.usecase.profile.UploadProfileImageUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -15,19 +15,20 @@ import javax.inject.Inject
 private const val TAG = "굿샷_UploadProfileImageUseCa"
 
 class UploadProfileImageUseCaseImpl @Inject constructor(
-    private val profileService: ProfileService,
+    private val uploadImageService: UploadImageService,
     @ApplicationContext private val context: Context
 ) : UploadProfileImageUseCase {
 
     override suspend fun invoke(
         presignedUrl: String,
         imageURI: URI
-    ): Result<Int> {
+    ): Result<UploadProfileResponse> {
         val requestBody = createRequestBodyFromUri(imageURI)
-        val result = profileService.uploadProfileImage(presignedUrl, requestBody)
-        Log.d(TAG, "UploadProfileImageUseCaseImpl 까지 왔음 -> isSuccess? = ${result.isSuccess}")
-
-        return result
+        return uploadImageService.uploadProfileImage(presignedUrl, requestBody)
+//        val result = profileService.uploadProfileImage(presignedUrl, requestBody)
+//        Log.d(TAG, "UploadProfileImageUseCaseImpl 까지 왔음 -> isSuccess? = ${result.isSuccess}")
+//
+//        return result
     }
 
     private fun createRequestBodyFromUri(uri: URI): RequestBody {
