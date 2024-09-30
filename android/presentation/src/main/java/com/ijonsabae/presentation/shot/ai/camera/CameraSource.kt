@@ -64,7 +64,6 @@ import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_WRIST
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
-import com.ijonsabae.presentation.shot.ai.data.PoseAnalysisResult
 import com.ijonsabae.presentation.shot.ai.ml.ModelType
 import com.ijonsabae.presentation.shot.ai.ml.MoveNet
 import com.ijonsabae.presentation.shot.ai.ml.PoseClassifier
@@ -112,7 +111,7 @@ class CameraSource(
 
     private var swingFrameCount = 0
     private var pelvisTwisting = false
-    private var viewingResult = false
+    private var stopAnalizePose = false
     private val imageQueue: Queue<TimestampedData<Bitmap>> = LinkedList()
     private val jointQueue: Queue<List<KeyPoint>> = LinkedList()
 
@@ -391,7 +390,7 @@ class CameraSource(
         person: Person,
     ) {
         // 결과 분석 보여주는 동안은 이미지 처리 안함
-        if (viewingResult) return
+        if (stopAnalizePose) return
 
         val keyPoints = person.keyPoints
 
@@ -540,18 +539,18 @@ class CameraSource(
                     // TODO: 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
                     setCurrentCameraState(RESULT)
 
-                    // TODO: 다이얼로그가 닫히는 순간 viewingResult와 swingViewModel.currentState 바꿔주기
+                    // TODO: 다이얼로그가 닫히는 순간 stopAnalizePose, swingViewModel.currentState 바꿔주기
 
                 } else {
                     setCurrentCameraState(AGAIN)
                     Log.d("싸피", "다시 스윙해주세요")
                     CoroutineScope(Dispatchers.Main).launch {
                         delay(2500L)
-                        viewingResult = false
+                        stopAnalizePose = false
                         setCurrentCameraState(ADDRESS)
                     }
                 }
-                viewingResult = true
+                stopAnalizePose = true
                 pelvisTwisting = false
                 swingFrameCount = 0
             }
@@ -604,6 +603,9 @@ class CameraSource(
         else {
             setCurrentCameraState(SWING)
         }
+        // TODO: 문현 1. RESULT 상태일 때 SKIP 인식하게 만든다.
+        // TODO: 문현 2. SKIP 인식되면 다이얼로그 닫고 (dismiss 참고) ADDRESS 상태로 변경
+        // TODO: 문현 3. 다이얼로그 X버튼 누르면 어드레스 상태로 이동 (byactivityviewmodels 참고)
     }
 
     private fun classifyPoseScores(poseIndices: List<List<KeyPoint>>): List<Float> {
