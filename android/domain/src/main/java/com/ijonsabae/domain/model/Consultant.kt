@@ -4,8 +4,8 @@ data class Consultant(
     val name: String,
     val profileImage: String,
     val career: Int,
-    val course: String,
-    val expertise: String,
+    val pro: String,
+    val phoneNumber: String,
     val certification: List<String>,
-    val topic: List<String>
+    val chatUrl: String
 )

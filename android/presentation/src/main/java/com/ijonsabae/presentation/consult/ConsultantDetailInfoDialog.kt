@@ -1,7 +1,9 @@
 package com.ijonsabae.presentation.consult
 
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,13 +15,11 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseDialog
 import com.ijonsabae.presentation.databinding.DialogConsultantBinding
 
+
 class ConsultantDetailInfoDialog :
     BaseDialog<DialogConsultantBinding>(DialogConsultantBinding::bind, R.layout.dialog_consultant) {
     private val args: ConsultantDetailInfoDialogArgs by navArgs()
     private val consultantCertificationAdapter by lazy {
-        ConsultantCertificationAdapter()
-    }
-    private val consultantTopicAdapter by lazy {
         ConsultantCertificationAdapter()
     }
 
@@ -51,7 +51,7 @@ class ConsultantDetailInfoDialog :
         args.consult.apply {
             binding.tvConsultantName.text = "${name} 프로"
             binding.tvCareer.text = "총 경력${career}년"
-            binding.tvExpertise.text = expertise
+            binding.tvPhoneNumber.text = phoneNumber
         }
     }
 
@@ -59,11 +59,13 @@ class ConsultantDetailInfoDialog :
         binding.btnClose.setOnClickListener {
             dismiss()
         }
+        binding.btnConsult.setOnClickListener {
+            val myIntent = Intent(Intent.ACTION_VIEW, Uri.parse(args.consult.chatUrl))
+            startActivity(myIntent)
+        }
     }
 
     private fun initRecyclerView() {
-        binding.rvTopic.adapter = consultantTopicAdapter
-        consultantTopicAdapter.submitList(args.consult.topic)
         binding.rvCertification.adapter = consultantCertificationAdapter
         consultantCertificationAdapter.submitList(args.consult.certification)
     }

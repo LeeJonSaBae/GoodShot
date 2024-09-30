@@ -9,10 +9,10 @@ data class Consultant(
     val name: String,
     val profileImage: String,
     val career: Int,
-    val course: String,
-    val expertise: String,
+    val pro: String,
+    val phoneNumber: String,
     val certification: List<String>,
-    val topic: List<String>
+    val chatUrl: String
 ):Parcelable
 
 
@@ -21,9 +21,9 @@ fun convertConsultant(consultant: Consultant): com.ijonsabae.presentation.model.
         name = consultant.name,
         profileImage = consultant.profileImage,
         career = consultant.career,
-        course = consultant.course,
-        expertise = consultant.expertise,
+        pro = consultant.pro,
+        phoneNumber = consultant.phoneNumber,
         certification = consultant.certification,
-        topic = consultant.topic
+        chatUrl = consultant.chatUrl
     )
 }

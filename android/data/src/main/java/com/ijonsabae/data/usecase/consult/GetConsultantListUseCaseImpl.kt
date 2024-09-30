@@ -8,11 +8,11 @@ class GetConsultantListUseCaseImpl @Inject constructor() : GetConsultantListUseC
     private val dummyData = Consultant(
         name = "김밍깅",
         profileImage = "https://goodshot-bucket.s3.ap-northeast-2.amazonaws.com/goodshot/default_profile.webp",
-        course = "전문가",
+        pro = "KPGA PRO",
         career = 2,
-        expertise = "스윙 분석",
+        phoneNumber = "010-1234-5678",
         certification = listOf("PGA 인증", "골프 피트니스 전문가 자격증"),
-        topic = listOf("스윙 교정", "골프 부상 예방", "체형 교정")
+        chatUrl = "https://open.kakao.com/o/sc4oiORg"
     )
     override fun invoke(): Result<List<Consultant>> {
         return kotlin.runCatching {
