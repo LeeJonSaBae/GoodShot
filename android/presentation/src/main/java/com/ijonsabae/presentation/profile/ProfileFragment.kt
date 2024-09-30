@@ -3,16 +3,19 @@ package com.ijonsabae.presentation.profile
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ContentResolver
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.MimeTypeMap
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
@@ -45,7 +48,6 @@ class ProfileFragment :
                 val imageUri: Uri? = data?.data
 
                 if (imageUri != null) {
-                    // 선택한 이미지의 URI를 사용하여 크롭 시작
                     startCrop(imageUri)
                 } else {
                     Toast.makeText(requireContext(), "이미지를 선택할 수 없습니다.", Toast.LENGTH_SHORT).show()
@@ -55,20 +57,35 @@ class ProfileFragment :
     private val cropImage = registerForActivityResult(CropImageContract()) { result ->
         if (result.isSuccessful) {
             val croppedUri = result.uriContent
-            binding.ivProfileImg.setImageURI(croppedUri)  // 크롭된 이미지를 ImageView에 설정
+            if (croppedUri != null) {
+                binding.ivProfileImg.setImageURI(croppedUri)
 
-            lifecycleScope.launch(coroutineExceptionHandler) {
-                profileViewModel.getPresignedURL(
-                    makeHeaderByAccessToken(myAccessToken), "png"
-                )
-                Log.d(
-                    TAG, "presignedURL = ${
+                lifecycleScope.launch(coroutineExceptionHandler) {
+                    // Presigned URL 받아오기
+                    val imageExtension =
+                        getImageExtension(requireContext().contentResolver, croppedUri)
+                    Log.d(TAG, "확장자: $imageExtension")
+                    if (imageExtension != null) {
                         profileViewModel.getPresignedURL(
-                            makeHeaderByAccessToken(myAccessToken), "png"
+                            makeHeaderByAccessToken(myAccessToken),
+                            imageExtension
                         )
-                    }"
-                )
+                    } else {
+                        Toast.makeText(requireContext(), "확장자가 없습니다!", Toast.LENGTH_SHORT).show()
+                    }
+
+                    // 프로필 이미지 upload
+                    profileViewModel.presignedUrl.collect { presignedUrl ->
+                        Log.d(TAG, "presignedUrl: $presignedUrl")
+                        presignedUrl?.let {
+                            profileViewModel.uploadProfileImage(
+                                presignedUrl, croppedUri
+                            )
+                        }
+                    }
+                }
             }
+
 
         } else {
             val error = result.error
@@ -77,17 +94,47 @@ class ProfileFragment :
         }
     }
 
+    fun getFileNameFromUri(uri: Uri): String {
+        var fileName: String? = null
+        val cursor = requireContext().contentResolver.query(uri, null, null, null, null)
+
+        cursor?.use {
+            val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (it.moveToFirst()) {
+                fileName = it.getString(nameIndex)
+            }
+        }
+
+        return fileName ?: ""
+    }
+
     private fun startCrop(uri: Uri) {
         cropImage.launch(
             CropImageContractOptions(
                 uri = uri,
                 cropImageOptions = CropImageOptions(
-                    outputCompressFormat = Bitmap.CompressFormat.PNG // 원하는 옵션 추가
+                    outputCompressFormat = Bitmap.CompressFormat.PNG
                 )
             )
         )
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return super.onCreateView(inflater, container, savedInstanceState)
+        setUserInfo()
+    }
+
+    private fun setUserInfo() {
+        setUserProfileImage()
+    }
+
+    private fun setUserProfileImage() {
+
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -191,9 +238,15 @@ class ProfileFragment :
         }
     }
 
+    fun getImageExtension(contentResolver: ContentResolver, uri: Uri): String? {
+        val mimeType = contentResolver.getType(uri)
+
+        return MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
+    }
+
     companion object {
         private const val REQUEST_PERMISSION_CODE = 1001
         private const val myAccessToken =
-            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqaWh1bkBuYXZlci5jb20iLCJpYXQiOjE3MjczOTc1MTMsImVtYWlsIjoiamlodW5AbmF2ZXIuY29tIiwiZXhwIjoxNzI3NDAxMTEzfQ.ymMMMEw22ClLGlvfaSK7BF1fFbwT_qw-k8HLuT30wsk"
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0IiwiaWF0IjoxNzI3NDI1NTk4LCJlbWFpbCI6InRlc3QiLCJleHAiOjE3MzAwMTc1OTh9.tboPAOJ2e7J1D-BVU-RrE0b4eRF7rdkjTBk7MAZlWRA"
     }
 }

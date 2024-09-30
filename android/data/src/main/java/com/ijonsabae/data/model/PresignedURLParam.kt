@@ -5,6 +5,6 @@ import kotlinx.serialization.Serializable
 private const val TAG = "굿샷_ProfileParam"
 
 @Serializable
-data class ProfileParam(
+data class PresignedURLParam(
     val imageExtension: String
 )
