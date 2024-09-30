@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/experts")
-@Tag(name = "expert")
+@Tag(name = "Expert")
 @RequiredArgsConstructor
 @Slf4j
 public class ExpertController {
