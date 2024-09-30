@@ -488,6 +488,7 @@ class CameraSource(
 
                     // 영상 만들기
                     convertBitmapsToVideo(actualSwingIndices)
+
                     // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) 룸에 저장하기
 
                     // TODO: 영상 + 8개 비트맵 + 8개 유사도 + 피드백 서버로 보내기
