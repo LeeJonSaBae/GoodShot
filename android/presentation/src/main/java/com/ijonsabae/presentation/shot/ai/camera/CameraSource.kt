@@ -481,7 +481,7 @@ class CameraSource(
                     val feedbackCheckList: List<String>
 
                     if (poseAnalysisResults.solution.toString().startsWith("BACK")) {
-                        feedbackCheckListTitle = context.getString(R.string.down_feedback_title)
+                        feedbackCheckListTitle = context.getString(R.string.back_feedback_title)
                         feedbackCheckList =
                             context.resources.getStringArray(R.array.back_tip_list).toList()
                     } else if (poseAnalysisResults.solution.toString().startsWith("DOWN")) {
@@ -489,7 +489,7 @@ class CameraSource(
                         feedbackCheckList =
                             context.resources.getStringArray(R.array.down_tip_list).toList()
                     } else {
-                        feedbackCheckListTitle = context.getString(R.string.down_feedback_title)
+                        feedbackCheckListTitle = context.getString(R.string.good_feedback_title)
                         feedbackCheckList =
                             context.resources.getStringArray(R.array.good_tip_list).toList()
                     }
