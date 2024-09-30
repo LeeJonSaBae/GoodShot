@@ -8,6 +8,7 @@ import com.ijonsabae.domain.model.Profile
 import com.ijonsabae.domain.usecase.profile.GetPresignedURLUseCase
 import com.ijonsabae.domain.usecase.profile.GetProfileInfoUseCase
 import com.ijonsabae.domain.usecase.profile.LogoutUseCase
+import com.ijonsabae.domain.usecase.profile.UpdateProfileUseCase
 import com.ijonsabae.domain.usecase.profile.UploadProfileImageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -25,7 +26,8 @@ class ProfileViewModel @Inject constructor(
     private val getProfileInfoUseCase: GetProfileInfoUseCase,
     private val getPresignedURLUseCase: GetPresignedURLUseCase,
     private val uploadProfileImageUseCase: UploadProfileImageUseCase,
-    private val logoutUseCase: LogoutUseCase
+    private val logoutUseCase: LogoutUseCase,
+    private val updateProfileUseCase: UpdateProfileUseCase
 ) : ViewModel() {
 
     private val _profileInfo = MutableStateFlow<Profile?>(null)
@@ -33,6 +35,15 @@ class ProfileViewModel @Inject constructor(
 
     private val _presignedUrl = MutableStateFlow<String?>(null)
     val presignedUrl: StateFlow<String?> = _presignedUrl.asStateFlow()
+
+    private val _imageUrl = MutableStateFlow<String?>(null)
+    val imageUrl: StateFlow<String?> = _imageUrl.asStateFlow()
+
+    private val _isLogoutSucceed = MutableStateFlow<Int?>(null)
+    val isLogoutSucceed: StateFlow<Int?> = _isLogoutSucceed.asStateFlow()
+
+    private val _isUpdateProfileSucceed = MutableStateFlow<Int?>(null)
+    val isUpdateProfileSucceed: StateFlow<Int?> = _isUpdateProfileSucceed.asStateFlow()
 
     suspend fun getProfileInfo() {
         val result = getProfileInfoUseCase().getOrThrow()
@@ -43,11 +54,12 @@ class ProfileViewModel @Inject constructor(
 
         val result = getPresignedURLUseCase(imageExtension).getOrThrow()
         _presignedUrl.value = result.data.presignedUrl
+        _imageUrl.value = result.data.imageUrl
     }
 
     suspend fun uploadProfileImage(presignedUrl: String, image: Uri) {
         val result = uploadProfileImageUseCase(presignedUrl, URI(image.toString())).getOrThrow()
-        Log.d(TAG, "uploadProfileImage: result = ${result}")
+//        Log.d(TAG, "uploadProfileImage: result = ${result}")
 //        Toast.makeText(
 //            context,
 //            "uploadProfileImage() : etag = ${result.etag}, requestId = ${result.requestId}",
@@ -55,9 +67,15 @@ class ProfileViewModel @Inject constructor(
 //        ).show()
     }
 
-    suspend fun logout(): Int {
+    suspend fun logout() {
         val result = logoutUseCase().getOrThrow()
-        return result.code
+        _isLogoutSucceed.value = result.code
+    }
+
+    suspend fun updateProfile(image: String?) {
+        val result = updateProfileUseCase(image.toString()).getOrThrow()
+        _isUpdateProfileSucceed.value = result.code
+        Log.d(TAG, "updateProfile: result = ${result}")
     }
 
 }
