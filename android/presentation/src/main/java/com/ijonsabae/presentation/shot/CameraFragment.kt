@@ -88,12 +88,6 @@ class CameraFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         navController = Navigation.findNavController(binding.root)
-        // 스윙 상태에 따라 카메라 상태를 변경해주기 위해 옵저버 등록
-        navController.navigate(
-            CameraFragmentDirections.actionCameraToFeedbackDialog(
-                convertFeedBack(getSwingFeedBackUseCase().getOrThrow())
-            )
-        )
 
         initObservers()
         initTts()
@@ -455,6 +449,11 @@ class CameraFragment :
                     binding.indicatorProgress.visibility = View.GONE
 
                     // TODO: 결과 분석 다이얼로그 띄워 주기
+                    navController.navigate(
+                        CameraFragmentDirections.actionCameraToFeedbackDialog(
+                            convertFeedBack(getSwingFeedBackUseCase().getOrThrow())
+                        )
+                    )
 
                     // TODO: TTS로 문제점과 해결방안 두세문장 읽어주기
 //                    val feedback = swingViewModel.getWorstPoseAnalysisResult()?.let { result ->
