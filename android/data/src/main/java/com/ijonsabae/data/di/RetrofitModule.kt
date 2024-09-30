@@ -8,6 +8,7 @@ import com.ijonsabae.data.retrofit.ProfileService
 import com.ijonsabae.data.retrofit.RefreshTokenAuthorizationInterceptor
 import com.ijonsabae.data.retrofit.TokenInterceptor
 import com.ijonsabae.data.retrofit.TokenService
+import com.ijonsabae.data.retrofit.UploadImageService
 import com.ijonsabae.data.retrofit.UserService
 import com.ijonsabae.domain.repository.TokenRepository
 import dagger.Module
@@ -51,6 +52,16 @@ class RetrofitModule {
             .connectTimeout(5000, TimeUnit.MILLISECONDS)
             .addInterceptor(httpLoggingInterceptor)
             .addInterceptor(refreshTokenAuthorizationInterceptor)
+            .build()
+    }
+
+    @Provides
+    @Named("okhttp_client")
+    fun provideOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor, refreshTokenAuthorizationInterceptor: RefreshTokenAuthorizationInterceptor): OkHttpClient {
+        return OkHttpClient.Builder()
+            .readTimeout(5000, TimeUnit.MILLISECONDS)
+            .connectTimeout(5000, TimeUnit.MILLISECONDS)
+            .addInterceptor(httpLoggingInterceptor)
             .build()
     }
 
@@ -107,6 +118,23 @@ class RetrofitModule {
     }
 
     @Provides
+    @Named("no_interceptor_retrofit")
+    fun provideNoInterceptorRetrofit(
+        @Named("okhttp_client")client: OkHttpClient,
+        scalarsConverterFactory: ScalarsConverterFactory,
+        gsonConverterFactory: GsonConverterFactory,
+        resultCallAdapterFactory: ResultCallAdapterFactory
+    ): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(SERVER_IP)
+            .addConverterFactory(scalarsConverterFactory)
+            .addConverterFactory(gsonConverterFactory)
+            .addCallAdapterFactory(resultCallAdapterFactory)
+            .client(client)
+            .build()
+    }
+
+    @Provides
     fun provideProfileService(@Named("default_retrofit")retrofit: Retrofit): ProfileService {
         return retrofit.create(ProfileService::class.java)
     }
@@ -119,5 +147,10 @@ class RetrofitModule {
     @Provides
     fun provideTokenService(@Named("refresh_token_retrofit")retrofit: Retrofit): TokenService {
         return retrofit.create(TokenService::class.java)
+    }
+
+    @Provides
+    fun provideUploadImageServiceService(@Named("no_interceptor_retrofit")retrofit: Retrofit): UploadImageService {
+        return retrofit.create(UploadImageService::class.java)
     }
 }

@@ -3,6 +3,7 @@ package com.ijonsabae.presentation.profile
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ContentResolver
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -13,6 +14,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.MimeTypeMap
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
@@ -20,14 +22,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentProfileBinding
+import com.ijonsabae.presentation.login.LoginActivity
 import com.ijonsabae.presentation.main.MainActivity
-import com.ijonsabae.presentation.util.makeHeaderByAccessToken
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -45,7 +48,6 @@ class ProfileFragment :
                 val imageUri: Uri? = data?.data
 
                 if (imageUri != null) {
-                    // 선택한 이미지의 URI를 사용하여 크롭 시작
                     startCrop(imageUri)
                 } else {
                     Toast.makeText(requireContext(), "이미지를 선택할 수 없습니다.", Toast.LENGTH_SHORT).show()
@@ -55,19 +57,29 @@ class ProfileFragment :
     private val cropImage = registerForActivityResult(CropImageContract()) { result ->
         if (result.isSuccessful) {
             val croppedUri = result.uriContent
-            binding.ivProfileImg.setImageURI(croppedUri)  // 크롭된 이미지를 ImageView에 설정
+            if (croppedUri != null) {
+                setUserProfileImage(croppedUri)
+                lifecycleScope.launch(coroutineExceptionHandler) {
+                    // Presigned URL 받아오기
+                    val imageExtension =
+                        getImageExtension(requireContext().contentResolver, croppedUri)
+//                    Log.d(TAG, "확장자: $imageExtension")
+                    if (imageExtension != null) {
+                        profileViewModel.getPresignedURL(imageExtension)
+                    } else {
+                        Toast.makeText(requireContext(), "확장자가 없습니다!", Toast.LENGTH_SHORT).show()
+                    }
 
-            lifecycleScope.launch(coroutineExceptionHandler) {
-                profileViewModel.getPresignedURL(
-                    makeHeaderByAccessToken(myAccessToken), "png"
-                )
-                Log.d(
-                    TAG, "presignedURL = ${
-                        profileViewModel.getPresignedURL(
-                            makeHeaderByAccessToken(myAccessToken), "png"
-                        )
-                    }"
-                )
+                    // 프로필 이미지 upload
+                    profileViewModel.presignedUrl.collect { presignedUrl ->
+                        Log.d(TAG, "presignedUrl: $presignedUrl")
+                        presignedUrl?.let {
+                            profileViewModel.uploadProfileImage(
+                                presignedUrl, croppedUri
+                            )
+                        }
+                    }
+                }
             }
 
         } else {
@@ -82,12 +94,52 @@ class ProfileFragment :
             CropImageContractOptions(
                 uri = uri,
                 cropImageOptions = CropImageOptions(
-                    outputCompressFormat = Bitmap.CompressFormat.PNG // 원하는 옵션 추가
+                    outputCompressFormat = Bitmap.CompressFormat.PNG
                 )
             )
         )
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        getUserInfo()
+
+        return super.onCreateView(inflater, container, savedInstanceState)
+    }
+
+    private fun getUserInfo() {
+        lifecycleScope.launch(coroutineExceptionHandler) {
+            profileViewModel.getProfileInfo()
+
+            profileViewModel.profileInfo.collect { profileInfo ->
+                Log.d(TAG, "profileInfo: $profileInfo")
+                if (profileInfo != null) {
+                    setUserInfo(
+                        profileImgUrl = Uri.parse(profileInfo.profileUrl),
+                        name = profileInfo.name
+                    )
+                }
+            }
+        }
+    }
+
+    private fun setUserInfo(profileImgUrl: Uri, name: String) {
+        setUserProfileImage(profileImgUrl)
+        setUserProfileName(name)
+    }
+
+    private fun setUserProfileImage(profileImgUrl: Uri) {
+        Glide.with(this)
+            .load(profileImgUrl)
+            .into(binding.ivProfileImg)
+    }
+
+    private fun setUserProfileName(name: String) {
+        binding.tvName.text = name
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -106,6 +158,21 @@ class ProfileFragment :
 
         binding.layoutGoTotalReport.setOnClickListener {
             showTotalReport()
+        }
+
+        binding.layoutLogout.setOnClickListener {
+            lifecycleScope.launch {
+                val logoutResult = profileViewModel.logout()
+                if (logoutResult == 200) {
+                    Toast.makeText(requireContext(), "로그아웃 되었습니다!", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(requireContext(), LoginActivity::class.java).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    startActivity(intent)
+                    requireActivity().finish()
+                }
+            }
+
         }
 
         binding.layoutResign.setOnClickListener {
@@ -191,9 +258,15 @@ class ProfileFragment :
         }
     }
 
+    fun getImageExtension(contentResolver: ContentResolver, uri: Uri): String? {
+        val mimeType = contentResolver.getType(uri)
+
+        return MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
+    }
+
     companion object {
         private const val REQUEST_PERMISSION_CODE = 1001
         private const val myAccessToken =
-            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqaWh1bkBuYXZlci5jb20iLCJpYXQiOjE3MjczOTc1MTMsImVtYWlsIjoiamlodW5AbmF2ZXIuY29tIiwiZXhwIjoxNzI3NDAxMTEzfQ.ymMMMEw22ClLGlvfaSK7BF1fFbwT_qw-k8HLuT30wsk"
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0IiwiaWF0IjoxNzI3NDI1NTk4LCJlbWFpbCI6InRlc3QiLCJleHAiOjE3MzAwMTc1OTh9.tboPAOJ2e7J1D-BVU-RrE0b4eRF7rdkjTBk7MAZlWRA"
     }
 }

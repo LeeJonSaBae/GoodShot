@@ -143,6 +143,10 @@ class CameraSource(
     private var imageReaderHandler: Handler? = null
 
     private var backswingStartTime: Long = 0
+    private var backswingEndTime: Long = 0
+    private var downswingStartTime: Long = 0
+    private var downswingEndTime: Long = 0
+    private var isDownSwingEnd: Boolean = false
 
     private lateinit var surfaceView: SurfaceView
 
@@ -647,18 +651,12 @@ class CameraSource(
 
     private fun analyzeSwingTime(poses: List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>): SwingTiming {
         //이상적인 템포 비율은 약 3:1(백스윙:다운스윙)로 알려져 있지만, 개인의 스타일과 체형에 따라 다를 수 있다.
-
-        //1. 피니시, 임팩트, 탑스윙, 어드레스 ~ 테이크 어웨이 자세에 대한 Long값 추출
         val finishTime = poses[7].first.timestamp
-        val impactTime = poses[5].first.timestamp
-        val topTime =
-            poses[3].first.timestamp //TODO : 탑스윙 정지 시간에 대한 고려 해서 분석 시간 테스트 하기 [ ex) topStart, topEnd 구하기 ]
-        val addressTime = backswingStartTime
-        //2. 전체 스윙 시간, 백스윙, 다운스윙 추출
-        val backswingTime = topTime - addressTime
-        val downswingTime = impactTime - topTime
-        //3. 전체 스윙 시간, 백스윙 시간, 다운스윙 시간 반환
-        val totalSwingTime = finishTime - addressTime
+
+        val backswingTime = backswingEndTime - backswingStartTime
+        val downswingTime = downswingEndTime - downswingStartTime
+
+        val totalSwingTime = finishTime - backswingStartTime
 
         val tempoRatio = backswingTime.toDouble() / downswingTime.toDouble()
 
@@ -668,7 +666,6 @@ class CameraSource(
             totalSwingTime = totalSwingTime,
             tempoRatio = tempoRatio
         )
-
     }
 
     private fun validateSwingPose(poseIndices: Array<Int>): Boolean {
@@ -874,6 +871,11 @@ class CameraSource(
         minAddressGap = 100f
         manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
 
+        backswingStartTime = 0
+        backswingEndTime = 0
+        downswingStartTime = 0
+        downswingEndTime = 0
+        isDownSwingEnd = false
 
         for ((index, jointData) in jointDataList.withIndex()) {
             if (!modelChangeReady &&
@@ -985,6 +987,7 @@ class CameraSource(
             if (minImpactGap > impactGap) {
                 minImpactGap = impactGap
                 manualPoseIndexArray[5] = index
+                downswingEndTime = imageDataList[index].timestamp
             }
         }
     }
@@ -1017,6 +1020,7 @@ class CameraSource(
         val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
         val leftShoulderY = jointData[LEFT_SHOULDER.position].coordinate.y
         val noseX = jointData[NOSE.position].coordinate.x
+        val noseY = jointData[NOSE.position].coordinate.y
 
         if (leftWristY < leftShoulderY && leftWristX < noseX) {
             val noseWristGap = noseX - leftWristX
@@ -1025,6 +1029,15 @@ class CameraSource(
                 manualPoseIndexArray[3] = index
             }
         }
+
+        //코보다 왼손 높이가 커지는 시점을 갱신
+        if (leftWristY >= noseY && isDownSwingEnd == false) {
+            downswingStartTime = imageDataList[index - 2].timestamp
+            isDownSwingEnd = true
+        } else if (leftWristY < noseY && isDownSwingEnd) {
+            backswingEndTime = imageDataList[index - 2].timestamp
+        }
+
     }
 
 

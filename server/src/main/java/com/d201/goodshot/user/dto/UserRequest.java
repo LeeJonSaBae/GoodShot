@@ -52,4 +52,12 @@ public class UserRequest {
         private String email;
     }
 
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ProfileRequest {
+        private String profileUrl;
+    }
+
 }

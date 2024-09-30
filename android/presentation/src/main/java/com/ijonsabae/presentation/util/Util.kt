@@ -16,10 +16,5 @@ fun spToPx(sp: Float, context: Context): Float {
     )
 }
 
-fun makeHeaderByAccessToken(accessToken: String): String {
-    return "Bearer $accessToken"
-}
-
-
 
 

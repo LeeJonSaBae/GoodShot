@@ -56,6 +56,9 @@
             <action
                 android:id="@+id/action_shot_dialog_to_swing_example"
                 app:destination="@id/swing_example" />
+            <action
+                android:id="@+id/action_shot_dialog_to_camera"
+                app:destination="@id/camera" />
         </dialog>
 
         <fragment
@@ -81,7 +84,8 @@
                 android:id="@+id/action_camera_to_feedback_dialog"
                 app:destination="@id/feedback_dialog" />
         </fragment>
-        <dialog android:id="@+id/feedback_dialog"
+        <dialog
+            android:id="@+id/feedback_dialog"
             android:name="com.ijonsabae.presentation.shot.FeedbackDialog"
             tools:label="feedback dialog"
             tools:layout="@layout/dialog_feedback">
@@ -115,6 +119,7 @@
     <navigation
         android:id="@+id/profile_tab"
         app:startDestination="@id/profile">
+
         <fragment
             android:id="@+id/profile"
             android:name="com.ijonsabae.presentation.profile.ProfileFragment"

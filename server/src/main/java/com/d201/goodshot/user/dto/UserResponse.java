@@ -11,16 +11,9 @@ public class UserResponse {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class EmailResponse {
-        private boolean checkCode;
-    }
-
-    @Getter
-    @Builder
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class DuplicateResponse{
-        private boolean checkDuplicate;
+    public static class ProfileResponse{
+        String profileUrl;
+        String name;
     }
 
 }

@@ -5,9 +5,12 @@ import com.d201.goodshot.global.security.exception.InvalidTokenException;
 import com.d201.goodshot.global.security.util.TokenUtil;
 import com.d201.goodshot.user.domain.User;
 import com.d201.goodshot.user.dto.Auth;
+import com.d201.goodshot.user.dto.UserRequest;
 import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
 import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
-import com.d201.goodshot.user.dto.UserResponse.DuplicateResponse;
+import com.d201.goodshot.user.dto.UserRequest.ProfileRequest;
+import com.d201.goodshot.user.dto.UserResponse;
+import com.d201.goodshot.user.dto.UserResponse.ProfileResponse;
 import com.d201.goodshot.user.exception.*;
 import com.d201.goodshot.user.repository.RefreshTokenRepository;
 import com.d201.goodshot.user.repository.UserRepository;
@@ -165,9 +168,25 @@ public class UserService {
     }
 
     // 이메일 중복 확인
-    public DuplicateResponse checkDuplicateEmail(String email) {
-        return DuplicateResponse.builder()
-                .checkDuplicate(userRepository.existsByEmail(email))
+    public boolean checkDuplicateEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    // 내 프로필 조회
+    public ProfileResponse getProfile(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(NotFoundUserException::new);
+
+        return ProfileResponse
+                .builder()
+                .profileUrl(user.getProfileUrl())
+                .name(user.getName())
                 .build();
     }
+
+    // 내 프로필 수정
+    public void updateProfile(String email, ProfileRequest profileRequest) {
+        User user = userRepository.findByEmail(email).orElseThrow(NotFoundUserException::new);
+        user.updateProfileUrl(profileRequest.getProfileUrl());
+    }
+
 }

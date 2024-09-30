@@ -39,7 +39,7 @@
                     android:layout_height="match_parent"
                     android:adjustViewBounds="true"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/dummy_img" />
+                    tools:src="@drawable/dummy_img" />
 
             </androidx.cardview.widget.CardView>
 
@@ -63,13 +63,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="밍깅이"
                 android:textSize="23sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/profile_cardview"
-                app:layout_constraintVertical_bias="0" />
+                app:layout_constraintVertical_bias="0"
+                tools:text="밍깅이" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -104,6 +104,36 @@
                 app:layout_constraintTop_toTopOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
+        <!-- 로그아웃 버튼 -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layout_logout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/profile_rounded_button_password"
+            app:layout_constraintBottom_toTopOf="@id/layout_resign"
+            app:layout_constraintTop_toBottomOf="@id/layout_change_password">
+
+            <TextView
+                android:id="@+id/tv_logout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="로그아웃"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:adjustViewBounds="true"
+                android:src="@drawable/ic_go"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
         <!-- 회원 탈퇴 버튼 -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/layout_resign"
@@ -113,7 +143,7 @@
             android:layout_marginTop="20dp"
             android:background="@drawable/profile_rounded_button_password"
             app:layout_constraintBottom_toTopOf="@id/layout_go_total_report"
-            app:layout_constraintTop_toBottomOf="@id/layout_change_password">
+            app:layout_constraintTop_toBottomOf="@id/layout_logout">
 
             <TextView
                 android:id="@+id/tv_resign"

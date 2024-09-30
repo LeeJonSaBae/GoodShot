@@ -1,19 +1,63 @@
 package com.ijonsabae.presentation.profile
 
+import android.content.Context
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.ijonsabae.domain.usecase.profile.GetProfileImgUseCase
+import com.ijonsabae.domain.model.Profile
+import com.ijonsabae.domain.usecase.profile.GetPresignedURLUseCase
+import com.ijonsabae.domain.usecase.profile.GetProfileInfoUseCase
+import com.ijonsabae.domain.usecase.profile.LogoutUseCase
+import com.ijonsabae.domain.usecase.profile.UploadProfileImageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import java.net.URI
 import javax.inject.Inject
+
+private const val TAG = "굿샷_ProfileViewModel"
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val profileImgUseCase: GetProfileImgUseCase
+    @ApplicationContext private val context: Context,
+    private val getProfileInfoUseCase: GetProfileInfoUseCase,
+    private val getPresignedURLUseCase: GetPresignedURLUseCase,
+    private val uploadProfileImageUseCase: UploadProfileImageUseCase,
+    private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
 
-    suspend fun getPresignedURL(accessToken: String, imageExtension: String) {
-        val result = profileImgUseCase(accessToken, imageExtension).getOrThrow()
-        
-        val presignedURL = result.data.presignedUrl
-        val imageURL = result.data.imageUrl
+    private val _profileInfo = MutableStateFlow<Profile?>(null)
+    val profileInfo: StateFlow<Profile?> = _profileInfo.asStateFlow()
+
+    private val _presignedUrl = MutableStateFlow<String?>(null)
+    val presignedUrl: StateFlow<String?> = _presignedUrl.asStateFlow()
+
+    suspend fun getProfileInfo() {
+        val result = getProfileInfoUseCase().getOrThrow()
+        _profileInfo.value = Profile(profileUrl = result.data.profileUrl, name = result.data.name)
     }
+
+    suspend fun getPresignedURL(imageExtension: String) {
+
+        val result = getPresignedURLUseCase(imageExtension).getOrThrow()
+        _presignedUrl.value = result.data.presignedUrl
+    }
+
+    suspend fun uploadProfileImage(presignedUrl: String, image: Uri) {
+        val result = uploadProfileImageUseCase(presignedUrl, URI(image.toString())).getOrThrow()
+        Log.d(TAG, "uploadProfileImage: result = ${result}")
+//        Toast.makeText(
+//            context,
+//            "uploadProfileImage() : etag = ${result.etag}, requestId = ${result.requestId}",
+//            Toast.LENGTH_SHORT
+//        ).show()
+    }
+
+    suspend fun logout(): Int {
+        val result = logoutUseCase().getOrThrow()
+        return result.code
+    }
+
 }

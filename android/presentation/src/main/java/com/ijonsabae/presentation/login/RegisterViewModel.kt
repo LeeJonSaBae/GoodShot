@@ -1,9 +1,9 @@
 package com.ijonsabae.presentation.login
 
 import androidx.lifecycle.ViewModel
-import com.ijonsabae.domain.model.CheckCode
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.RegisterParam
+import com.ijonsabae.domain.usecase.login.CheckEmailDuplicatedUseCase
 import com.ijonsabae.domain.usecase.login.RegisterUseCase
 import com.ijonsabae.domain.usecase.login.RequestEmailAuthCodeUseCase
 import com.ijonsabae.domain.usecase.login.VerifyEmailAuthCodeUseCase
@@ -18,7 +18,8 @@ import javax.inject.Inject
 class RegisterViewModel @Inject constructor(
     private val registerUseCase: RegisterUseCase,
     private val requestEmailAuthCodeUseCase: RequestEmailAuthCodeUseCase,
-    private val verifyEmailAuthCodeUseCase:VerifyEmailAuthCodeUseCase
+    private val verifyEmailAuthCodeUseCase:VerifyEmailAuthCodeUseCase,
+    private val checkEmailDuplicatedUseCase: CheckEmailDuplicatedUseCase
 ) : ViewModel() {
     private val _name: MutableStateFlow<String> = MutableStateFlow("")
     val name: StateFlow<String>
@@ -48,7 +49,7 @@ class RegisterViewModel @Inject constructor(
         return requestEmailAuthCodeUseCase(email.value)
     }
 
-    suspend fun verifyAuthCode(): Result<CommonResponse<CheckCode>>{
+    suspend fun verifyAuthCode(): Result<CommonResponse<Boolean>>{
         return verifyEmailAuthCodeUseCase(email.value, authCode.value)
     }
 
@@ -118,10 +119,9 @@ class RegisterViewModel @Inject constructor(
         )
     }
 
-//    suspend fun setToken(token: Token) {
-//        _token.emit(token)
-//        setLocalTokenUseCase(token)
-//    }
+    suspend fun checkEmailDuplicated(): Result<CommonResponse<Boolean>>{
+        return checkEmailDuplicatedUseCase(email.value)
+    }
 
 
 }
