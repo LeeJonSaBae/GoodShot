@@ -9,7 +9,6 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
-import android.provider.OpenableColumns
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
@@ -58,13 +57,12 @@ class ProfileFragment :
         if (result.isSuccessful) {
             val croppedUri = result.uriContent
             if (croppedUri != null) {
-                binding.ivProfileImg.setImageURI(croppedUri)
-
+                setUserProfileImage(croppedUri)
                 lifecycleScope.launch(coroutineExceptionHandler) {
                     // Presigned URL 받아오기
                     val imageExtension =
                         getImageExtension(requireContext().contentResolver, croppedUri)
-                    Log.d(TAG, "확장자: $imageExtension")
+//                    Log.d(TAG, "확장자: $imageExtension")
                     if (imageExtension != null) {
                         profileViewModel.getPresignedURL(
                             makeHeaderByAccessToken(myAccessToken),
@@ -76,7 +74,7 @@ class ProfileFragment :
 
                     // 프로필 이미지 upload
                     profileViewModel.presignedUrl.collect { presignedUrl ->
-                        Log.d(TAG, "presignedUrl: $presignedUrl")
+//                        Log.d(TAG, "presignedUrl: $presignedUrl")
                         presignedUrl?.let {
                             profileViewModel.uploadProfileImage(
                                 presignedUrl, croppedUri
@@ -94,19 +92,6 @@ class ProfileFragment :
         }
     }
 
-    fun getFileNameFromUri(uri: Uri): String {
-        var fileName: String? = null
-        val cursor = requireContext().contentResolver.query(uri, null, null, null, null)
-
-        cursor?.use {
-            val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-            if (it.moveToFirst()) {
-                fileName = it.getString(nameIndex)
-            }
-        }
-
-        return fileName ?: ""
-    }
 
     private fun startCrop(uri: Uri) {
         cropImage.launch(
@@ -124,15 +109,37 @@ class ProfileFragment :
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        getUserInfo()
+        
         return super.onCreateView(inflater, container, savedInstanceState)
-        setUserInfo()
     }
 
-    private fun setUserInfo() {
-        setUserProfileImage()
+    private fun getUserInfo() {
+        lifecycleScope.launch(coroutineExceptionHandler) {
+            profileViewModel.getProfileInfo()
+
+            profileViewModel.profileInfo.collect { profileInfo ->
+                Log.d(TAG, "profileInfo: $profileInfo")
+                if (profileInfo != null) {
+                    setUserInfo(
+                        profileImgUrl = Uri.parse(profileInfo.profileUrl),
+                        name = profileInfo.name
+                    )
+                }
+            }
+        }
     }
 
-    private fun setUserProfileImage() {
+    private fun setUserInfo(profileImgUrl: Uri, name: String) {
+        setUserProfileImage(profileImgUrl)
+        setUserProfileName(name)
+    }
+
+    private fun setUserProfileImage(profileImgUrl: Uri) {
+        binding.ivProfileImg.setImageURI(profileImgUrl)
+    }
+
+    private fun setUserProfileName(name: String) {
 
     }
 
