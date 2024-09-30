@@ -81,15 +81,13 @@ class ProfileFragment :
                 }
             }
 
-
         } else {
             val error = result.error
             Toast.makeText(requireContext(), "Crop failed: ${error?.message}", Toast.LENGTH_SHORT)
                 .show()
         }
     }
-
-
+    
     private fun startCrop(uri: Uri) {
         cropImage.launch(
             CropImageContractOptions(
@@ -139,7 +137,7 @@ class ProfileFragment :
     }
 
     private fun setUserProfileName(name: String) {
-
+        binding.tvName.text = name
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -159,6 +157,17 @@ class ProfileFragment :
 
         binding.layoutGoTotalReport.setOnClickListener {
             showTotalReport()
+        }
+
+        binding.layoutLogout.setOnClickListener {
+            lifecycleScope.launch {
+                val logoutResult = profileViewModel.logout()
+                if (logoutResult == 200) {
+                    Toast.makeText(requireContext(), "로그아웃되었습니다!", Toast.LENGTH_SHORT).show()
+                    navController.navigate(R.id.action_logout)
+                }
+            }
+
         }
 
         binding.layoutResign.setOnClickListener {

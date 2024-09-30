@@ -2,9 +2,11 @@ package com.ijonsabae.data.di
 
 import com.ijonsabae.data.usecase.profile.GetProfileImgUseCaseImpl
 import com.ijonsabae.data.usecase.profile.GetProfileInfoUseCaseImpl
+import com.ijonsabae.data.usecase.profile.LogoutUseCaseImpl
 import com.ijonsabae.data.usecase.profile.UploadProfileImageUseCaseImpl
 import com.ijonsabae.domain.usecase.profile.GetPresignedURLUseCase
 import com.ijonsabae.domain.usecase.profile.GetProfileInfoUseCase
+import com.ijonsabae.domain.usecase.profile.LogoutUseCase
 import com.ijonsabae.domain.usecase.profile.UploadProfileImageUseCase
 import dagger.Binds
 import dagger.Module
@@ -22,4 +24,7 @@ abstract class ProfileModule {
 
     @Binds
     abstract fun bindGetProfileInfoUseCase(uc: GetProfileInfoUseCaseImpl): GetProfileInfoUseCase
+
+    @Binds
+    abstract fun bindLogoutUseCase(uc: LogoutUseCaseImpl): LogoutUseCase
 }

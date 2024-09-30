@@ -84,7 +84,8 @@
                 android:id="@+id/action_camera_to_feedback_dialog"
                 app:destination="@id/feedback_dialog" />
         </fragment>
-        <dialog android:id="@+id/feedback_dialog"
+        <dialog
+            android:id="@+id/feedback_dialog"
             android:name="com.ijonsabae.presentation.shot.FeedbackDialog"
             tools:label="feedback dialog"
             tools:layout="@layout/dialog_feedback">
@@ -118,6 +119,8 @@
     <navigation
         android:id="@+id/profile_tab"
         app:startDestination="@id/profile">
+        <include app:graph="@navigation/login_navigation_graph" />
+        
         <fragment
             android:id="@+id/profile"
             android:name="com.ijonsabae.presentation.profile.ProfileFragment"
@@ -126,6 +129,9 @@
             <action
                 android:id="@+id/action_profile_to_totalReport"
                 app:destination="@id/profile_total_report" />
+            <action
+                android:id="@+id/action_logout"
+                app:destination="@id/login" />
         </fragment>
 
         <fragment

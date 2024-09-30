@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.ijonsabae.domain.model.Profile
 import com.ijonsabae.domain.usecase.profile.GetPresignedURLUseCase
 import com.ijonsabae.domain.usecase.profile.GetProfileInfoUseCase
+import com.ijonsabae.domain.usecase.profile.LogoutUseCase
 import com.ijonsabae.domain.usecase.profile.UploadProfileImageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -23,7 +24,8 @@ class ProfileViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val getProfileInfoUseCase: GetProfileInfoUseCase,
     private val getPresignedURLUseCase: GetPresignedURLUseCase,
-    private val uploadProfileImageUseCase: UploadProfileImageUseCase
+    private val uploadProfileImageUseCase: UploadProfileImageUseCase,
+    private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
 
     private val _profileInfo = MutableStateFlow<Profile?>(null)
@@ -53,5 +55,9 @@ class ProfileViewModel @Inject constructor(
 //        ).show()
     }
 
+    suspend fun logout(): Int {
+        val result = logoutUseCase().getOrThrow()
+        return result.code
+    }
 
 }

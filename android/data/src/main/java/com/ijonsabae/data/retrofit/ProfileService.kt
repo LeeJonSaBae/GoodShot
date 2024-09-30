@@ -25,4 +25,7 @@ interface ProfileService {
         @Url presignedURL: String,
         @Body image: RequestBody
     ): Result<Int>
+
+    @POST("users/logout")
+    suspend fun logout(): Result<CommonResponse<String?>>
 }
