@@ -2,4 +2,25 @@
     <string name="app_name">GoodShot</string>
     <string name="home_youtube_link"><u>자세히 보러가기</u></string>
     <string name="resign"><u>회원탈퇴</u></string>
+    <string name="back_feedback_title">올바른 백스윙 자세를 확인하실 때는 간단히 다음 항목들을 확인해 보세요.</string>
+    <string name="down_feedback_title">올바른 다운스윙 자세를 확인하실 때는 간단히 다음 항목들을 확인해 보세요.</string>
+    <string name="good_feedback_title">지금처럼 일관된 자세를 유지하고 싶다면 간단히 다음 항목들을 확인해 보세요.</string>
+    <string-array name="back_tip_list">
+        <item>어드레스부터 백스윙 탑까지 상하체 간격 유지하기</item>
+        <item>어깨 회전과 팔을 함께 사용해 백스윙 탑 만들기</item>
+        <item>척추 각도는 어드레스와 같은 상태로 유지하기</item>
+        <item>백스윙 탑에서 손목과 클럽페이스가 같은 방향을 바라보도록 하고 손등 펴기</item>
+    </string-array>
+    <string-array name="down_tip_list">
+        <item>뒷축 발의 체중을 다운스윙과 함께 앞축 발로 부드럽게 이동시키기</item>
+        <item>백스윙 탑에서 만들어진 손목 각도를 임팩트 직전까지 유지하기</item>
+        <item>뒷쪽 팔꿈치를 옆구리에 붙여 일정한 스윙궤도 유지하기</item>
+        <item>임팩트 시 몸이 열리지 않고 엉덩이와 어깨가 타겟 라인과 평행을 이루는지 확인하기</item>
+    </string-array>
+    <string-array name="good_tip_list">
+        <item>백스윙은 너무 서두르지 말고 천천히 시작하기</item>
+        <item>백스윙에서 어깨를 충분히 회전시키고 체중을 자연스럽게 뒷발로 이동시키기</item>
+        <item>다운스윙 시작 시 상체가 먼저 움직이지 않도록 하체부터 리드하기</item>
+        <item>다운스윙 중 손목을 너무 빨리 풀지 말고 임팩트 순간까지 유지하기</item>
+    </string-array>
 </resources>

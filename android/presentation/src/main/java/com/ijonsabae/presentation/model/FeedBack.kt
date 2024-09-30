@@ -9,20 +9,18 @@ data class FeedBack(
     val down: Float,
     val tempo: Float,
     val back: Float,
-    val feedBackProblem: String,
     val feedBackSolution: String,
     val feedBackCheckListTitle: String,
     val feedBackCheckList: List<String>
 ) : Parcelable
 
-fun convertFeedBack(feedBack: FeedBack) : com.ijonsabae.presentation.model.FeedBack{
+fun convertFeedBack(feedBack: FeedBack): com.ijonsabae.presentation.model.FeedBack {
     return com.ijonsabae.presentation.model.FeedBack(
-        down =  feedBack.down,
+        down = feedBack.down,
         tempo = feedBack.tempo,
         back = feedBack.back,
-        feedBackProblem =  feedBack.feedBackProblem,
-        feedBackSolution =  feedBack.feedBackSolution,
+        feedBackSolution = feedBack.feedBackSolution,
         feedBackCheckListTitle = feedBack.feedBackCheckListTitle,
-        feedBackCheckList =  feedBack.feedBackCheckList
+        feedBackCheckList = feedBack.feedBackCheckList
     )
 }
