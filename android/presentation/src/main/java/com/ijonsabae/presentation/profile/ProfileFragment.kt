@@ -65,7 +65,6 @@ class ProfileFragment :
 //                    Log.d(TAG, "확장자: $imageExtension")
                     if (imageExtension != null) {
                         profileViewModel.getPresignedURL(
-                            makeHeaderByAccessToken(myAccessToken),
                             imageExtension
                         )
                     } else {
@@ -212,7 +211,7 @@ class ProfileFragment :
 
     private fun checkPermissionAndOpenGallery() {
         // 권한 체크 후 갤러리 열기
-        if (requireContext().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+        if (requireContext().checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED) {
             openGallery()
         } else {
             requestPermissions(

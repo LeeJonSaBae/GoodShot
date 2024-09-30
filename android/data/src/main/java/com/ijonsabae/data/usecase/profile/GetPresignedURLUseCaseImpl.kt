@@ -13,13 +13,11 @@ class GetProfileImgUseCaseImpl @Inject constructor(
 ) : GetPresignedURLUseCase {
 
     override suspend operator fun invoke(
-        accessToken: String,
         imageExtension: String
     ): Result<CommonResponse<PresignedURL>> {
         
         val requestBody = PresignedURLParam(imageExtension = imageExtension)
         return profileService.getProfilePresignedURL(
-            accessToken = accessToken,
             requestBody = requestBody
         )
 

@@ -3,6 +3,7 @@ package com.ijonsabae.data.usecase.profile
 import android.content.Context
 import android.net.Uri
 import com.ijonsabae.data.retrofit.ProfileService
+import com.ijonsabae.data.retrofit.UploadImageService
 import com.ijonsabae.domain.model.UploadProfileResponse
 import com.ijonsabae.domain.usecase.profile.UploadProfileImageUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -15,7 +16,7 @@ import javax.inject.Inject
 private const val TAG = "굿샷_UploadProfileImageUseCa"
 
 class UploadProfileImageUseCaseImpl @Inject constructor(
-    private val profileService: ProfileService,
+    private val uploadImageService: UploadImageService,
     @ApplicationContext private val context: Context
 ) : UploadProfileImageUseCase {
 
@@ -25,7 +26,7 @@ class UploadProfileImageUseCaseImpl @Inject constructor(
     ): Result<UploadProfileResponse> {
         val requestBody = createRequestBodyFromUri(imageURI)
 
-        return profileService.uploadProfileImage(presignedUrl, requestBody)
+        return uploadImageService.uploadProfileImage(presignedUrl, requestBody)
     }
 
     private fun createRequestBodyFromUri(uri: URI): RequestBody {

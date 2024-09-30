@@ -6,7 +6,6 @@ import com.ijonsabae.domain.model.PresignedURL
 interface GetPresignedURLUseCase {
 
     suspend operator fun invoke(
-        accessToken: String,
         imageExtension: String
     ): Result<CommonResponse<PresignedURL>>
 }

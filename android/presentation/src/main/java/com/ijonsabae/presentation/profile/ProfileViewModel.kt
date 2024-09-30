@@ -37,9 +37,9 @@ class ProfileViewModel @Inject constructor(
         _profileInfo.value = Profile(profileUrl = result.data.profileUrl, name = result.data.name)
     }
 
-    suspend fun getPresignedURL(accessToken: String, imageExtension: String) {
+    suspend fun getPresignedURL(imageExtension: String) {
 
-        val result = getPresignedURLUseCase(accessToken, imageExtension).getOrThrow()
+        val result = getPresignedURLUseCase(imageExtension).getOrThrow()
         _presignedUrl.value = result.data.presignedUrl
     }
 
