@@ -13,7 +13,6 @@ import com.ijonsabae.presentation.main.MainActivity
 
 class ShotFragment :
     BaseFragment<FragmentShotBinding>(FragmentShotBinding::bind, R.layout.fragment_shot) {
-    private lateinit var navController: NavController
     private val mDataList =
         arrayListOf("정답 스윙 자세 영상 시청", "카메라 세팅", "스윙 촬영 및 실시간 음성 피드백", "스윙 분석 결과 확인")
 
@@ -21,7 +20,6 @@ class ShotFragment :
         super.onViewCreated(view, savedInstanceState)
         (fragmentContext as MainActivity).showAppBar("스윙 촬영")
 
-        navController = Navigation.findNavController(binding.root)
         binding.cvBtnCamera.setOnClickListener {
             navController.navigate(R.id.action_shot_to_shot_dialog)
         }

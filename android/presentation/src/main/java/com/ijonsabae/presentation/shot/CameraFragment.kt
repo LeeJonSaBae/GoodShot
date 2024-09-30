@@ -59,7 +59,6 @@ private const val TAG = "CameraFragment_싸피"
 @AndroidEntryPoint
 class CameraFragment :
     BaseFragment<FragmentCameraBinding>(FragmentCameraBinding::bind, R.layout.fragment_camera) {
-    private lateinit var navController: NavController
 
     @Inject
     lateinit var foldingStateActor: FoldingStateActor
@@ -89,13 +88,6 @@ class CameraFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         navController = Navigation.findNavController(binding.root)
-        // 스윙 상태에 따라 카메라 상태를 변경해주기 위해 옵저버 등록
-        navController = findNavController()
-        navController.navigate(
-            CameraFragmentDirections.actionCameraToFeedbackDialog(
-                convertFeedBack(getSwingFeedBackUseCase().getOrThrow())
-            )
-        )
 
         initObservers()
         initTts()
@@ -175,7 +167,7 @@ class CameraFragment :
                             Log.d("CameraAnalyzer", "Current FPS: ${fps.roundToInt()}")
                         }
 
-                        // TODO: 카메라 전면 후면, 좌타 우타 여부 동적으로 넣어주기, 카메라 전환 버튼 빼기, 사용자의 옵션 선택에 따라 카메라 방향 전환해서 보여주기
+                        // TODO: 좌타 우타 여부 동적으로 넣어주기
 //                         isSelf = true
 //                        isLeft = false
 
@@ -455,16 +447,24 @@ class CameraFragment :
                     binding.tvAnalyzing.visibility = View.GONE
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
-                    val feedback = swingViewModel.getWorstPoseAnalysisResult()?.let { result ->
-                        if (result.feedbacks.isNotEmpty()) {
-                            result.feedbacks.random().comment
-                        } else {
-                            "이 포즈에 대한 피드백이 없습니다."
-                        }
-                    } ?: "분석 결과가 없습니다."
-                    binding.tvResultSubHeader.text = feedback
 
-                    tts?.speak(feedback, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
+                    // TODO: 결과 분석 다이얼로그 띄워 주기
+                    navController.navigate(
+                        CameraFragmentDirections.actionCameraToFeedbackDialog(
+                            convertFeedBack(getSwingFeedBackUseCase().getOrThrow())
+                        )
+                    )
+
+                    // TODO: TTS로 문제점과 해결방안 두세문장 읽어주기
+//                    val feedback = swingViewModel.getWorstPoseAnalysisResult()?.let { result ->
+//                        if (result.feedbacks.isNotEmpty()) {
+//                            result.feedbacks.random().comment
+//                        } else {
+//                            "이 포즈에 대한 피드백이 없습니다."
+//                        }
+//                    } ?: "분석 결과가 없습니다."
+//                    binding.tvResultSubHeader.text = feedback
+//                    tts?.speak(feedback, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
 
                     binding.tvCircleTempo.text = swingViewModel.tempoRatioText
                     binding.tvCircleBackswing.text = swingViewModel.backswingTimeText

@@ -56,6 +56,9 @@
             <action
                 android:id="@+id/action_shot_dialog_to_swing_example"
                 app:destination="@id/swing_example" />
+            <action
+                android:id="@+id/action_shot_dialog_to_camera"
+                app:destination="@id/camera" />
         </dialog>
 
         <fragment
