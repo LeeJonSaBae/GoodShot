@@ -70,6 +70,7 @@ class FeedbackDialog :
                 tvBack.text = back.toString()
                 tvDown.text = down.toString()
 
+                tvCheckListTitle.text = feedBackCheckListTitle
                 tvFeedbackSolution.text = feedBackSolution
             }
         }
