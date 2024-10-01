@@ -128,6 +128,8 @@ class CameraSource(
     private lateinit var imageDataList: List<TimestampedData<Bitmap>>
     private var manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
 
+    private var resultSkipMotionStartTime : Long = 0L //스윙결과 스킵 동작을 인식하기 위한 변수
+
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
     private var frameProcessedInOneSecondInterval = 0
     private var framesPerSecond = 1
@@ -389,11 +391,27 @@ class CameraSource(
     private fun processDetectedInfo(
         person: Person,
     ) {
-        // 결과 분석 보여주는 동안은 이미지 처리 안함
-        if (stopAnalizePose) return
 
         val keyPoints = person.keyPoints
 
+        // 결과 분석 보여주는 동안은 이미지 처리 안함
+        /**
+         * 1. 상태가 RESULT일 때 상태를 호출하는 경우로 변경하기
+         */
+//        if (stopAnalizePose) return
+        if (getCurrentCameraState() == RESULT) {
+            /**
+             * 1. 왼손목-왼팔꿈치가 왼쪽 일자로 펴진 경우를 감지하고 (170~190도) 이때의 시간을 전역변수에 갱신한다.
+             * 2. 완손목-왼팔꿈치가 오른쪽 일자로 펴진 경우를 감지하고 (-10~10도) 이때의 시간이 1.0초 이내면
+             *  RESULT 다이얼로그를 종료하고 어드레스 자세 잡기 상태로 변경
+             * */
+            if (checkResultSkipMotion(keyPoints)) {
+                // TODO: 문현 2. SKIP 인식되면 다이얼로그 닫고 (dismiss 참고) ADDRESS 상태로 변경
+                setCurrentCameraState(ADDRESS)
+                // TODO: 문현 3. 다이얼로그 X버튼 누르면 어드레스 상태로 이동 (byactivityviewmodels 참고)
+            }
+
+        }
         // 스윙 피니쉬가 인식된 시점부터 5프레임 더 받기
         if (getCurrentCameraState() == ANALYZING && pelvisTwisting) {
             if (swingFrameCount < 5) {
@@ -538,6 +556,7 @@ class CameraSource(
 
                     // TODO: 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
                     setCurrentCameraState(RESULT)
+                    resultSkipMotionStartTime = 0L //스킵 동작 탐지를 위한 변수 초기화
 
                     // TODO: 다이얼로그가 닫히는 순간 stopAnalizePose, swingViewModel.currentState 바꿔주기
 
@@ -603,9 +622,8 @@ class CameraSource(
         else {
             setCurrentCameraState(SWING)
         }
-        // TODO: 문현 1. RESULT 상태일 때 SKIP 인식하게 만든다.
-        // TODO: 문현 2. SKIP 인식되면 다이얼로그 닫고 (dismiss 참고) ADDRESS 상태로 변경
-        // TODO: 문현 3. 다이얼로그 X버튼 누르면 어드레스 상태로 이동 (byactivityviewmodels 참고)
+
+
     }
 
     private fun classifyPoseScores(poseIndices: List<List<KeyPoint>>): List<Float> {
@@ -1125,5 +1143,36 @@ class CameraSource(
                 }
             }
         }
+    }
+
+    private fun checkResultSkipMotion(jointData: List<KeyPoint>) : Boolean{
+        val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
+        val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
+        val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
+        val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
+
+        val deltaX = leftElbowX - leftWristX
+        val deltaY = leftWristY - leftElbowY
+
+        val angleRadians = atan2(deltaY, deltaX)
+        val angleDegrees = Math.toDegrees(angleRadians.toDouble())
+
+
+        val currentTime = System.currentTimeMillis()
+
+        if (leftWristX > leftElbowX) {
+            val wristElbowDegreeGap = abs(180.0 - angleDegrees).toFloat()
+            if (wristElbowDegreeGap < 10.0) {
+                resultSkipMotionStartTime = currentTime
+            }
+        } else if (leftWristX < leftElbowX) {
+            val wristElbowDegreeGap = abs(0.0 - angleDegrees).toFloat()
+            if (wristElbowDegreeGap < 10.0) {
+                if (currentTime - resultSkipMotionStartTime < 1000) {
+                    return true
+                }
+            }
+        }
+        return false
     }
 }
