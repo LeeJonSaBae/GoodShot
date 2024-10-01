@@ -63,7 +63,7 @@ class ProfileFragment :
                     // Presigned URL 받아오기
                     val imageExtension =
                         getImageExtension(requireContext().contentResolver, croppedUri)
-//                    Log.d(TAG, "확장자: $imageExtension")
+                    Log.d(TAG, "확장자: $imageExtension")
                     if (imageExtension != null) {
                         profileViewModel.getPresignedURL(imageExtension)
                     } else {
@@ -74,12 +74,25 @@ class ProfileFragment :
                     profileViewModel.presignedUrl.collect { presignedUrl ->
                         Log.d(TAG, "presignedUrl: $presignedUrl")
                         presignedUrl?.let {
-                            profileViewModel.uploadProfileImage(
-                                presignedUrl, croppedUri
-                            )
+                            profileViewModel.uploadProfileImage(presignedUrl, croppedUri)
+                            profileViewModel.imageUrl.collect { imageUrl ->
+                                profileViewModel.updateProfile(imageUrl)
+                                profileViewModel.isUpdateProfileSucceed.collect { result ->
+                                    if (result == 200) {
+                                        Toast.makeText(
+                                            requireContext(),
+                                            "프로필 수정이 완료되었습니다!",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            }
                         }
                     }
+
+
                 }
+
             }
 
         } else {
@@ -162,17 +175,19 @@ class ProfileFragment :
 
         binding.layoutLogout.setOnClickListener {
             lifecycleScope.launch {
-                val logoutResult = profileViewModel.logout()
-                if (logoutResult == 200) {
-                    Toast.makeText(requireContext(), "로그아웃 되었습니다!", Toast.LENGTH_SHORT).show()
-                    val intent = Intent(requireContext(), LoginActivity::class.java).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                profileViewModel.logout()
+
+                profileViewModel.isLogoutSucceed.collect { result ->
+                    if (result == 200) {
+                        Toast.makeText(requireContext(), "로그아웃 되었습니다!", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(requireContext(), LoginActivity::class.java).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(intent)
+                        requireActivity().finish()
                     }
-                    startActivity(intent)
-                    requireActivity().finish()
                 }
             }
-
         }
 
         binding.layoutResign.setOnClickListener {

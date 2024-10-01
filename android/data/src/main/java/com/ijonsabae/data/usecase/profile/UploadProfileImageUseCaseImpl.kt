@@ -3,7 +3,6 @@ package com.ijonsabae.data.usecase.profile
 import android.content.Context
 import android.net.Uri
 import com.ijonsabae.data.retrofit.UploadImageService
-import com.ijonsabae.domain.model.UploadProfileResponse
 import com.ijonsabae.domain.usecase.profile.UploadProfileImageUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -22,7 +21,7 @@ class UploadProfileImageUseCaseImpl @Inject constructor(
     override suspend fun invoke(
         presignedUrl: String,
         imageURI: URI
-    ): Result<UploadProfileResponse> {
+    ): Result<Unit> {
         val requestBody = createRequestBodyFromUri(imageURI)
         return uploadImageService.uploadProfileImage(presignedUrl, requestBody)
 //        val result = profileService.uploadProfileImage(presignedUrl, requestBody)
