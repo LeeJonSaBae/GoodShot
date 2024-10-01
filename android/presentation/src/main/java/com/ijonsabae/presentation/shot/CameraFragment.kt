@@ -36,6 +36,7 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentCameraBinding
 import com.ijonsabae.presentation.main.MainActivity
+import com.ijonsabae.presentation.model.FeedBack
 import com.ijonsabae.presentation.model.convertFeedBack
 import com.ijonsabae.presentation.shot.CameraState.ADDRESS
 import com.ijonsabae.presentation.shot.CameraState.AGAIN
@@ -448,27 +449,17 @@ class CameraFragment :
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
 
-                    // TODO: 결과 분석 다이얼로그 띄워 주기
-                    navController.navigate(
-                        CameraFragmentDirections.actionCameraToFeedbackDialog(
-                            convertFeedBack(getSwingFeedBackUseCase().getOrThrow())
+                    // TODO: 결과 분석 띄우기 말기 눌렀으면 보여주지 말기
+                    // 결과 분석 다이얼로그 띄워 주고
+                    swingViewModel.getFeedBack()?.let {
+                        navController.navigate(
+                            CameraFragmentDirections.actionCameraToFeedbackDialog(
+                                it
+                            )
                         )
-                    )
 
-                    // TODO: TTS로 문제점과 해결방안 두세문장 읽어주기
-//                    val feedback = swingViewModel.getWorstPoseAnalysisResult()?.let { result ->
-//                        if (result.feedbacks.isNotEmpty()) {
-//                            result.feedbacks.random().comment
-//                        } else {
-//                            "이 포즈에 대한 피드백이 없습니다."
-//                        }
-//                    } ?: "분석 결과가 없습니다."
-//                    binding.tvResultSubHeader.text = feedback
-//                    tts?.speak(feedback, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
-
-                    binding.tvCircleTempo.text = swingViewModel.tempoRatioText
-                    binding.tvCircleBackswing.text = swingViewModel.backswingTimeText
-                    binding.tvCircleDownswing.text = swingViewModel.downswingTimeText
+                        tts?.speak(it.feedBackSolution, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
+                    }
 
                     text = "스윙 분석 결과"
                     color = ContextCompat.getColor(fragmentContext, R.color.black)
@@ -496,8 +487,7 @@ class CameraFragment :
                 fragmentContext,
                 { swingViewModel.currentState.value },
                 { cameraState -> swingViewModel.setCurrentState(cameraState) },
-                { swingTiming -> swingViewModel.updateSwingTiming(swingTiming) },
-                { poseAnalysisResultsList -> swingViewModel.setPoseAnalysisResults(poseAnalysisResultsList) },
+                { feedback -> swingViewModel.setFeedBack(feedback) },
             )
             cameraSource.setSurfaceView(binding.camera)
         }

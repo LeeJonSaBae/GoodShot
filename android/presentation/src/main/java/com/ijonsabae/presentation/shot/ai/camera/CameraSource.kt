@@ -34,6 +34,8 @@ import android.util.Log
 import android.view.PixelCopy
 import android.view.SurfaceView
 import androidx.annotation.RequiresApi
+import com.ijonsabae.presentation.R
+import com.ijonsabae.presentation.model.FeedBack
 import com.ijonsabae.presentation.shot.CameraState
 import com.ijonsabae.presentation.shot.CameraState.ADDRESS
 import com.ijonsabae.presentation.shot.CameraState.AGAIN
@@ -101,8 +103,7 @@ class CameraSource(
     @ApplicationContext private val context: Context,
     private val getCurrentCameraState: () -> CameraState?,
     private val setCurrentCameraState: (cameraState: CameraState) -> Unit,
-    private val updateSwingTiming: (swingTiming: SwingTiming) -> Unit,
-    private val setPoseAnalysisResults: (PoseAnalysisResult) -> Unit,
+    private val setFeedback: (FeedBack) -> Unit,
 ) : CameraSourceListener {
     private var lock = Any()
     private var classifier4: PoseClassifier? = null
@@ -451,7 +452,22 @@ class CameraSource(
 //                    }
 
                     // 템포, 백스윙, 다운스윙 시간 분석하기
-                    updateSwingTiming(analyzeSwingTime(swingData))
+                    val swingTiming = analyzeSwingTime(swingData)
+                    val backswingTime =
+                        String.format(
+                            Locale.getDefault(),
+                            "%.2f",
+                            swingTiming.backswingTime / 1000.0
+                        ).toFloat()
+                    val downswingTime =
+                        String.format(
+                            Locale.getDefault(),
+                            "%.2f",
+                            swingTiming.downswingTime / 1000.0
+                        ).toFloat()
+                    val tempoRatio =
+                        String.format(Locale.getDefault(), "%.2f", swingTiming.tempoRatio)
+                            .toFloat()
 
                     // 백스윙, 탑스윙 피드백 체크하기
                     val preciseIndices = swingData.map { it.third }
@@ -465,7 +481,34 @@ class CameraSource(
                     )
                     Log.d("분석결과", "$poseAnalysisResults")
 
-                    setPoseAnalysisResults(poseAnalysisResults)
+                    val feedbackCheckListTitle: String
+                    val feedbackCheckList: List<String>
+
+                    if (poseAnalysisResults.solution.toString().startsWith("BACK")) {
+                        feedbackCheckListTitle = context.getString(R.string.back_feedback_title)
+                        feedbackCheckList =
+                            context.resources.getStringArray(R.array.back_tip_list).toList()
+                    } else if (poseAnalysisResults.solution.toString().startsWith("DOWN")) {
+                        feedbackCheckListTitle = context.getString(R.string.down_feedback_title)
+                        feedbackCheckList =
+                            context.resources.getStringArray(R.array.down_tip_list).toList()
+                    } else {
+                        feedbackCheckListTitle = context.getString(R.string.good_feedback_title)
+                        feedbackCheckList =
+                            context.resources.getStringArray(R.array.good_tip_list).toList()
+                    }
+
+
+                    // 뷰모델에 피드백 담기
+                    val feedBack = FeedBack(
+                        downswingTime,
+                        tempoRatio,
+                        backswingTime,
+                        poseAnalysisResults.solution.getSolution(true), // TODO: 좌타 우타 여부 동적으로 넣어주기
+                        feedbackCheckListTitle,
+                        feedbackCheckList
+                    )
+                    setFeedback(feedBack)
 
                     // 8개의 베스트 포즈에 대한 비트맵을 갤러리에 저장
 //                    poseAnalysisResults.forEachIndexed { idx, result ->
@@ -487,7 +530,7 @@ class CameraSource(
 //                        }
 //                    }
 
-                    // 영상 만들기
+                    // 영상 만들기`
                     convertBitmapsToVideo(actualSwingIndices)
 
                     // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) 룸에 저장하기

@@ -9,8 +9,7 @@ class GetSwingFeedBackUseCaseImpl @Inject constructor() : GetSwingFeedBackUseCas
         down = 0.40F,
         tempo = 1.67F,
         back = 0.67F,
-        feedBackProblem = "백스윙 시 상체가 너무 크게 들렸어요.",
-        feedBackSolution = "백스윙 크기를 줄이는 연습이 필요합니다!",
+        feedBackSolution = "백스윙 시 상체가 너무 크게 들렸어요. 백스윙 크기를 줄이는 연습이 필요합니다!",
         feedBackCheckListTitle = "올바른 백스윙 자세를 확인하실 떄는 간단히 다음 항목들을 확인해보세요.",
         feedBackCheckList = listOf(
             "어드레스부터 백스윙 탑까지 상하체 간격 유지하기",
