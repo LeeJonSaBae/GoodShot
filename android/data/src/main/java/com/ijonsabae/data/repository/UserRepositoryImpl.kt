@@ -13,6 +13,10 @@ class UserRepositoryImpl @Inject constructor(private val userRemoteDataSource: U
         return userRemoteDataSource.login(loginParam)
     }
 
+    override suspend fun logout(): Result<CommonResponse<Unit>> {
+        return userRemoteDataSource.logout()
+    }
+
     override suspend fun join(registerParam: RegisterParam): Result<CommonResponse<Unit>> {
         return userRemoteDataSource.join(registerParam)
     }
@@ -35,4 +39,6 @@ class UserRepositoryImpl @Inject constructor(private val userRemoteDataSource: U
     ): Result<CommonResponse<Unit>> {
         return userRemoteDataSource.generateTemporaryPassWord(name, email)
     }
+
+
 }

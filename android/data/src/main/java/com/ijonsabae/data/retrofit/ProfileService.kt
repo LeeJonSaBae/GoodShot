@@ -19,9 +19,6 @@ interface ProfileService {
         @Body requestBody: PresignedURLParam
     ): Result<CommonResponse<PresignedURL>>
 
-    @POST("users/logout")
-    suspend fun logout(): Result<CommonResponse<Unit>>
-
     @PUT("users/profile")
     suspend fun updateProfile(
         @Body requestBody: UpdateProfileParam
