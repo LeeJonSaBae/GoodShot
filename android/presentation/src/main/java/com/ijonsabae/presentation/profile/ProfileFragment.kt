@@ -63,7 +63,7 @@ class ProfileFragment :
                     // Presigned URL 받아오기
                     val imageExtension =
                         getImageExtension(requireContext().contentResolver, croppedUri)
-//                    Log.d(TAG, "확장자: $imageExtension")
+                    Log.d(TAG, "확장자: $imageExtension")
                     if (imageExtension != null) {
                         profileViewModel.getPresignedURL(imageExtension)
                     } else {
