@@ -153,13 +153,13 @@
                 android:layout_height="2dp"
                 android:background="@color/divider_color"
                 app:layout_constraintTop_toBottomOf="@id/tv_career_title"
-                app:layout_constraintBottom_toTopOf="@id/tv_expertise_title"
+                app:layout_constraintBottom_toTopOf="@id/tv_phone_number_title"
                 />
             <TextView
-                android:id="@+id/tv_expertise_title"
+                android:id="@+id/tv_phone_number_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="전문"
+                android:text="연락처"
                 android:textColor="@color/black"
                 android:textSize="18sp"
                 android:fontFamily="@font/pretendard_semibold"
@@ -167,11 +167,11 @@
                 app:layout_constraintTop_toBottomOf="@id/divider1"
                 app:layout_constraintBottom_toTopOf="@id/divider2"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/tv_expertise"
+                app:layout_constraintEnd_toStartOf="@id/tv_phone_number"
                 app:layout_constraintHorizontal_chainStyle="spread_inside"
                 />
             <TextView
-                android:id="@+id/tv_expertise"
+                android:id="@+id/tv_phone_number"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="16sp"
@@ -181,9 +181,9 @@
                 android:drawablePadding="5dp"
                 app:layout_constraintTop_toBottomOf="@id/divider1"
                 app:layout_constraintBottom_toTopOf="@id/divider2"
-                app:layout_constraintStart_toEndOf="@id/tv_expertise_title"
+                app:layout_constraintStart_toEndOf="@id/tv_phone_number_title"
                 app:layout_constraintEnd_toEndOf="parent"
-                tools:text="스윙 분석"
+                tools:text="010-1234-5678"
                 />
 
             <View
@@ -191,7 +191,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="2dp"
                 android:background="@color/divider_color"
-                app:layout_constraintTop_toBottomOf="@id/tv_expertise_title"
+                app:layout_constraintTop_toBottomOf="@id/tv_phone_number_title"
                 app:layout_constraintBottom_toTopOf="@id/tv_certification_title"
                 />
 
@@ -206,7 +206,7 @@
                 android:layout_marginVertical="15dp"
                 app:layout_constraintTop_toBottomOf="@id/divider2"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/tv_expertise"
+                app:layout_constraintEnd_toStartOf="@id/tv_phone_number"
                 app:layout_constraintHorizontal_chainStyle="spread_inside"
                 app:layout_constraintBottom_toTopOf="@id/rv_certification"
                 />
@@ -219,45 +219,8 @@
                 android:orientation="horizontal"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 app:layout_constraintTop_toBottomOf="@id/tv_certification_title"
-                app:layout_constraintBottom_toTopOf="@id/divider3"
-                />
-
-            <View
-                android:id="@+id/divider3"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                app:layout_constraintTop_toBottomOf="@id/rv_certification"
-                app:layout_constraintBottom_toTopOf="@id/tv_topic_title"
-                android:background="@color/divider_color"
-                />
-
-            <TextView
-                android:id="@+id/tv_topic_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="상담 가능한 주제"
-                android:textColor="@color/black"
-                android:textSize="18sp"
-                android:fontFamily="@font/pretendard_semibold"
-                android:layout_marginVertical="15dp"
-                app:layout_constraintTop_toBottomOf="@id/divider3"
-                app:layout_constraintBottom_toTopOf="@id/rv_topic"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/tv_expertise"
-                app:layout_constraintHorizontal_chainStyle="spread_inside"
-                />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_topic"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="15dp"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                app:layout_constraintTop_toBottomOf="@id/tv_topic_title"
                 app:layout_constraintBottom_toBottomOf="parent"
                 />
-
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
     <android.widget.Button
@@ -267,15 +230,37 @@
         android:layout_marginHorizontal="40dp"
         android:background="@drawable/radius_circle_button"
         android:backgroundTint="@color/black"
-        android:text="상담 신청하기"
-        android:textSize="14sp"
-        android:textColor="@color/white"
-        android:fontFamily="@font/pretendard_regular"
         android:layout_marginBottom="30dp"
         app:layout_constraintTop_toBottomOf="@id/sc_info"
         app:layout_constraintBottom_toBottomOf="parent"
         />
 
+        <TextView
+            android:id="@+id/tv_consult"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="상담 신청하기"
+            android:textSize="14sp"
+            android:textColor="@color/white"
+            android:fontFamily="@font/pretendard_regular"
+            android:elevation="2dp"
+            app:layout_constraintStart_toStartOf="@id/btn_consult"
+            app:layout_constraintEnd_toEndOf="@id/btn_consult"
+            app:layout_constraintTop_toTopOf="@id/btn_consult"
+            app:layout_constraintBottom_toBottomOf="@id/btn_consult"
+            />
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:src="@drawable/kakaotalk_sharing_btn_small"
+            android:elevation="2dp"
+            app:layout_constraintStart_toStartOf="@id/btn_consult"
+            app:layout_constraintEnd_toStartOf="@id/tv_consult"
+            app:layout_constraintTop_toTopOf="@id/tv_consult"
+            app:layout_constraintBottom_toBottomOf="@id/tv_consult"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintHorizontal_bias="0.8"
+            />
 
 
 
