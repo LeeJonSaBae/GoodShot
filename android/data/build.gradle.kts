@@ -4,10 +4,9 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
-    id("com.google.devtools.ksp")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
-    kotlin("plugin.serialization") version "2.0.20"
+    kotlin("plugin.serialization") version "1.9.22"
 }
 
 private val properties = Properties().apply {
@@ -46,12 +45,15 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 }
 
 dependencies {
     implementation(project(":domain"))
+
+    // paging3
+    implementation(libs.androidx.paging.runtime)
 
     //serialization
     implementation(libs.kotlinx.serialization.json)

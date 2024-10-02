@@ -1,21 +1,20 @@
 package com.ijonsabae.presentation.consult
 
-import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import androidx.navigation.fragment.navArgs
-import com.bumptech.glide.Glide
+import androidx.navigation.serialization.UNKNOWN.name
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseDialog
 import com.ijonsabae.presentation.databinding.DialogConsultantBinding
+import dagger.hilt.android.AndroidEntryPoint
 
-
+@AndroidEntryPoint
 class ConsultantDetailInfoDialog :
     BaseDialog<DialogConsultantBinding>(DialogConsultantBinding::bind, R.layout.dialog_consultant) {
     private val args: ConsultantDetailInfoDialogArgs by navArgs()
@@ -36,9 +35,9 @@ class ConsultantDetailInfoDialog :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initArgs()
-        initRecyclerView()
+//        initRecyclerView()
         initSetOnClickListener()
-        loadProfileImage()
+//        loadProfileImage()
     }
 
     override fun onStart() {
@@ -48,10 +47,10 @@ class ConsultantDetailInfoDialog :
     }
 
     private fun initArgs() {
-        args.consult.apply {
-            binding.tvConsultantName.text = "${name} 프로"
-            binding.tvCareer.text = "총 경력${career}년"
-            binding.tvPhoneNumber.text = phoneNumber
+        args.expertId.apply {
+//            binding.tvConsultantName.text = "${name} 프로"
+//            binding.tvCareer.text = "총 경력${career}년"
+//            binding.tvPhoneNumber.text = phoneNumber
         }
     }
 
@@ -60,19 +59,19 @@ class ConsultantDetailInfoDialog :
             dismiss()
         }
         binding.btnConsult.setOnClickListener {
-            val myIntent = Intent(Intent.ACTION_VIEW, Uri.parse(args.consult.chatUrl))
-            startActivity(myIntent)
+//            val myIntent = Intent(Intent.ACTION_VIEW, Uri.parse(args.consult.chatUrl))
+//            startActivity(myIntent)
         }
     }
 
-    private fun initRecyclerView() {
-        binding.rvCertification.adapter = consultantCertificationAdapter
-        consultantCertificationAdapter.submitList(args.consult.certification)
-    }
+//    private fun initRecyclerView() {
+//        binding.rvCertification.adapter = consultantCertificationAdapter
+//        consultantCertificationAdapter.submitList(args.consult.certification)
+//    }
 
-    private fun loadProfileImage() {
-        Glide.with(binding.root)
-            .load(args.consult.profileImage)
-            .into(binding.ivProfileImage)
-    }
+//    private fun loadProfileImage() {
+//        Glide.with(binding.root)
+//            .load(args.consult.profileImage)
+//            .into(binding.ivProfileImage)
+//    }
 }
