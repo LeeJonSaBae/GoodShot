@@ -393,53 +393,47 @@ class CameraSource(
     ) {
 
         val keyPoints = person.keyPoints
-
-        // 결과 분석 보여주는 동안은 이미지 처리 안함
-        /**
-         * 1. 상태가 RESULT일 때 상태를 호출하는 경우로 변경하기
-         */
-
-        if (getCurrentCameraState() == RESULT) {
-            /**
-             * 1. 왼손목-왼팔꿈치가 왼쪽 일자로 펴진 경우를 감지하고 (170~190도) 이때의 시간을 전역변수에 갱신한다.
-             * 2. 완손목-왼팔꿈치가 오른쪽 일자로 펴진 경우를 감지하고 (-10~10도) 이때의 시간이 1.0초 이내면
+        val currentState = getCurrentCameraState()
+        when (currentState) {
+            RESULT -> {                    /**
+             * 1. 왼손목-왼팔꿈치가 왼쪽 일자로 펴진 경우를 감지하고 (165~195도) 이때의 시간을 전역변수에 갱신한다.
+             * 2. 완손목-왼팔꿈치가 오른쪽 일자로 펴진 경우를 감지하고 (-15~15도) 이때의 시간이 1.0초 이내면
              *  RESULT 다이얼로그를 종료하고 어드레스 자세 잡기 상태로 변경
              * */
-            if (checkResultSkipMotion(keyPoints)) {
-                skipFeedbackDialog()
+                Log.d("processDetectedInfo", "RESULT 상태일 때 내부 함수, chckskipmotion 함수 전")
+                if (checkResultSkipMotion(keyPoints)) {
+                    Log.d("processDetectedInfo", "processDetectedInfo: skipFeedbackDialog 호출 전")
+                    skipFeedbackDialog()
+                }
             }
+            ANALYZING -> {
+                if (pelvisTwisting) {
+                    if (swingFrameCount < 5) {
+                        swingFrameCount++
+                    } else {
+                        extractBestPoseIndices()
+                        if (validateSwingPose(manualPoseIndexArray)) {
+                            val poseFrameGroupIndices: Array<IntArray> = Array(8) { IntArray(3) }
+                            manualPoseIndexArray.forEachIndexed { index, manualPoseIndex ->
+                                poseFrameGroupIndices[index] = when (manualPoseIndex) {
+                                    0 -> intArrayOf(1, 0, 0)  // 첫 번째 프레임인 경우
+                                    QUEUE_SIZE - 1 -> intArrayOf(
+                                        QUEUE_SIZE - 1,
+                                        QUEUE_SIZE - 1,
+                                        QUEUE_SIZE - 2
+                                    )  // 마지막 프레임인 경우
+                                    else -> intArrayOf(
+                                        manualPoseIndex + 1,
+                                        manualPoseIndex,
+                                        manualPoseIndex - 1
+                                    )  // 일반적인 경우
+                                }
+                            }
 
-        }
-        // 스윙 피니쉬가 인식된 시점부터 5프레임 더 받기
-        if (getCurrentCameraState() == ANALYZING && pelvisTwisting) {
-            if (swingFrameCount < 5) {
-                swingFrameCount++
-            } else {
-
-                extractBestPoseIndices()
-                if (validateSwingPose(manualPoseIndexArray)) {
-
-                    val poseFrameGroupIndices: Array<IntArray> = Array(8) { IntArray(3) }
-                    manualPoseIndexArray.forEachIndexed { index, manualPoseIndex ->
-                        poseFrameGroupIndices[index] = when (manualPoseIndex) {
-                            0 -> intArrayOf(1, 0, 0)  // 첫 번째 프레임인 경우
-                            QUEUE_SIZE - 1 -> intArrayOf(
-                                QUEUE_SIZE - 1,
-                                QUEUE_SIZE - 1,
-                                QUEUE_SIZE - 2
-                            )  // 마지막 프레임인 경우
-                            else -> intArrayOf(
-                                manualPoseIndex + 1,
-                                manualPoseIndex,
-                                manualPoseIndex - 1
-                            )  // 일반적인 경우
-                        }
-                    }
-
-                    //swingData -> 수동으로 뽑은 8개의 프레임
-                    val swingData = indicesToPoses(manualPoseIndexArray)
-                    //swingGroupData -> 전후 프레임까지 포함한 묶음
-                    val swingGroupData = indicesToPosesGroup(poseFrameGroupIndices)
+                            //swingData -> 수동으로 뽑은 8개의 프레임
+                            val swingData = indicesToPoses(manualPoseIndexArray)
+                            //swingGroupData -> 전후 프레임까지 포함한 묶음
+                            val swingGroupData = indicesToPosesGroup(poseFrameGroupIndices)
 
 //                    큐에 있는 60개 이미지 갤러리에 전부 저장
 //                    imageQueue.toList().forEachIndexed { index, (imageData, _) ->
@@ -450,11 +444,11 @@ class CameraSource(
 //                        }
 //                    }
 
-                    //수동으로 뽑은 이미지 포즈들을 기반으로 첫 시작 시간 추정 후 영상 제작
-                    val actualSwingIndices = imageQueue
-                        .toList()
-                        .takeLast(imageQueue.size - manualPoseIndexArray[0])
-                        .map { it.data }
+                            //수동으로 뽑은 이미지 포즈들을 기반으로 첫 시작 시간 추정 후 영상 제작
+                            val actualSwingIndices = imageQueue
+                                .toList()
+                                .takeLast(imageQueue.size - manualPoseIndexArray[0])
+                                .map { it.data }
 
 //                  어드레스~피니쉬 이미지 갤러리에 전부 저장
 //                    actualSwingIndices.forEachIndexed { idx, bitmap ->
@@ -466,66 +460,66 @@ class CameraSource(
 //                        }
 //                    }
 
-                    // 템포, 백스윙, 다운스윙 시간 분석하기
-                    val swingTiming = analyzeSwingTime(swingData)
-                    val backswingTime =
-                        String.format(
-                            Locale.getDefault(),
-                            "%.2f",
-                            swingTiming.backswingTime / 1000.0
-                        ).toFloat()
-                    val downswingTime =
-                        String.format(
-                            Locale.getDefault(),
-                            "%.2f",
-                            swingTiming.downswingTime / 1000.0
-                        ).toFloat()
-                    val tempoRatio =
-                        String.format(Locale.getDefault(), "%.2f", swingTiming.tempoRatio)
-                            .toFloat()
+                            // 템포, 백스윙, 다운스윙 시간 분석하기
+                            val swingTiming = analyzeSwingTime(swingData)
+                            val backswingTime =
+                                String.format(
+                                    Locale.getDefault(),
+                                    "%.2f",
+                                    swingTiming.backswingTime / 1000.0
+                                ).toFloat()
+                            val downswingTime =
+                                String.format(
+                                    Locale.getDefault(),
+                                    "%.2f",
+                                    swingTiming.downswingTime / 1000.0
+                                ).toFloat()
+                            val tempoRatio =
+                                String.format(Locale.getDefault(), "%.2f", swingTiming.tempoRatio)
+                                    .toFloat()
 
-                    // 백스윙, 탑스윙 피드백 체크하기
-                    val preciseIndices = swingData.map { it.third }
-                    val preciseBitmaps = swingData.map { it.first }
-                    val precisePoseScores = classifyPoseScores(swingData.map { it.second })
+                            // 백스윙, 탑스윙 피드백 체크하기
+                            val preciseIndices = swingData.map { it.third }
+                            val preciseBitmaps = swingData.map { it.first }
+                            val precisePoseScores = classifyPoseScores(swingData.map { it.second })
 
-                    val poseAnalysisResults = PostureFeedback.checkPosture(
-                        preciseIndices,
-                        jointQueue.toList().reversed(),
-                        true // TODO: 좌타 우타 여부 동적으로 넣어주기
-                    )
-                    Log.d("분석결과", "$poseAnalysisResults")
+                            val poseAnalysisResults = PostureFeedback.checkPosture(
+                                preciseIndices,
+                                jointQueue.toList().reversed(),
+                                true // TODO: 좌타 우타 여부 동적으로 넣어주기
+                            )
+                            Log.d("분석결과", "$poseAnalysisResults")
 
-                    val feedbackCheckListTitle: String
-                    val feedbackCheckList: List<String>
+                            val feedbackCheckListTitle: String
+                            val feedbackCheckList: List<String>
 
-                    if (poseAnalysisResults.solution.toString().startsWith("BACK")) {
-                        feedbackCheckListTitle = context.getString(R.string.back_feedback_title)
-                        feedbackCheckList =
-                            context.resources.getStringArray(R.array.back_tip_list).toList()
-                    } else if (poseAnalysisResults.solution.toString().startsWith("DOWN")) {
-                        feedbackCheckListTitle = context.getString(R.string.down_feedback_title)
-                        feedbackCheckList =
-                            context.resources.getStringArray(R.array.down_tip_list).toList()
-                    } else {
-                        feedbackCheckListTitle = context.getString(R.string.good_feedback_title)
-                        feedbackCheckList =
-                            context.resources.getStringArray(R.array.good_tip_list).toList()
-                    }
+                            if (poseAnalysisResults.solution.toString().startsWith("BACK")) {
+                                feedbackCheckListTitle = context.getString(R.string.back_feedback_title)
+                                feedbackCheckList =
+                                    context.resources.getStringArray(R.array.back_tip_list).toList()
+                            } else if (poseAnalysisResults.solution.toString().startsWith("DOWN")) {
+                                feedbackCheckListTitle = context.getString(R.string.down_feedback_title)
+                                feedbackCheckList =
+                                    context.resources.getStringArray(R.array.down_tip_list).toList()
+                            } else {
+                                feedbackCheckListTitle = context.getString(R.string.good_feedback_title)
+                                feedbackCheckList =
+                                    context.resources.getStringArray(R.array.good_tip_list).toList()
+                            }
 
 
-                    // 뷰모델에 피드백 담기
-                    val feedBack = FeedBack(
-                        downswingTime,
-                        tempoRatio,
-                        backswingTime,
-                        poseAnalysisResults.solution.getSolution(true), // TODO: 좌타 우타 여부 동적으로 넣어주기
-                        feedbackCheckListTitle,
-                        feedbackCheckList
-                    )
-                    setFeedback(feedBack)
+                            // 뷰모델에 피드백 담기
+                            val feedBack = FeedBack(
+                                downswingTime,
+                                tempoRatio,
+                                backswingTime,
+                                poseAnalysisResults.solution.getSolution(true), // TODO: 좌타 우타 여부 동적으로 넣어주기
+                                feedbackCheckListTitle,
+                                feedbackCheckList
+                            )
+                            setFeedback(feedBack)
 
-                    // 8개의 베스트 포즈에 대한 비트맵을 갤러리에 저장
+                            // 8개의 베스트 포즈에 대한 비트맵을 갤러리에 저장
 //                    poseAnalysisResults.forEachIndexed { idx, result ->
 //                        val fileName =
 //                            "swing_pose_group${idx + 1}_frame.jpg"
@@ -545,80 +539,82 @@ class CameraSource(
 //                        }
 //                    }
 
-                    // 영상 만들기`
-                    convertBitmapsToVideo(actualSwingIndices)
+                            // 영상 만들기`
+                            convertBitmapsToVideo(actualSwingIndices)
 
-                    // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) 룸에 저장하기
+                            // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) 룸에 저장하기
 
-                    // TODO: 영상 + 8개 비트맵 + 8개 유사도 + 피드백 서버로 보내기
+                            // TODO: 영상 + 8개 비트맵 + 8개 유사도 + 피드백 서버로 보내기
 
-                    // TODO: 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
-                    setCurrentCameraState(RESULT)
-                    resultSkipMotionStartTime = 0L //스킵 동작 탐지를 위한 변수 초기화
+                            // TODO: 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
+                            setCurrentCameraState(RESULT)
+                            Log.d("processDetectedInfo", "상태 Result로 변경됨")
+                            resultSkipMotionStartTime = 0L //스킵 동작 탐지를 위한 변수 초기화
 
-                    // TODO: 다이얼로그가 닫히는 순간 swingViewModel.currentState 바꿔주기
+                            // TODO: 다이얼로그가 닫히는 순간 swingViewModel.currentState 바꿔주기
 
-                } else {
-                    setCurrentCameraState(AGAIN)
-                    Log.d("싸피", "다시 스윙해주세요")
-                    CoroutineScope(Dispatchers.Main).launch {
-                        delay(2500L)
-                        setCurrentCameraState(ADDRESS)
+                        } else {
+                            setCurrentCameraState(AGAIN)
+                            Log.d("싸피", "다시 스윙해주세요")
+                            CoroutineScope(Dispatchers.Main).launch {
+                                delay(2500L)
+                                setCurrentCameraState(ADDRESS)
+                            }
+                        }
+                        pelvisTwisting = false
+                        swingFrameCount = 0
                     }
                 }
-                pelvisTwisting = false
-                swingFrameCount = 0
+                return
             }
-            return
-        }
+            else -> {
+                if (currentState == SWING) {
+                    // 오른어깨와 왼발이 가까워지면
+                    if (abs(keyPoints[RIGHT_SHOULDER.position].coordinate.x - keyPoints[LEFT_ANKLE.position].coordinate.x) < 0.05f &&
+                        abs(keyPoints[RIGHT_SHOULDER.position].coordinate.y - keyPoints[RIGHT_ANKLE.position].coordinate.y) > 0.3f &&
+                        keyPoints[RIGHT_ELBOW.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x
+                    ) {
+                        pelvisTwisting = true
+                        setCurrentCameraState(ANALYZING)
+                        Log.d("싸피", "피니쉬 인식 완료")
+                    }
+                    if (((keyPoints[LEFT_WRIST.position].coordinate.x < keyPoints[LEFT_SHOULDER.position].coordinate.x) ||
+                                (keyPoints[RIGHT_WRIST.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x)).not()
+                    ) {
+                        setCurrentCameraState(ADDRESS)
+                    }
+                    return
+                }
 
-        // 5. 스윙의 마지막 동작 체크
-        if (getCurrentCameraState() == SWING) {
-            // 오른어깨와 왼발이 가까워지면
-            if (abs(keyPoints[RIGHT_SHOULDER.position].coordinate.x - keyPoints[LEFT_ANKLE.position].coordinate.x) < 0.05f &&
-                abs(keyPoints[RIGHT_SHOULDER.position].coordinate.y - keyPoints[RIGHT_ANKLE.position].coordinate.y) > 0.3f &&
-                keyPoints[RIGHT_ELBOW.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x
-            ) {
-                pelvisTwisting = true
-                setCurrentCameraState(ANALYZING)
-                Log.d("싸피", "피니쉬 인식 완료")
+                if ((keyPoints[NOSE.position].score) < 0.3 ||
+                    (keyPoints[LEFT_ANKLE.position].score) < 0.3 ||
+                    (keyPoints[RIGHT_ANKLE.position].score < 0.3)
+                ) {
+                    setCurrentCameraState(POSITIONING)
+                }
+                // 2. 어드레스 자세 체크
+                else if ((keyPoints[LEFT_WRIST.position].coordinate.y > keyPoints[LEFT_ELBOW.position].coordinate.y &&
+                            keyPoints[RIGHT_WRIST.position].coordinate.y > keyPoints[RIGHT_ELBOW.position].coordinate.y &&
+                            keyPoints[LEFT_WRIST.position].coordinate.x <= keyPoints[LEFT_SHOULDER.position].coordinate.x &&
+                            keyPoints[LEFT_WRIST.position].coordinate.x >= keyPoints[RIGHT_SHOULDER.position].coordinate.x &&
+                            keyPoints[RIGHT_WRIST.position].coordinate.x >= keyPoints[RIGHT_SHOULDER.position].coordinate.x &&
+                            keyPoints[RIGHT_WRIST.position].coordinate.x <= keyPoints[LEFT_SHOULDER.position].coordinate.x &&
+                            abs(keyPoints[LEFT_ANKLE.position].coordinate.y - keyPoints[RIGHT_ANKLE.position].coordinate.y) < 0.01f
+                            ).not()
+                ) {
+                    setCurrentCameraState(ADDRESS)
+                }
+                // 3. 스윙해주세요!
+                else {
+                    setCurrentCameraState(SWING)
+                }
+                return
             }
-            return
         }
-
-        // 4. 스윙하는 동안은 안내 메세지 안변하도록 유지
-        if (getCurrentCameraState() == SWING &&
-            ((keyPoints[LEFT_WRIST.position].coordinate.x < keyPoints[LEFT_SHOULDER.position].coordinate.x) ||
-                    (keyPoints[RIGHT_WRIST.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x)).not()
-        ) {
-            setCurrentCameraState(ADDRESS)
-            return
-        }
-
-        // 1. 몸 전체가 카메라 화면에 들어오는지 체크
-        if ((keyPoints[NOSE.position].score) < 0.3 ||
-            (keyPoints[LEFT_ANKLE.position].score) < 0.3 ||
-            (keyPoints[RIGHT_ANKLE.position].score < 0.3)
-        ) {
-            setCurrentCameraState(POSITIONING)
-        }
-        // 2. 어드레스 자세 체크
-        else if ((keyPoints[LEFT_WRIST.position].coordinate.y > keyPoints[LEFT_ELBOW.position].coordinate.y &&
-                    keyPoints[RIGHT_WRIST.position].coordinate.y > keyPoints[RIGHT_ELBOW.position].coordinate.y &&
-                    keyPoints[LEFT_WRIST.position].coordinate.x <= keyPoints[LEFT_SHOULDER.position].coordinate.x &&
-                    keyPoints[LEFT_WRIST.position].coordinate.x >= keyPoints[RIGHT_SHOULDER.position].coordinate.x &&
-                    keyPoints[RIGHT_WRIST.position].coordinate.x >= keyPoints[RIGHT_SHOULDER.position].coordinate.x &&
-                    keyPoints[RIGHT_WRIST.position].coordinate.x <= keyPoints[LEFT_SHOULDER.position].coordinate.x &&
-                    abs(keyPoints[LEFT_ANKLE.position].coordinate.y - keyPoints[RIGHT_ANKLE.position].coordinate.y) < 0.01f
-                    ).not()
-        ) {
-            setCurrentCameraState(ADDRESS)
-        }
-        // 3. 스윙해주세요!
-        else {
-            setCurrentCameraState(SWING)
-        }
-
+        // 결과 분석 보여주는 동안은 이미지 처리 안함
+        /**
+         * 1. 상태가 RESULT일 때 상태를 호출하는 경우로 변경하기
+         */
 
     }
 
@@ -1147,23 +1143,25 @@ class CameraSource(
         val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
         val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
 
-        val deltaX = leftElbowX - leftWristX
-        val deltaY = leftWristY - leftElbowY
+        val deltaX = leftWristX - leftElbowX
+        val deltaY = leftElbowY - leftWristY
 
         val angleRadians = atan2(deltaY, deltaX)
         val angleDegrees = Math.toDegrees(angleRadians.toDouble())
 
 
         val currentTime = System.currentTimeMillis()
-
+        Log.d("processDetectedInfo", "RESULT 상태일 때 내부 함수, chckskipmotion 함수 내부 접근")
         if (leftWristX > leftElbowX) {
-            val wristElbowDegreeGap = abs(180.0 - angleDegrees).toFloat()
-            if (wristElbowDegreeGap < 10.0) {
+            val wristElbowDegreeGap = abs(0.0 - angleDegrees).toFloat()
+            if (wristElbowDegreeGap < 20.0) {
                 resultSkipMotionStartTime = currentTime
+                Log.d("processDetectedInfo", "왼쪽 팔뻗음 인식")
             }
         } else if (leftWristX < leftElbowX) {
-            val wristElbowDegreeGap = abs(0.0 - angleDegrees).toFloat()
-            if (wristElbowDegreeGap < 10.0) {
+            val wristElbowDegreeGap = abs(180.0 - angleDegrees).toFloat()
+            if (wristElbowDegreeGap < 20.0) {
+                Log.d("processDetectedInfo", "오른쪽 팔뻗음 인식")
                 if (currentTime - resultSkipMotionStartTime < 1000) {
                     return true
                 }
@@ -1178,6 +1176,8 @@ class CameraSource(
             action = "SKIP_MOTION_DETECTED"
             putExtra("skipMotion", "Skip motion detected")
         }
+        Log.d("processDetectedInfo", "processDetectedInfo: SKIP_MOTION_DETECTED 인텐트 전송 전")
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
+        Log.d("processDetectedInfo", "processDetectedInfo: SKIP_MOTION_DETECTED 인텐트 전송 후")
     }
 }

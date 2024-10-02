@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -34,6 +35,7 @@ class FeedbackDialog :
         override fun onReceive(context: Context?, intent: Intent) {
             if (intent.action == "SKIP_MOTION_DETECTED") {
                 swingViewModel.setCurrentState(CameraState.ADDRESS)
+                Log.d("processDetectedInfo", "processDetectedInfo: SKIP_MOTION_DETECTED 인텐트 수신 in FeedbackDialog")
                 dismiss()
             }
         }
@@ -96,7 +98,7 @@ class FeedbackDialog :
 
     private fun registerLocalBroadCastReceiver() {
         LocalBroadcastManager.getInstance(fragmentContext).registerReceiver(
-            skipMotionReceiver, IntentFilter("skipMotion")
+            skipMotionReceiver, IntentFilter("SKIP_MOTION_DETECTED")
         )
     }
 
