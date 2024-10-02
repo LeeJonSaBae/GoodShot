@@ -2,7 +2,6 @@ package com.ijonsabae.presentation.replay
 
 import android.app.AlertDialog
 import android.content.Context
-import android.content.res.ColorStateList
 import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
@@ -11,7 +10,6 @@ import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -68,17 +66,17 @@ class ReplayAdapter(val context: Context) :
 
             binding.tvTitle.text = replayItem.title
             binding.tvDate.text = replayItem.date
-            binding.tvTag1.text = replayItem.swingPose
-            binding.tvTag2.text = replayItem.golfClub
+            binding.tvTag1.text = "점수 ${replayItem.score}점"
+            binding.tvTag2.text = "템포 ${replayItem.tempo}"
 
             binding.root.setOnClickListener { itemClickListener.onItemClick(replayItem) }
             binding.ivLike.setOnClickListener {
-                check = !check // Toggle the favorite state
-                binding.ivLike.imageTintList =
-                    if (check) ColorStateList.valueOf(
-                        ContextCompat.getColor(context, R.color.like_yellow)
-                    )
-                    else ColorStateList.valueOf(ContextCompat.getColor(context, R.color.gray))
+                check = !check
+                if (check) {
+                    binding.ivLike.setImageResource(R.drawable.ic_like2)
+                } else {
+                    binding.ivLike.setImageResource(R.drawable.ic_unlike2)
+                }
                 itemClickListener.onLikeClick(replayItem, replayItem.like)
             }
 
