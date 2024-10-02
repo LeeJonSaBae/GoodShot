@@ -20,7 +20,9 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.canhub.cropper.CropImageContract
@@ -33,6 +35,7 @@ import com.ijonsabae.presentation.login.LoginActivity
 import com.ijonsabae.presentation.main.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 private const val TAG = "굿샷_ProfileFragment"
 
@@ -158,6 +161,7 @@ class ProfileFragment :
         super.onViewCreated(view, savedInstanceState)
         (fragmentContext as MainActivity).showAppBar("마이 페이지")
         init()
+        initFlow()
     }
 
     private fun init() {
@@ -174,19 +178,8 @@ class ProfileFragment :
         }
 
         binding.layoutLogout.setOnClickListener {
-            lifecycleScope.launch {
+            lifecycleScope.launch(coroutineExceptionHandler) {
                 profileViewModel.logout()
-
-                profileViewModel.isLogoutSucceed.collect { result ->
-                    if (result == 200) {
-                        Toast.makeText(requireContext(), "로그아웃 되었습니다!", Toast.LENGTH_SHORT).show()
-                        val intent = Intent(requireContext(), LoginActivity::class.java).apply {
-                            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-                        }
-                        startActivity(intent)
-                        requireActivity().finish()
-                    }
-                }
             }
         }
 
@@ -277,6 +270,23 @@ class ProfileFragment :
         val mimeType = contentResolver.getType(uri)
 
         return MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
+    }
+
+    private fun initFlow(){
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED){
+                profileViewModel.isLogoutSucceed.collect { result ->
+                    if (result == 200) {
+                        showToastShort("로그아웃 되었습니다!")
+                        val intent = Intent(fragmentContext, LoginActivity::class.java).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(intent)
+                        requireActivity().finish()
+                    }
+                }
+            }
+        }
     }
 
     companion object {
