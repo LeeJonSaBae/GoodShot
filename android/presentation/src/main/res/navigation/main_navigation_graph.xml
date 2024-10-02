@@ -90,7 +90,9 @@
             tools:layout="@layout/fragment_camera">
             <action
                 android:id="@+id/action_camera_to_shot"
-                app:destination="@id/shot" />
+                app:destination="@id/shot"
+                app:launchSingleTop="true"
+                app:popUpTo="@id/shot" />
             <action
                 android:id="@+id/action_camera_to_feedback_dialog"
                 app:destination="@id/feedback_dialog" />
@@ -104,6 +106,19 @@
             <argument
                 android:name="feedback"
                 app:argType="com.ijonsabae.presentation.model.FeedBack" />
+            <argument
+                android:name="swingCnt"
+                app:argType="integer"
+                android:defaultValue="0" />
+            <argument
+                android:name="totalSwingCnt"
+                app:argType="integer"
+                android:defaultValue="0" />
+            <action
+                android:id="@+id/action_feedback_dialog_to_shot"
+                app:destination="@id/shot"
+                app:launchSingleTop="true"
+                app:popUpTo="@id/shot" />
         </dialog>
     </navigation>
 

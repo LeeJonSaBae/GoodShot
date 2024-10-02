@@ -228,6 +228,7 @@
             android:stepSize="1"
             android:valueFrom="1"
             android:valueTo="30"
+            android:value="1"
             app:labelStyle="@style/tooltip"
             app:layout_constraintTop_toBottomOf="@id/tv_shot_cnt_description"
             app:thumbColor="@color/white"

@@ -12,15 +12,13 @@ import javax.inject.Inject
 @HiltViewModel
 class SwingViewModel @Inject constructor() : ViewModel() {
     private val _currentState: MutableLiveData<CameraState> = MutableLiveData(POSITIONING)
-
     val currentState: LiveData<CameraState>
         get() = _currentState
 
     private var _feedBack: FeedBack? = null
-    fun setFeedBack(feedBack: FeedBack) {
-        _feedBack = feedBack
-    }
-    fun getFeedBack(): FeedBack? = _feedBack
+
+    private var _swingCnt: Int = 0
+
     fun setCurrentState(newState: CameraState) {
         if (isMainThread()) {
             _currentState.value = newState
@@ -28,6 +26,22 @@ class SwingViewModel @Inject constructor() : ViewModel() {
             _currentState.postValue(newState)
         }
     }
+
+    fun initializeSwingCnt() {
+        this._swingCnt = 0
+    }
+
+    fun increaseSwingCnt() {
+        this._swingCnt += 1
+    }
+
+    fun getSwingCnt(): Int = _swingCnt
+
+    fun setFeedBack(feedBack: FeedBack) {
+        _feedBack = feedBack
+    }
+
+    fun getFeedBack(): FeedBack? = _feedBack
 
     private fun isMainThread(): Boolean = Looper.myLooper() == Looper.getMainLooper()
 }
