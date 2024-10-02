@@ -15,7 +15,7 @@ import org.hibernate.annotations.DynamicInsert;
 @NoArgsConstructor
 @AllArgsConstructor
 @DynamicInsert
-@Table(name = "feedback")
+@Table(name = "comment")
 public class Comment {
 
     @Id
@@ -31,4 +31,5 @@ public class Comment {
     private CommentType commentType;
 
     private String content;
+
 }
