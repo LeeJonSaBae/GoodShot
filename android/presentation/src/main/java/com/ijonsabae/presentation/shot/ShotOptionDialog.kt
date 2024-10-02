@@ -10,7 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseDialog
-import com.ijonsabae.presentation.databinding.DialogShotBinding
+import com.ijonsabae.presentation.databinding.DialogShotOptionBinding
 import com.skydoves.balloon.ArrowOrientation
 import com.skydoves.balloon.ArrowOrientationRules
 import com.skydoves.balloon.ArrowPositionRules
@@ -22,10 +22,11 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 private const val TAG = "ShotDialog 싸피"
+
 @AndroidEntryPoint
-class ShotDialog : BaseDialog<DialogShotBinding>(
-    DialogShotBinding::bind,
-    R.layout.dialog_shot
+class ShotOptionDialog : BaseDialog<DialogShotOptionBinding>(
+    DialogShotOptionBinding::bind,
+    R.layout.dialog_shot_option
 ) {
     private val shotDialogViewModel: ShotSettingViewModel by activityViewModels()
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -46,9 +47,9 @@ class ShotDialog : BaseDialog<DialogShotBinding>(
         with(binding) {
             btnOk.setOnClickListener {
                 saveResult()
-                if(tbShowAnswer.isChecked){
+                if (tbShowAnswer.isChecked) {
                     navController.navigate(R.id.action_shot_dialog_to_swing_example)
-                }else{
+                } else {
                     navController.navigate(R.id.action_shot_dialog_to_camera)
                 }
             }
@@ -139,22 +140,22 @@ class ShotDialog : BaseDialog<DialogShotBinding>(
 
     }
 
-    private fun initFlow(){
+    private fun initFlow() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED){
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    shotDialogViewModel.isLeft.collect(){
-                        if(it){
+                    shotDialogViewModel.isLeft.collect() {
+                        if (it) {
                             selectButton(binding.btnDirectionLeft)
                             deselectButton(binding.btnDirectionRight)
-                        }else{
+                        } else {
                             selectButton(binding.btnDirectionRight)
                             deselectButton(binding.btnDirectionLeft)
                         }
                     }
                 }
                 launch {
-                    shotDialogViewModel.showCnt.collect(){cnt->
+                    shotDialogViewModel.showCnt.collect() { cnt ->
                         binding.tvSliderValue.text = "${cnt} 회"
                     }
                 }
@@ -178,7 +179,7 @@ class ShotDialog : BaseDialog<DialogShotBinding>(
         val selectedShotCnt = if (binding.btnGolfClubIron.isSelected) "아이언" else "드라이버"
     }
 
-    private suspend fun setShowPoseReportStatus(status: Boolean){
+    private suspend fun setShowPoseReportStatus(status: Boolean) {
         shotDialogViewModel.setShowMidReportStatus(status)
     }
 
