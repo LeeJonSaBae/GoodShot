@@ -72,6 +72,7 @@ class CameraFragment :
     private var TTS_ID = "TTS"
 
     private val swingViewModel by activityViewModels<SwingViewModel>()
+    private val shotSettingViewModel by activityViewModels<ShotSettingViewModel>()
 
     /** A [SurfaceView] for camera preview.   */
     private lateinit var surfaceView: SurfaceView
@@ -168,10 +169,7 @@ class CameraFragment :
                             Log.d("CameraAnalyzer", "Current FPS: ${fps.roundToInt()}")
                         }
 
-                        // TODO: 좌타 우타 여부 동적으로 넣어주기
-//                         isSelf = true
-//                        isLeft = false
-
+                        isLeft = shotSettingViewModel.isLeft.value
                         cameraSource.processImage(
                             cameraSource.getRotateBitmap(
                                 image.toBitmap(),

@@ -103,7 +103,7 @@ class CameraSource(
     private val getCurrentCameraState: () -> CameraState?,
     private val setCurrentCameraState: (cameraState: CameraState) -> Unit,
     private val setFeedback: (FeedBack) -> Unit,
-) : CameraSourceListener {
+) {
     private var lock = Any()
     private var classifier4: PoseClassifier? = null
     private var classifier8: PoseClassifier? = null
@@ -377,11 +377,6 @@ class CameraSource(
         } catch (e: InterruptedException) {
             Log.d(TAG, e.message.toString())
         }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    override fun onDetectedInfo(person: Person) {
-        processDetectedInfo(person)
     }
 
     /** !!!!!!!!!!!! 포즈 추론은 우타, 후면 카메라로 좔영했을 때 기준 !!!!!!!!!!!! **/
