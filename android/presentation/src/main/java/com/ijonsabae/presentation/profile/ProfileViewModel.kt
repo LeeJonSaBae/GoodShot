@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.Profile
 import com.ijonsabae.domain.usecase.profile.GetPresignedURLUseCase
 import com.ijonsabae.domain.usecase.profile.GetProfileInfoUseCase
@@ -39,11 +40,14 @@ class ProfileViewModel @Inject constructor(
     private val _imageUrl = MutableStateFlow<String?>(null)
     val imageUrl: StateFlow<String?> = _imageUrl.asStateFlow()
 
+    private val _cropUri = MutableStateFlow<Uri>(Uri.EMPTY)
+    val croppedUri: StateFlow<Uri> = _cropUri.asStateFlow()
+
     private val _isLogoutSucceed = MutableStateFlow<Int?>(null)
     val isLogoutSucceed: StateFlow<Int?> = _isLogoutSucceed.asStateFlow()
 
-    private val _isUpdateProfileSucceed = MutableStateFlow<Int?>(null)
-    val isUpdateProfileSucceed: StateFlow<Int?> = _isUpdateProfileSucceed.asStateFlow()
+//    private val _updateProfileResult = MutableStateFlow<Result<CommonResponse<Unit>>>(null)
+//    val isUpdateProfileSucceed: StateFlow<Int?> = _updateProfileResult.asStateFlow()
 
     suspend fun getProfileInfo() {
         val result = getProfileInfoUseCase().getOrThrow()
@@ -57,14 +61,12 @@ class ProfileViewModel @Inject constructor(
         _imageUrl.value = result.data.imageUrl
     }
 
-    suspend fun uploadProfileImage(presignedUrl: String, image: Uri) {
-        val result = uploadProfileImageUseCase(presignedUrl, URI(image.toString())).getOrThrow()
-//        Log.d(TAG, "uploadProfileImage: result = ${result}")
-//        Toast.makeText(
-//            context,
-//            "uploadProfileImage() : etag = ${result.etag}, requestId = ${result.requestId}",
-//            Toast.LENGTH_SHORT
-//        ).show()
+    suspend fun setCroppedUri(uri: Uri){
+        _cropUri.emit(uri)
+    }
+
+    suspend fun uploadProfileImage(presignedUrl: String, image: Uri): Result<Unit> {
+        return uploadProfileImageUseCase(presignedUrl, URI(image.toString()))
     }
 
     suspend fun logout() {
@@ -72,10 +74,8 @@ class ProfileViewModel @Inject constructor(
         _isLogoutSucceed.value = result.code
     }
 
-    suspend fun updateProfile(image: String?) {
-        val result = updateProfileUseCase(image.toString()).getOrThrow()
-        _isUpdateProfileSucceed.value = result.code
-        Log.d(TAG, "updateProfile: result = ${result}")
+    suspend fun updateProfile(image: String?): Result<CommonResponse<Unit>>{
+        return updateProfileUseCase(image.toString())
     }
 
 }
