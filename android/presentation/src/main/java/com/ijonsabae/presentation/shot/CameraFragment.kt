@@ -441,15 +441,12 @@ class CameraFragment :
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
 
-                    // TODO: 결과 분석 띄우기 말기 눌렀으면 보여주지 말기
-                    // 결과 분석 다이얼로그 띄워 주고
                     swingViewModel.getFeedBack()?.let {
                         navController.navigate(
                             CameraFragmentDirections.actionCameraToFeedbackDialog(
-                                it
+                                it, swingViewModel.getSwingCnt(), shotSettingViewModel.totalSwingCnt.value
                             )
                         )
-
                         tts?.speak(it.feedBackSolution, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
                     }
 
@@ -481,6 +478,8 @@ class CameraFragment :
                 { swingViewModel.currentState.value },
                 { cameraState -> swingViewModel.setCurrentState(cameraState) },
                 { feedback -> swingViewModel.setFeedBack(feedback) },
+                swingViewModel::initializeSwingCnt,
+                swingViewModel::increaseSwingCnt
             )
             cameraSource.setSurfaceView(binding.camera)
         }

@@ -104,6 +104,8 @@ class CameraSource(
     private val getCurrentCameraState: () -> CameraState?,
     private val setCurrentCameraState: (cameraState: CameraState) -> Unit,
     private val setFeedback: (FeedBack) -> Unit,
+    private val initializeSwingCnt: () -> Unit,
+    private val increaseSwingCnt: () -> Unit
 ) {
     private var lock = Any()
     private var classifier4: PoseClassifier? = null
@@ -115,7 +117,6 @@ class CameraSource(
     private var stopAnalizePose = false
     private val imageQueue: Queue<TimestampedData<Bitmap>> = LinkedList()
     private val jointQueue: Queue<List<KeyPoint>> = LinkedList()
-
 
     //수동측정을 위한 값들
     private var minFinishGap = 1f
@@ -160,6 +161,7 @@ class CameraSource(
         val classifier8 = PoseClassifier.create(context, MODEL_FILENAME_8, LABELS_FILENAME_8)
         setClassifier(classifier4, classifier8)
 
+        initializeSwingCnt.invoke()
     }
 
     companion object {
@@ -533,9 +535,12 @@ class CameraSource(
                     // TODO: 영상 + 8개 비트맵 + 8개 유사도 + 피드백 서버로 보내기
 
                     // TODO: 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
+                    increaseSwingCnt.invoke()
                     setCurrentCameraState(RESULT)
 
                     // TODO: 다이얼로그가 닫히는 순간 stopAnalizePose, swingViewModel.currentState 바꿔주기
+                    // TODO: 타수를 모두 채웠으면 토스트 띄우고 스윙 촬영 화면으로 넘겨주기
+
 
                 } else {
                     setCurrentCameraState(AGAIN)

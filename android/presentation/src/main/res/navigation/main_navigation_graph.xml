@@ -93,6 +93,14 @@
             <argument
                 android:name="feedback"
                 app:argType="com.ijonsabae.presentation.model.FeedBack" />
+            <argument
+                android:name="swingCnt"
+                app:argType="integer"
+                android:defaultValue="0" />
+            <argument
+                android:name="totalSwingCnt"
+                app:argType="integer"
+                android:defaultValue="0" />
         </dialog>
     </navigation>
 

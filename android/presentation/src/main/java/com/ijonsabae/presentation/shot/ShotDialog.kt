@@ -39,7 +39,7 @@ class ShotDialog : BaseDialog<DialogShotBinding>(
     private fun initButtons() {
         binding.sbShotCnt.addOnChangeListener { slider, value, fromUser ->
             lifecycleScope.launch {
-                shotDialogViewModel.setShotCnt(value.toInt())
+                shotDialogViewModel.setTotalSwingCnt(value.toInt())
             }
         }
 
@@ -154,7 +154,7 @@ class ShotDialog : BaseDialog<DialogShotBinding>(
                     }
                 }
                 launch {
-                    shotDialogViewModel.showCnt.collect(){cnt->
+                    shotDialogViewModel.totalSwingCnt.collect(){ cnt->
                         binding.tvSliderValue.text = "${cnt} 회"
                     }
                 }

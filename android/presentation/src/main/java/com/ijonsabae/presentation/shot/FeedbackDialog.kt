@@ -16,6 +16,7 @@ import com.ijonsabae.presentation.config.BaseDialog
 import com.ijonsabae.presentation.databinding.DialogFeedbackBinding
 
 private const val TAG = "FeedbackDialog 싸피"
+
 class FeedbackDialog :
     BaseDialog<DialogFeedbackBinding>(DialogFeedbackBinding::bind, R.layout.dialog_feedback) {
     private val args: FeedbackDialogArgs by navArgs()
@@ -73,6 +74,10 @@ class FeedbackDialog :
                 tvCheckListTitle.text = feedBackCheckListTitle
                 tvFeedbackSolution.text = feedBackSolution
             }
+        }
+
+        binding.apply {
+            "${args.swingCnt} / ${args.totalSwingCnt}".also { tvSwingCount.text = it }
         }
     }
 
