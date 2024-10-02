@@ -24,8 +24,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintWidth_percent="0.25" />
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-
+    
     <!-- 리사이클러뷰 아이템 -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cv_replay_item"
@@ -39,6 +38,7 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible">
 
+        <!-- 스윙 영상 썸네일 -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -62,8 +62,6 @@
                     app:layout_constraintDimensionRatio="1:1"
                     tools:src="@drawable/dummy_img" />
             </androidx.cardview.widget.CardView>
-            <!-- 스윙 영상 썸네일 -->
-
 
             <!-- 제목 -->
             <TextView
