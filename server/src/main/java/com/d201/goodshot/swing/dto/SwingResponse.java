@@ -1,2 +1,5 @@
-package com.d201.goodshot.swing.dto;public class SwingResponse {
+package com.d201.goodshot.swing.dto;
+
+public class SwingResponse {
+
 }
