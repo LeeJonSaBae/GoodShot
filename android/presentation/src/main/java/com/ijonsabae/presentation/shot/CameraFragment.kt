@@ -66,8 +66,8 @@ class CameraFragment :
     private var tts: TextToSpeech? = null
     private var TTS_ID = "TTS"
 
-    private val swingViewModel: SwingViewModel by activityViewModels()
-    private val shotSettingViewModel: ShotSettingViewModel by activityViewModels()
+    private val swingViewModel by activityViewModels<SwingViewModel>()
+    private val shotSettingViewModel by activityViewModels<ShotSettingViewModel>()
 
     /** A [SurfaceView] for camera preview.   */
     private lateinit var surfaceView: SurfaceView
@@ -162,6 +162,10 @@ class CameraFragment :
                             val fps = 1000.0 / deltaTime
                             Log.d("CameraAnalyzer", "Current FPS: ${fps.roundToInt()}")
                         }
+
+                        // TODO: 좌타 우타 여부 동적으로 넣어주기
+//                         isSelf = true
+//                        isLeft = false
 
                         cameraSource.processImage(
                             cameraSource.getRotateBitmap(
