@@ -27,7 +27,6 @@ public class ExpertResponse {
     public static class ExpertItem {
         long id;
         String imageUrl;
-        String counselUrl;
         String name;
         int expYears; // 경력
         String field; // 분야
@@ -42,6 +41,7 @@ public class ExpertResponse {
         String name;
         int expYears;
         List<String> certificates;
+        String counselUrl;
     }
 
 }
