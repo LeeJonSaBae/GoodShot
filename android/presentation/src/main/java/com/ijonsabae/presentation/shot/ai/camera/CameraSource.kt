@@ -1140,6 +1140,14 @@ class CameraSource(
     }
 
     private fun checkResultSkipMotion(jointData: List<KeyPoint>) : Boolean{
+        // 1. 카메라 안에 있는지 판별
+        if ((jointData[NOSE.position].score) < 0.3 ||
+            (jointData[LEFT_ANKLE.position].score) < 0.3 ||
+            (jointData[RIGHT_ANKLE.position].score < 0.3)
+        ) {
+           return false
+        }
+
         val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
         val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
         val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
@@ -1150,7 +1158,6 @@ class CameraSource(
 
         val angleRadians = atan2(deltaY, deltaX)
         val angleDegrees = Math.toDegrees(angleRadians.toDouble())
-
 
         val currentTime = System.currentTimeMillis()
         Log.d("processDetectedInfo", "RESULT 상태일 때 내부 함수, chckskipmotion 함수 내부 접근")
