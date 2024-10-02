@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -38,6 +39,7 @@ class FeedbackDialog :
         override fun onReceive(context: Context?, intent: Intent) {
             if (intent.action == "SKIP_MOTION_DETECTED") {
                 swingViewModel.setCurrentState(CameraState.ADDRESS)
+                checkSwingCompletionAndNavigate()
                 Log.d(
                     "processDetectedInfo",
                     "processDetectedInfo: SKIP_MOTION_DETECTED 인텐트 수신 in FeedbackDialog"
@@ -58,6 +60,7 @@ class FeedbackDialog :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         registerLocalBroadCastReceiver()
         super.onViewCreated(view, savedInstanceState)
+        initBackPress()
         initButtons()
         initRecyclerView()
         setArgs()
@@ -71,13 +74,29 @@ class FeedbackDialog :
 
     private fun initButtons() {
         binding.btnClose.setOnClickListener {
-            // TODO: args.swingCnt과 args.totalSwingCnt가 같으면 촬영화면으로 보내고 토스트 띄워주기
-            if (args.swingCnt == args.totalSwingCnt) {
-                navController.navigate(R.id.action_feedback_dialog_to_shot)
-                showToastLong("스윙 촬영 횟수를 모두 채워 분석이 종료되었습니다.")
-            }
             swingViewModel.setCurrentState(CameraState.POSITIONING)
+            checkSwingCompletionAndNavigate()
             dismiss()
+        }
+    }
+
+    private fun initBackPress() {
+        dialog?.setOnKeyListener { _, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
+                swingViewModel.setCurrentState(CameraState.POSITIONING)
+                checkSwingCompletionAndNavigate()
+                dismiss()
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    private fun checkSwingCompletionAndNavigate() {
+        if (args.swingCnt == args.totalSwingCnt) {
+            navController.navigate(R.id.action_feedback_dialog_to_shot)
+            showToastLong("스윙 촬영 횟수를 모두 채워 분석이 종료되었습니다.")
         }
     }
 

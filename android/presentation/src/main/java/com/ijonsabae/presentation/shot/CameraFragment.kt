@@ -218,6 +218,7 @@ class CameraFragment :
     }
 
     override fun onDestroyView() {
+        // 여기 작성해줘
         (fragmentContext as MainActivity).showBottomNavBar()
         cameraProvider.unbindAll()
         super.onDestroyView()
