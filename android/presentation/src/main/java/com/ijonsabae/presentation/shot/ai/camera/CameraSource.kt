@@ -412,6 +412,8 @@ class CameraSource(
                 return
             }
 
+            AGAIN -> return
+
             else -> {
                 if (currentState == SWING) {
                     // 오른어깨와 왼발이 가까워지면
@@ -953,7 +955,9 @@ class CameraSource(
                     setCurrentCameraState(AGAIN)
                     Log.d("싸피", "다시 스윙해주세요")
                     CoroutineScope(Dispatchers.Main).launch {
+                        Log.d("아몬드", "전전전")
                         delay(2500L)
+                        Log.d("아몬드", "후후후후")
                         setCurrentCameraState(ADDRESS)
                     }
                 }
