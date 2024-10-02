@@ -1,17 +1,19 @@
 package com.ijonsabae.presentation.config
 
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.viewbinding.ViewBinding
@@ -42,6 +44,8 @@ abstract class BaseDialog<B : ViewBinding>(
     container: ViewGroup?,
     savedInstanceState: Bundle?
   ): View {
+    dialog?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+    dialog?.window?.requestFeature(Window.FEATURE_NO_TITLE)
     _binding = bind(super.onCreateView(inflater, container, savedInstanceState)!!)
     return binding.root
   }
@@ -107,5 +111,10 @@ abstract class BaseDialog<B : ViewBinding>(
   protected fun setScreenHeightPercentage(percentage: Float){
     val layoutParams = requireView().layoutParams
     layoutParams.height = (getScreenHeight(fragmentContext)*percentage).toInt()
+  }
+
+  protected fun setScreenHeightConstraint(option: Int){
+    val layoutParams = requireView().layoutParams
+    layoutParams.height = option
   }
 }
