@@ -6,6 +6,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/swings")
-@Tag(name = "swing")
+@Tag(name = "Swing")
 public class SwingController {
 }

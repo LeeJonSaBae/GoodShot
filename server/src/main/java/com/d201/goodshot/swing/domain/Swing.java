@@ -35,4 +35,8 @@ public class Swing {
 
     private String solution;
 
+    private int score;
+
+    private double tempo;
+
 }
