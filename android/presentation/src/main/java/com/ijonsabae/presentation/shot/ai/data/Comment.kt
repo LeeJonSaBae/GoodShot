@@ -1,7 +1,7 @@
 package com.ijonsabae.presentation.shot.ai.data
 
-open class Comment(val type : String ,val detail: String)
+open class Comment(val type: String, val content: String)
 
-class BadComment(detail: String) : Comment("BAD" ,detail)
+class BadComment(content: String) : Comment("BAD", content)
 
-class NiceComment(detail: String) : Comment("NICE" ,detail)
+class NiceComment(content: String) : Comment("NICE", content)

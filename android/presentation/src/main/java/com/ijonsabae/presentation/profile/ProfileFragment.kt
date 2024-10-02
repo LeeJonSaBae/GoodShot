@@ -20,7 +20,9 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.canhub.cropper.CropImageContract
@@ -28,10 +30,12 @@ import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
+import com.ijonsabae.presentation.config.Const.Companion.GalleryPermission
 import com.ijonsabae.presentation.databinding.FragmentProfileBinding
 import com.ijonsabae.presentation.login.LoginActivity
 import com.ijonsabae.presentation.main.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
 private const val TAG = "굿샷_ProfileFragment"
@@ -39,7 +43,6 @@ private const val TAG = "굿샷_ProfileFragment"
 @AndroidEntryPoint
 class ProfileFragment :
     BaseFragment<FragmentProfileBinding>(FragmentProfileBinding::bind, R.layout.fragment_profile) {
-
     private val profileViewModel: ProfileViewModel by viewModels()
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -50,55 +53,21 @@ class ProfileFragment :
                 if (imageUri != null) {
                     startCrop(imageUri)
                 } else {
-                    Toast.makeText(requireContext(), "이미지를 선택할 수 없습니다.", Toast.LENGTH_SHORT).show()
+                    showToastShort("이미지를 선택할 수 없습니다.")
                 }
             }
         }
     private val cropImage = registerForActivityResult(CropImageContract()) { result ->
         if (result.isSuccessful) {
-            val croppedUri = result.uriContent
-            if (croppedUri != null) {
-                setUserProfileImage(croppedUri)
-                lifecycleScope.launch(coroutineExceptionHandler) {
-                    // Presigned URL 받아오기
-                    val imageExtension =
-                        getImageExtension(requireContext().contentResolver, croppedUri)
-                    Log.d(TAG, "확장자: $imageExtension")
-                    if (imageExtension != null) {
-                        profileViewModel.getPresignedURL(imageExtension)
-                    } else {
-                        Toast.makeText(requireContext(), "확장자가 없습니다!", Toast.LENGTH_SHORT).show()
-                    }
-
-                    // 프로필 이미지 upload
-                    profileViewModel.presignedUrl.collect { presignedUrl ->
-                        Log.d(TAG, "presignedUrl: $presignedUrl")
-                        presignedUrl?.let {
-                            profileViewModel.uploadProfileImage(presignedUrl, croppedUri)
-                            profileViewModel.imageUrl.collect { imageUrl ->
-                                profileViewModel.updateProfile(imageUrl)
-                                profileViewModel.isUpdateProfileSucceed.collect { result ->
-                                    if (result == 200) {
-                                        Toast.makeText(
-                                            requireContext(),
-                                            "프로필 수정이 완료되었습니다!",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-
+            result.uriContent?.let { croppedUri ->
+                lifecycleScope.launch {
+                    profileViewModel.setCroppedUri(croppedUri)
+                    setUserProfileImage(croppedUri)
                 }
-
             }
-
         } else {
             val error = result.error
-            Toast.makeText(requireContext(), "Crop failed: ${error?.message}", Toast.LENGTH_SHORT)
-                .show()
+            showToastShort("Crop Failed: ${error?.message}")
         }
     }
 
@@ -158,10 +127,13 @@ class ProfileFragment :
         super.onViewCreated(view, savedInstanceState)
         (fragmentContext as MainActivity).showAppBar("마이 페이지")
         init()
+        initFlow()
+        permissionChecker.setOnGrantedListener{
+            openGallery()
+        }
     }
 
     private fun init() {
-
         binding.btnEditProfileImg.setOnClickListener {
             checkPermissionAndOpenGallery()
         }
@@ -174,19 +146,8 @@ class ProfileFragment :
         }
 
         binding.layoutLogout.setOnClickListener {
-            lifecycleScope.launch {
+            lifecycleScope.launch(coroutineExceptionHandler) {
                 profileViewModel.logout()
-
-                profileViewModel.isLogoutSucceed.collect { result ->
-                    if (result == 200) {
-                        Toast.makeText(requireContext(), "로그아웃 되었습니다!", Toast.LENGTH_SHORT).show()
-                        val intent = Intent(requireContext(), LoginActivity::class.java).apply {
-                            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-                        }
-                        startActivity(intent)
-                        requireActivity().finish()
-                    }
-                }
             }
         }
 
@@ -218,7 +179,7 @@ class ProfileFragment :
         btnNo.setOnClickListener { dialogBuilder.dismiss() }
         btnYes.setOnClickListener {
             // 탈퇴
-            Toast.makeText(requireContext(), "탈퇴되었습니다!", Toast.LENGTH_SHORT).show()
+            showToastShort("탈퇴되었습니다!")
             dialogBuilder.dismiss()
         }
 
@@ -239,9 +200,16 @@ class ProfileFragment :
 
 
     private fun checkPermissionAndOpenGallery() {
-        // 권한 체크 후 갤러리 열기
-        if (requireContext().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+        if(permissionChecker.checkPermission(fragmentContext, GalleryPermission)){
             openGallery()
+        }else{
+            showToastShort("권한을 설정하셔야 기록 서비스를 이용 가능합니다!")
+            //ask for permission
+            permissionChecker.requestPermissionLauncher.launch(GalleryPermission)
+        }
+        // 권한 체크 후 갤러리 열기
+        if (fragmentContext.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+
         } else {
             requestPermissions(
                 arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
@@ -258,25 +226,64 @@ class ProfileFragment :
         galleryLauncher.launch(intent)
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_PERMISSION_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                openGallery()
-            } else {
-                Toast.makeText(requireContext(), "갤러리 접근 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    fun getImageExtension(contentResolver: ContentResolver, uri: Uri): String? {
+    private fun getImageExtension(contentResolver: ContentResolver, uri: Uri): String? {
         val mimeType = contentResolver.getType(uri)
 
         return MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
+    }
+
+    private fun initFlow(){
+        lifecycleScope.launch(coroutineExceptionHandler) {
+            repeatOnLifecycle(Lifecycle.State.STARTED){
+                launch {
+                    profileViewModel.isLogoutSucceed.collect { result ->
+                        if (result == 200) {
+                            showToastShort("로그아웃 되었습니다!")
+                            val intent = Intent(fragmentContext, LoginActivity::class.java).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            startActivity(intent)
+                            requireActivity().finish()
+                        }
+                    }
+                }
+                launch {
+                    profileViewModel.croppedUri.drop(1).collect{ croppedUri ->
+                        launch(coroutineExceptionHandler) {
+                            // Presigned URL 받아오기
+                            val imageExtension =
+                                getImageExtension(fragmentContext.contentResolver, croppedUri)
+                            Log.d(TAG, "확장자: $imageExtension")
+                            if (imageExtension != null) {
+                                profileViewModel.getPresignedURL(imageExtension)
+                            } else {
+                                showToastShort("확장자가 없습니다!")
+                            }
+                        }
+                    }
+                }
+                launch {
+                    // 프로필 이미지 upload
+                    profileViewModel.presignedUrl.drop(1).collect { presignedUrl ->
+                        Log.d(TAG, "presignedUrl: $presignedUrl")
+                        presignedUrl?.let {
+                            profileViewModel.uploadProfileImage(presignedUrl, profileViewModel.croppedUri.value).getOrThrow()
+                        }
+                    }
+                }
+                launch {
+                    profileViewModel.imageUrl.drop(1).collect { imageUrl ->
+                        val result = profileViewModel.updateProfile(imageUrl).getOrThrow()
+                        if(result.code == 200){
+                            showToastShort("프로필 수정이 완료되었습니다!")
+                        }else{
+                            showToastShort("프로필 수정에 실패했습니다!")
+                        }
+
+                    }
+                }
+            }
+        }
     }
 
     companion object {

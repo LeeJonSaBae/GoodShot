@@ -1,10 +1,17 @@
 package com.ijonsabae.presentation.shot
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.activityViewModels
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -14,13 +21,30 @@ import com.bumptech.glide.Glide
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseDialog
 import com.ijonsabae.presentation.databinding.DialogFeedbackBinding
+import dagger.hilt.android.AndroidEntryPoint
 
 private const val TAG = "FeedbackDialog 싸피"
+
+@AndroidEntryPoint
 class FeedbackDialog :
     BaseDialog<DialogFeedbackBinding>(DialogFeedbackBinding::bind, R.layout.dialog_feedback) {
     private val args: FeedbackDialogArgs by navArgs()
     private val checkListAdapter: CheckListAdapter by lazy {
         CheckListAdapter()
+    }
+    private val swingViewModel by activityViewModels<SwingViewModel>()
+
+    private val skipMotionReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent) {
+            if (intent.action == "SKIP_MOTION_DETECTED") {
+                swingViewModel.setCurrentState(CameraState.ADDRESS)
+                Log.d(
+                    "processDetectedInfo",
+                    "processDetectedInfo: SKIP_MOTION_DETECTED 인텐트 수신 in FeedbackDialog"
+                )
+                dismiss()
+            }
+        }
     }
 
     override fun onCreateView(
@@ -32,6 +56,7 @@ class FeedbackDialog :
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        registerLocalBroadCastReceiver()
         super.onViewCreated(view, savedInstanceState)
         initButtons()
         initRecyclerView()
@@ -46,6 +71,12 @@ class FeedbackDialog :
 
     private fun initButtons() {
         binding.btnClose.setOnClickListener {
+            // TODO: args.swingCnt과 args.totalSwingCnt가 같으면 촬영화면으로 보내고 토스트 띄워주기
+            if (args.swingCnt == args.totalSwingCnt) {
+                navController.navigate(R.id.action_feedback_dialog_to_shot)
+                showToastLong("스윙 촬영 횟수를 모두 채워 분석이 종료되었습니다.")
+            }
+            swingViewModel.setCurrentState(CameraState.POSITIONING)
             dismiss()
         }
     }
@@ -74,6 +105,16 @@ class FeedbackDialog :
                 tvFeedbackSolution.text = feedBackSolution
             }
         }
+
+        binding.apply {
+            "${args.swingCnt} / ${args.totalSwingCnt}".also { tvSwingCount.text = it }
+        }
+    }
+
+    private fun registerLocalBroadCastReceiver() {
+        LocalBroadcastManager.getInstance(fragmentContext).registerReceiver(
+            skipMotionReceiver, IntentFilter("SKIP_MOTION_DETECTED")
+        )
     }
 
     private fun PlayerView.setPlayer(uri: String) {

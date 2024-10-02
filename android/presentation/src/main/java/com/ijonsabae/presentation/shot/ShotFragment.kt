@@ -3,8 +3,6 @@ package com.ijonsabae.presentation.shot
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AnimationUtils
-import androidx.navigation.NavController
-import androidx.navigation.Navigation
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
@@ -21,16 +19,21 @@ class ShotFragment :
         (fragmentContext as MainActivity).showAppBar("스윙 촬영")
 
         binding.cvBtnCamera.setOnClickListener {
-            navController.navigate(R.id.action_shot_to_shot_dialog)
+            navController.navigate(R.id.action_shot_to_shot_option_dialog)
         }
         binding.btnCamera.setOnClickListener {
-            navController.navigate(R.id.action_shot_to_shot_dialog)
+            navController.navigate(R.id.action_shot_to_shot_option_dialog)
         }
 
         binding.rvTimeline.apply {
             setOnTouchListener { _, _ -> true }
             layoutManager = LinearLayoutManager(fragmentContext)
             adapter = TimeLineAdapter(mDataList)
+        }
+
+        binding.btnTutorial.setOnClickListener {
+            // TODO : 튜토리얼 다이얼로그 띄우기
+            navController.navigate(R.id.action_shot_to_shot_tutorial_dialog)
         }
 
         val anim = AnimationUtils.loadAnimation(requireActivity(), R.anim.blink)

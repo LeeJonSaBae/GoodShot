@@ -82,7 +82,7 @@
             android:layout_marginHorizontal="20dp"
             android:layout_marginTop="20dp"
             android:background="@drawable/profile_rounded_button_password"
-            app:layout_constraintBottom_toTopOf="@id/layout_resign"
+            app:layout_constraintBottom_toTopOf="@id/layout_logout"
             app:layout_constraintTop_toBottomOf="@id/layout_user_info">
 
             <TextView
