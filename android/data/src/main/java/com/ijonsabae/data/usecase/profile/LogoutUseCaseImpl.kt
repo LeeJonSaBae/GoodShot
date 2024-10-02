@@ -9,7 +9,7 @@ class LogoutUseCaseImpl @Inject constructor(
     private val profileService: ProfileService
 ) : LogoutUseCase {
 
-    override suspend fun invoke(): Result<CommonResponse<String?>> {
+    override suspend fun invoke(): Result<CommonResponse<Unit>> {
         return profileService.logout()
     }
 }
