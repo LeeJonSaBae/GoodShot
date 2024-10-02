@@ -14,9 +14,11 @@ import com.bumptech.glide.Glide
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseDialog
 import com.ijonsabae.presentation.databinding.DialogFeedbackBinding
+import dagger.hilt.android.AndroidEntryPoint
 
 private const val TAG = "FeedbackDialog 싸피"
 
+@AndroidEntryPoint
 class FeedbackDialog :
     BaseDialog<DialogFeedbackBinding>(DialogFeedbackBinding::bind, R.layout.dialog_feedback) {
     private val args: FeedbackDialogArgs by navArgs()
@@ -47,6 +49,11 @@ class FeedbackDialog :
 
     private fun initButtons() {
         binding.btnClose.setOnClickListener {
+            // TODO: args.swingCnt과 args.totalSwingCnt가 같으면 촬영화면으로 보내고 토스트 띄워주기
+            if(args.swingCnt == args.totalSwingCnt){
+                navController.navigate(R.id.action_feedback_dialog_to_shot)
+                showToastLong("스윙 촬영 횟수를 모두 채워 분석이 종료되었습니다.")
+            }
             dismiss()
         }
     }

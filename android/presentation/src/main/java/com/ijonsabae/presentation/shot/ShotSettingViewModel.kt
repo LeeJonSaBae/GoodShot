@@ -31,4 +31,8 @@ class ShotSettingViewModel @Inject constructor(): ViewModel() {
     suspend fun setTotalSwingCnt(cnt: Int){
         _totalSwingCnt.emit(cnt)
     }
+
+    suspend fun initializeTotalSwingCnt() {
+        _totalSwingCnt.emit(1)
+    }
 }

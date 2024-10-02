@@ -137,6 +137,9 @@ class ShotDialog : BaseDialog<DialogShotBinding>(
             balloon2.showAlignTop(it)
         }
 
+        lifecycleScope.launch {
+            shotDialogViewModel.initializeTotalSwingCnt()
+        }
     }
 
     private fun initFlow(){
