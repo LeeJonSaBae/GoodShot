@@ -26,4 +26,6 @@ interface UserService {
     suspend fun checkEmailDuplicated(@Query("email") email: String): Result<CommonResponse<Boolean>>
     @POST("users/temporary-password")
     suspend fun generateTemporaryPassWord(@Body generatedTemporaryPassWordParam: GenerateTemporaryPassWordParam): Result<CommonResponse<Unit>>
+    @POST("users/logout")
+    suspend fun logout(): Result<CommonResponse<Unit>>
 }

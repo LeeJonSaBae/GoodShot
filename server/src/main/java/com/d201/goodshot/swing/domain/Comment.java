@@ -1,6 +1,6 @@
 package com.d201.goodshot.swing.domain;
 
-import com.d201.goodshot.swing.enums.FeedbackType;
+import com.d201.goodshot.swing.enums.CommentType;
 import com.d201.goodshot.swing.enums.PoseType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -15,8 +15,8 @@ import org.hibernate.annotations.DynamicInsert;
 @NoArgsConstructor
 @AllArgsConstructor
 @DynamicInsert
-@Table(name = "feedback")
-public class Feedback {
+@Table(name = "comment")
+public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +28,8 @@ public class Feedback {
 
     private PoseType poseType;
 
-    private FeedbackType feedbackType;
+    private CommentType commentType;
 
-    private String comment;
+    private String content;
+
 }

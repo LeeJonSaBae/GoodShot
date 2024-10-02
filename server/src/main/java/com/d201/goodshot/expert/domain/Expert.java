@@ -33,4 +33,7 @@ public class Expert {
     @Column(columnDefinition = "TEXT")
     private String profileUrl;
 
+    @Column(columnDefinition = "TEXT")
+    private String counselUrl;
+
 }

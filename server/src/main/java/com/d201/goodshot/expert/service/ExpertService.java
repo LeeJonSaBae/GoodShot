@@ -31,6 +31,7 @@ public class ExpertService {
         List<ExpertItem> expertItems = experts
                 .stream().map(expert -> ExpertItem.
                             builder()
+                            .id(expert.getId())
                             .imageUrl(expert.getProfileUrl())
                             .name(expert.getName())
                             .field(expert.getField())
@@ -58,6 +59,7 @@ public class ExpertService {
                 .name(expert.getName())
                 .certificates(certificates)
                 .expYears(expert.getExpYears())
+                .counselUrl(expert.getCounselUrl())
                 .build();
     }
 
