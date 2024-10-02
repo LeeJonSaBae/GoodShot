@@ -18,6 +18,7 @@ limitations under the License.
 import VideoEncoder
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.PointF
@@ -34,6 +35,7 @@ import android.util.Log
 import android.view.PixelCopy
 import android.view.SurfaceView
 import androidx.annotation.RequiresApi
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.model.FeedBack
 import com.ijonsabae.presentation.shot.CameraState
@@ -111,10 +113,8 @@ class CameraSource(
 
     private var swingFrameCount = 0
     private var pelvisTwisting = false
-    private var stopAnalizePose = false
     private val imageQueue: Queue<TimestampedData<Bitmap>> = LinkedList()
     private val jointQueue: Queue<List<KeyPoint>> = LinkedList()
-
 
     //수동측정을 위한 값들
     private var minFinishGap = 1f
@@ -389,7 +389,7 @@ class CameraSource(
     /** !!!!!!!!!!!! 포즈 추론은 우타, 후면 카메라로 좔영했을 때 기준 !!!!!!!!!!!! **/
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun processDetectedInfo(
-        person: Person,
+        person: Person
     ) {
 
         val keyPoints = person.keyPoints
@@ -398,7 +398,7 @@ class CameraSource(
         /**
          * 1. 상태가 RESULT일 때 상태를 호출하는 경우로 변경하기
          */
-//        if (stopAnalizePose) return
+
         if (getCurrentCameraState() == RESULT) {
             /**
              * 1. 왼손목-왼팔꿈치가 왼쪽 일자로 펴진 경우를 감지하고 (170~190도) 이때의 시간을 전역변수에 갱신한다.
@@ -406,9 +406,7 @@ class CameraSource(
              *  RESULT 다이얼로그를 종료하고 어드레스 자세 잡기 상태로 변경
              * */
             if (checkResultSkipMotion(keyPoints)) {
-                // TODO: 문현 2. SKIP 인식되면 다이얼로그 닫고 (dismiss 참고) ADDRESS 상태로 변경
-                setCurrentCameraState(ADDRESS)
-                // TODO: 문현 3. 다이얼로그 X버튼 누르면 어드레스 상태로 이동 (byactivityviewmodels 참고)
+                skipFeedbackDialog()
             }
 
         }
@@ -558,18 +556,16 @@ class CameraSource(
                     setCurrentCameraState(RESULT)
                     resultSkipMotionStartTime = 0L //스킵 동작 탐지를 위한 변수 초기화
 
-                    // TODO: 다이얼로그가 닫히는 순간 stopAnalizePose, swingViewModel.currentState 바꿔주기
+                    // TODO: 다이얼로그가 닫히는 순간 swingViewModel.currentState 바꿔주기
 
                 } else {
                     setCurrentCameraState(AGAIN)
                     Log.d("싸피", "다시 스윙해주세요")
                     CoroutineScope(Dispatchers.Main).launch {
                         delay(2500L)
-                        stopAnalizePose = false
                         setCurrentCameraState(ADDRESS)
                     }
                 }
-                stopAnalizePose = true
                 pelvisTwisting = false
                 swingFrameCount = 0
             }
@@ -1174,5 +1170,14 @@ class CameraSource(
             }
         }
         return false
+    }
+
+    private fun skipFeedbackDialog() {
+        //sendSkipMotionBroadcast
+        val intent = Intent().apply {
+            action = "SKIP_MOTION_DETECTED"
+            putExtra("skipMotion", "Skip motion detected")
+        }
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
     }
 }

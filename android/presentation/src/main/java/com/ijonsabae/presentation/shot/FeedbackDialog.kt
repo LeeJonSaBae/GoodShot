@@ -1,10 +1,16 @@
 package com.ijonsabae.presentation.shot
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.activityViewModels
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -22,6 +28,16 @@ class FeedbackDialog :
     private val checkListAdapter: CheckListAdapter by lazy {
         CheckListAdapter()
     }
+    private val swingViewModel by activityViewModels<SwingViewModel>()
+
+    private val skipMotionReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent) {
+            if (intent.action == "SKIP_MOTION_DETECTED") {
+                swingViewModel.setCurrentState(CameraState.ADDRESS)
+                dismiss()
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -32,6 +48,7 @@ class FeedbackDialog :
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        registerLocalBroadCastReceiver()
         super.onViewCreated(view, savedInstanceState)
         initButtons()
         initRecyclerView()
@@ -46,6 +63,7 @@ class FeedbackDialog :
 
     private fun initButtons() {
         binding.btnClose.setOnClickListener {
+            swingViewModel.setCurrentState(CameraState.POSITIONING)
             dismiss()
         }
     }
@@ -74,6 +92,12 @@ class FeedbackDialog :
                 tvFeedbackSolution.text = feedBackSolution
             }
         }
+    }
+
+    private fun registerLocalBroadCastReceiver() {
+        LocalBroadcastManager.getInstance(fragmentContext).registerReceiver(
+            skipMotionReceiver, IntentFilter("skipMotion")
+        )
     }
 
     private fun PlayerView.setPlayer(uri: String) {

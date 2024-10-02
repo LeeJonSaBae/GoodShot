@@ -487,7 +487,7 @@ class CameraFragment :
                 fragmentContext,
                 { swingViewModel.currentState.value },
                 { cameraState -> swingViewModel.setCurrentState(cameraState) },
-                { feedback -> swingViewModel.setFeedBack(feedback) },
+                { feedback -> swingViewModel.setFeedBack(feedback) }
             )
             cameraSource.setSurfaceView(binding.camera)
         }
