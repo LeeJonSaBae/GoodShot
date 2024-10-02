@@ -25,7 +25,9 @@ public class ExpertResponse {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class ExpertItem {
+        long id;
         String imageUrl;
+        String counselUrl;
         String name;
         int expYears; // 경력
         String field; // 분야
