@@ -36,7 +36,6 @@ public class ExpertService {
                             .name(expert.getName())
                             .field(expert.getField())
                             .expYears(expert.getExpYears())
-                            .counselUrl(expert.getCounselUrl())
                             .build())
                 .collect(Collectors.toList());
 
@@ -60,6 +59,7 @@ public class ExpertService {
                 .name(expert.getName())
                 .certificates(certificates)
                 .expYears(expert.getExpYears())
+                .counselUrl(expert.getCounselUrl())
                 .build();
     }
 
