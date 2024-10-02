@@ -24,7 +24,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintWidth_percent="0.25" />
     </androidx.constraintlayout.widget.ConstraintLayout>
-    
+
     <!-- 리사이클러뷰 아이템 -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cv_replay_item"
@@ -47,7 +47,7 @@
                 android:id="@+id/cv_thumbnail"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
-                android:layout_margin="20dp"
+                android:layout_margin="15dp"
                 app:cardCornerRadius="8dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -78,6 +78,17 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintVertical_chainStyle="packed"
                 tools:text="첫 스윙 영상" />
+
+            <!-- 제목 수정 버튼 -->
+            <ImageView
+                android:id="@+id/iv_edit_title"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:paddingVertical="4dp"
+                android:src="@drawable/ic_edit"
+                app:layout_constraintBottom_toBottomOf="@id/tv_title"
+                app:layout_constraintStart_toEndOf="@id/tv_title"
+                app:layout_constraintTop_toTopOf="@id/tv_title" />
 
             <!-- 날짜 -->
             <TextView
@@ -138,11 +149,13 @@
                 android:id="@+id/layout_tag2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="4dp"
                 android:background="@drawable/btn_tag_green"
                 android:paddingHorizontal="9dp"
                 android:paddingVertical="4dp"
                 app:layout_constraintBottom_toBottomOf="@id/layout_tag1"
+                app:layout_constraintEnd_toStartOf="@id/iv_like"
+                app:layout_constraintHorizontal_bias="0"
                 app:layout_constraintStart_toEndOf="@id/layout_tag1"
                 app:layout_constraintTop_toTopOf="@id/layout_tag1">
 
@@ -176,8 +189,8 @@
             <!-- 즐겨찾기 -->
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/iv_like"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
                 android:layout_marginTop="-10dp"
                 android:adjustViewBounds="true"
                 android:paddingTop="14dp"

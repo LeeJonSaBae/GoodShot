@@ -50,7 +50,6 @@ class ReplayFragment :
         (fragmentContext as MainActivity).showAppBar("영상 다시보기")
 
         initMoreBtn()
-
         initRecyclerView()
     }
 
@@ -67,7 +66,6 @@ class ReplayFragment :
 
         ivMore.setOnClickListener {
             showCustomPopup(ivMore)
-
         }
     }
 
