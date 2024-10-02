@@ -63,7 +63,6 @@ class CameraFragment :
 
     @Inject
     lateinit var foldingStateActor: FoldingStateActor
-    private lateinit var permissionChecker: PermissionChecker
     private val permissionList = arrayOf(Manifest.permission.CAMERA)
     private var camera: Camera? = null
     private var cameraController: CameraControl? = null
@@ -89,7 +88,7 @@ class CameraFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         navController = Navigation.findNavController(binding.root)
-
+        (fragmentContext as MainActivity).hideAppBar()
         initObservers()
         initTts()
         surfaceView = binding.camera

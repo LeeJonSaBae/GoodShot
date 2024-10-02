@@ -14,6 +14,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.viewbinding.ViewBinding
 import com.ijonsabae.domain.model.RetrofitException
 import com.ijonsabae.presentation.login.LoginViewModel
+import com.ijonsabae.presentation.util.PermissionChecker
 import kotlinx.coroutines.CoroutineExceptionHandler
 import retrofit2.HttpException
 import javax.inject.Inject
@@ -27,6 +28,7 @@ abstract class BaseFragment<B : ViewBinding>(
   private var _binding: B? = null
   protected val binding get() = _binding!!
   protected lateinit var navController: NavController
+  protected lateinit var permissionChecker: PermissionChecker
   lateinit var fragmentContext: Context
 
   protected val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -57,6 +59,7 @@ abstract class BaseFragment<B : ViewBinding>(
   override fun onAttach(context: Context) {
     super.onAttach(context)
     fragmentContext = context
+    permissionChecker = PermissionChecker(this)
   }
 
   override fun onCreateView(

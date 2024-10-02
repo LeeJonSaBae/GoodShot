@@ -24,10 +24,6 @@ class UploadProfileImageUseCaseImpl @Inject constructor(
     ): Result<Unit> {
         val requestBody = createRequestBodyFromUri(imageURI)
         return uploadImageService.uploadProfileImage(presignedUrl, requestBody)
-//        val result = profileService.uploadProfileImage(presignedUrl, requestBody)
-//        Log.d(TAG, "UploadProfileImageUseCaseImpl 까지 왔음 -> isSuccess? = ${result.isSuccess}")
-//
-//        return result
     }
 
     private fun createRequestBodyFromUri(uri: URI): RequestBody {

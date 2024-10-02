@@ -14,6 +14,10 @@ class UserRemoteDataSource @Inject constructor(private val userService: UserServ
         return userService.login(loginParam)
     }
 
+    suspend fun logout(): Result<CommonResponse<Unit>>{
+        return userService.logout()
+    }
+
     suspend fun join(registerParam: RegisterParam): Result<CommonResponse<Unit>>{
         return userService.join(registerParam)
     }
