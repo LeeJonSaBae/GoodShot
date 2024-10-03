@@ -151,7 +151,7 @@ class HomeFragment :
             NewsDTO(
                 title = "골프 구질도 알고 골프 실력도 쌓고",
                 "https://www.golfjournal.co.kr/news/articleView.html?idxno=4455",
-                description = "다르지만 비슷한 스윙 교정 방법에\n대해 알아볼까요?!",
+                description = "골프를 처음 시작하는 당신을 위한 실속 정보! 이번에는 골프 구질에 대해 알아보자.",
                 thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article1)!!
             ),
             NewsDTO(
@@ -180,24 +180,24 @@ class HomeFragment :
                 description = "스윙은 골프에서 가장 중요한 요소 중 하나다.",
                 thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article6)!!
             ),NewsDTO(
-                title = "골프 백스윙 고민 많은 분을 위한 해결책",
+                title = "중급자를 위한 골프레슨",
                 "https://blog.naver.com/PostView.naver?blogId=beheaded&logNo=223343746913&categoryNo=9&parentCategoryNo=0&viewDate=&currentPage=10&postListTopCurrentPage=1&from=thumbnailList&userTopListOpen=true&userTopListCount=5&userTopListManageOpen=false&userTopListCurrentPage=10",
-                description = "일관된 백스윙 하는 것이 골프 스윙에서 가장 중요한 포인트",
+                description = "그립의 재발견 #JNGK",
                 thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article7)!!
             ),NewsDTO(
-                title = "팔만 쓰는 스윙이 훅을 낳는다",
+                title = "골프 백스윙 고민 많은 분을 위한 해결책",
                 "http://jtbcgolf.joins.com/academy/column/column_view.asp?page=3&column_type=10&ac1=165",
-                description = "힘에 의존하는 스윙 습관은 잘못… 자연스런 스윙 익혀야",
+                description = "일관된 백스윙 하는 것이 골프 스윙에서 가장 중요한 포인트",
                 thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article8)!!
             ),NewsDTO(
-                title = "슬라이스를 방지하려면 어드레스시 어떤 자세가 유리한가요?",
+                title = "팔만 쓰는 스윙이 훅을 낳는다",
                 "https://www.golfjournal.co.kr/news/articleView.html?idxno=4455",
-                description = "골프 구질 알아보기 ",
+                description = "힘에 의존하는 스윙 습관은 잘못… 자연스런 스윙 익혀야",
                 thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article9)!!
             ),NewsDTO(
-                title = "골프 구질도 알고 골프 실력도 쌓고",
+                title = "슬라이스를 방지하려면 어드레스시 어떤 자세가 유리한가요?",
                 "https://kimcaddie.com/post/golf_shot_pitch_%EA%B5%AC%EC%A7%88_%EA%B5%90%EC%A0%95_1",
-                description = "다르지만 비슷한 스윙 교정 방법에\n대해 알아볼까요?!",
+                description = "골프 구질 알아보기",
                 thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article10)!!
             ),
         )
