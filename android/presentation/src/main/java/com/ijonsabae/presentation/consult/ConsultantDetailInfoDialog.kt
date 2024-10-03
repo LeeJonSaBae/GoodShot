@@ -15,10 +15,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
-import com.ijonsabae.domain.model.ExpertDetail
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseDialog
 import com.ijonsabae.presentation.databinding.DialogConsultantBinding
+import com.ijonsabae.presentation.model.ExpertDetail
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -57,8 +57,8 @@ class ConsultantDetailInfoDialog :
 
     private fun initArgs() {
         lifecycleScope.launch(coroutineExceptionHandler) {
-            args.expertId.let {
-                viewModel.setId(it)
+            args.expertDetail.let {
+                viewModel.setExpertDetailInfo(it)
             }
         }
     }
@@ -84,17 +84,12 @@ class ConsultantDetailInfoDialog :
         lifecycleScope.launch(coroutineExceptionHandler) {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    viewModel.id.collect {
-                        val result = viewModel.getExpertDetailInfo(it)
-                        val expert = result.getOrThrow().data
-                        viewModel.setExpertDetailInfo(expert)
-                    }
-                }
-                launch {
                     viewModel.expertDetailInfo.collect {
-                        consultantCertificationAdapter.submitList(it.certificates)
-                        setData(it)
-                        loadProfileImage(it.imageUrl)
+                        if(it != ExpertDetail.EMPTY){
+                            consultantCertificationAdapter.submitList(it.certificates)
+                            setData(it)
+                            loadProfileImage(it.imageUrl)
+                        }
                     }
                 }
             }
@@ -108,7 +103,7 @@ class ConsultantDetailInfoDialog :
     private fun setData(expertDetail: ExpertDetail) {
         binding.tvConsultantName.text = "${expertDetail.name} 프로"
         binding.tvCareer.text = "총 경력${expertDetail.expYears}년"
-        binding.tvPhoneNumber.text = "010-1234-5678"
+        binding.tvPhoneNumber.text = expertDetail.phoneNumber
     }
 
     private fun loadProfileImage(url: String) {

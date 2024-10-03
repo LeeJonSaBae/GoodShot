@@ -11,6 +11,7 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentConsultBinding
 import com.ijonsabae.presentation.main.MainActivity
+import com.ijonsabae.presentation.model.convertExpertDetail
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -26,11 +27,13 @@ class ConsultFragment :
             setItemClickListener(
                 object : ConsultantListAdapter.OnItemClickListener {
                     override fun onItemClick(item: Expert) {
-                        navController.navigate(
-                            ConsultFragmentDirections.actionConsultToConsultDialog(
-                                item.id
+                        lifecycleScope.launch(coroutineExceptionHandler) {
+                            navController.navigate(
+                                ConsultFragmentDirections.actionConsultToConsultDialog(
+                                    convertExpertDetail(consultViewModel.getConsultantInfo(item.id).getOrThrow().data)
+                                )
                             )
-                        )
+                        }
                     }
                 }
             )

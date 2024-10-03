@@ -8,7 +8,8 @@ data class ExpertDetail(
     val name : String,
     val expYears : Int,
     val certificates : List<String>,
-    val counselUrl: String
+    val counselUrl: String,
+    val phoneNumber: String
 ) {
     companion object{
         val EMPTY = ExpertDetail(
@@ -16,7 +17,8 @@ data class ExpertDetail(
             name = "",
             expYears = -1,
             certificates = listOf(),
-            counselUrl = ""
+            counselUrl = "",
+            phoneNumber = ""
         )
     }
 }
