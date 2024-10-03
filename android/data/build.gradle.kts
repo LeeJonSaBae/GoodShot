@@ -14,6 +14,8 @@ private val properties = Properties().apply {
 }
 
 val SERVER_IP: String = properties.getProperty("SERVER_IP")
+val YOUTUBE_IP: String = properties.getProperty("YOUTUBE_IP")
+val YOUTUBE_KEY: String = properties.getProperty("YOUTUBE_KEY")
 
 android {
     namespace = "com.ijonsabae.data"
@@ -24,6 +26,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
         buildConfigField("String", "SERVER_IP", SERVER_IP)
+        buildConfigField("String", "YOUTUBE_IP", YOUTUBE_IP)
+        buildConfigField("String", "YOUTUBE_KEY", YOUTUBE_KEY)
     }
 
     buildTypes {
