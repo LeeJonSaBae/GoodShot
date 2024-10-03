@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -148,49 +149,56 @@ class HomeFragment :
     private fun getNewsData(): MutableList<NewsDTO> {
         return mutableListOf(
             NewsDTO(
-                title = "[첫번째 타이틀] 훅 vS 슬라이스",
-                null,
-                null,
+                title = "골프 구질도 알고 골프 실력도 쌓고",
+                "https://www.golfjournal.co.kr/news/articleView.html?idxno=4455",
                 description = "다르지만 비슷한 스윙 교정 방법에\n대해 알아볼까요?!",
-                null,
-                null,
-                null
+                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article1)!!
             ),
             NewsDTO(
-                title = "두번째 타이틀",
-                null,
-                null,
-                description = "두번째 내용!!!!!!!!!!!",
-                null,
-                null,
-                null
-            ),
-            NewsDTO(
-                title = "세번째 타이틀",
-                null,
-                null,
-                description = "세번째 내용!!!!!!!!!!!",
-                null,
-                null,
-                null
-            ),
-            NewsDTO(
-                title = "네번째 타이틀",
-                null,
-                null,
-                description = "네번째 내용!!!!!!!!!!!",
-                null,
-                null,
-                null
-            ),
-            NewsDTO(
-                title = "마지막 타이틀",
-                null,
-                null,
-                description = "마지막 내용!!!!!!!!!!!",
-                null,
-                null,
-                null
+                title = "골프 스윙에 도움되는 균형을 찾아가는 호흡법",
+                "https://www.golfmagazinekorea.com/news/articleView.html?idxno=271",
+                description = "완벽한 골프 스윙은 셋업에서 시작된다.",
+                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article2)!!
+            ),NewsDTO(
+                title = "골프 임팩트 다섯 선수로 살펴본 그 순간의 찰라",
+                "https://blog.naver.com/PostView.naver?blogId=beheaded&logNo=223454216551&categoryNo=9&parentCategoryNo=0&viewDate=&currentPage=5&postListTopCurrentPage=1&from=thumbnailList&userTopListOpen=true&userTopListCount=5&userTopListManageOpen=false&userTopListCurrentPage=5",
+                description = "골프 스윙 어떤 것이 정답인지는 모르지만 PGA 투어 선수들을 살펴보면 다들 개성 있는 임팩트 동작을 하는 것을 알 수 있습니다.",
+                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article3)!!
+            ),NewsDTO(
+                title = "골프 자세를 교정하는 방법",
+                "https://www.golfmagazinekorea.com/news/articleView.html?idxno=8766",
+                description = "골프에서 자세가 좋을수록 좋은 스윙을 할 수 있기 때문이다.",
+                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article4)!!
+            ),NewsDTO(
+                title = "골퍼님들의 오버스윙 교정을 위한 모든 것",
+                "https://kimcaddie.com/post/2024-golf-over-swing",
+                description = "오버스윙은 샷의 정확성을 떨어뜨리기 때문에 교정이 필요합니다.",
+                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article5)!!
+            ),NewsDTO(
+                title = "정교하고 부드러운 스윙을 위한 꿀팁",
+                "https://www.golfjournal.co.kr/news/articleView.html?idxno=5012",
+                description = "스윙은 골프에서 가장 중요한 요소 중 하나다.",
+                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article6)!!
+            ),NewsDTO(
+                title = "골프 백스윙 고민 많은 분을 위한 해결책",
+                "https://blog.naver.com/PostView.naver?blogId=beheaded&logNo=223343746913&categoryNo=9&parentCategoryNo=0&viewDate=&currentPage=10&postListTopCurrentPage=1&from=thumbnailList&userTopListOpen=true&userTopListCount=5&userTopListManageOpen=false&userTopListCurrentPage=10",
+                description = "일관된 백스윙 하는 것이 골프 스윙에서 가장 중요한 포인트",
+                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article7)!!
+            ),NewsDTO(
+                title = "팔만 쓰는 스윙이 훅을 낳는다",
+                "http://jtbcgolf.joins.com/academy/column/column_view.asp?page=3&column_type=10&ac1=165",
+                description = "힘에 의존하는 스윙 습관은 잘못… 자연스런 스윙 익혀야",
+                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article8)!!
+            ),NewsDTO(
+                title = "슬라이스를 방지하려면 어드레스시 어떤 자세가 유리한가요?",
+                "https://www.golfjournal.co.kr/news/articleView.html?idxno=4455",
+                description = "골프 구질 알아보기 ",
+                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article9)!!
+            ),NewsDTO(
+                title = "골프 구질도 알고 골프 실력도 쌓고",
+                "https://kimcaddie.com/post/golf_shot_pitch_%EA%B5%AC%EC%A7%88_%EA%B5%90%EC%A0%95_1",
+                description = "다르지만 비슷한 스윙 교정 방법에\n대해 알아볼까요?!",
+                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article10)!!
             ),
         )
     }

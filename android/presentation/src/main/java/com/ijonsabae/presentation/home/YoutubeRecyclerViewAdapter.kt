@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.ijonsabae.presentation.databinding.ItemHomeYoutubeBinding
 
 private const val TAG = "굿샷_YoutubeRecyclerViewAdapter"
@@ -39,9 +40,9 @@ class YoutubeRecyclerViewAdapter(
         fun bind(position: Int) {
             val item = getItem(position)
             binding.tvYoutubeTitle.text = item.title
-            Glide.with(binding.root).load(item.thumbnail)
+            Glide.with(binding.root).load(item.thumbnail).diskCacheStrategy(DiskCacheStrategy.ALL)
                 .error(Glide.with(binding.ivYoutubeThumbnail.context))
-                .load(item.alternativeThumbnail)
+                .load(item.alternativeThumbnail).diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(binding.ivYoutubeThumbnail)
 
             // visibility
