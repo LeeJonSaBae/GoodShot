@@ -54,10 +54,10 @@ public class Swing {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime time;
 
-    @OneToMany(mappedBy = "swingImage", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "swing", cascade = CascadeType.ALL)
     private List<SwingImage> swingImages = new ArrayList<>();
 
-    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "swing", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
 
     public void updateSwing(SwingData swingData) {
