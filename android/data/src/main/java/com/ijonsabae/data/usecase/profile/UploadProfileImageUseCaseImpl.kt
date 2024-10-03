@@ -7,6 +7,7 @@ import com.ijonsabae.domain.usecase.profile.UploadProfileImageUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.net.URI
 import javax.inject.Inject
@@ -38,9 +39,7 @@ class UploadProfileImageUseCaseImpl @Inject constructor(
             }
         }
 
-        return RequestBody.create(
-            "image/*".toMediaTypeOrNull(),
-            file
-        )
+        return file
+            .asRequestBody("image/*".toMediaTypeOrNull())
     }
 }

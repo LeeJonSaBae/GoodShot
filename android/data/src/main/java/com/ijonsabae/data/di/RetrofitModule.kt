@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.ijonsabae.data.BuildConfig
 import com.ijonsabae.data.exception.ResultCallAdapterFactory
+import com.ijonsabae.data.retrofit.ConsultService
 import com.ijonsabae.data.retrofit.ProfileService
 import com.ijonsabae.data.retrofit.RefreshTokenAuthorizationInterceptor
 import com.ijonsabae.data.retrofit.TokenInterceptor
@@ -152,5 +153,10 @@ class RetrofitModule {
     @Provides
     fun provideUploadImageServiceService(@Named("no_interceptor_retrofit")retrofit: Retrofit): UploadImageService {
         return retrofit.create(UploadImageService::class.java)
+    }
+
+    @Provides
+    fun provideExpertServiceService(@Named("no_interceptor_retrofit")retrofit: Retrofit): ConsultService {
+        return retrofit.create(ConsultService::class.java)
     }
 }

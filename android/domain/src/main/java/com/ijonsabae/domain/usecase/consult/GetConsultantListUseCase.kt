@@ -1,7 +1,9 @@
 package com.ijonsabae.domain.usecase.consult
 
-import com.ijonsabae.domain.model.Consultant
+import androidx.paging.PagingData
+import com.ijonsabae.domain.model.Expert
+import kotlinx.coroutines.flow.Flow
 
 interface GetConsultantListUseCase {
-    operator fun invoke(): Result<List<Consultant>>
+    operator fun invoke(): Flow<PagingData<Expert>>
 }

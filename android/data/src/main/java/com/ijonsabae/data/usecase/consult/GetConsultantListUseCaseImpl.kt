@@ -1,28 +1,15 @@
 package com.ijonsabae.data.usecase.consult
 
-import com.ijonsabae.domain.model.Consultant
+import androidx.paging.PagingData
+import com.ijonsabae.data.repository.ConsultRepository
+import com.ijonsabae.domain.model.Expert
 import com.ijonsabae.domain.usecase.consult.GetConsultantListUseCase
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class GetConsultantListUseCaseImpl @Inject constructor() : GetConsultantListUseCase {
-    private val dummyData = Consultant(
-        name = "김밍깅",
-        profileImage = "https://goodshot-bucket.s3.ap-northeast-2.amazonaws.com/goodshot/default_profile.webp",
-        pro = "KPGA PRO",
-        career = 2,
-        phoneNumber = "010-1234-5678",
-        certification = listOf("PGA 인증", "골프 피트니스 전문가 자격증"),
-        chatUrl = "https://open.kakao.com/o/sc4oiORg"
-    )
-    override fun invoke(): Result<List<Consultant>> {
-        return kotlin.runCatching {
-            listOf(
-                dummyData,
-                dummyData,
-                dummyData,
-                dummyData,
-                dummyData,
-            )
-        }
+class GetConsultantListUseCaseImpl @Inject constructor(private val consultRepository: ConsultRepository) :
+    GetConsultantListUseCase {
+    override fun invoke(): Flow<PagingData<Expert>> {
+        return consultRepository.getConsultantList()
     }
 }
