@@ -516,18 +516,12 @@ class CameraSource(
     private fun analyzeSwingTime(poses: List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>): SwingTiming {
         //이상적인 템포 비율은 약 3:1(백스윙:다운스윙)로 알려져 있지만, 개인의 스타일과 체형에 따라 다를 수 있다.
         val finishTime = poses[7].first.timestamp
-
         val backswingTime = backswingEndTime - backswingStartTime
         val downswingTime = downswingEndTime - downswingStartTime
 
         val totalSwingTime = finishTime - backswingStartTime
 
         val tempoRatio = backswingTime.toDouble() / downswingTime.toDouble()
-
-        // TODO: backswingEndTime - backswingStartTime가 음수로 나오는 현상 수정하기
-        Log.d("타이밍", "1: $backswingEndTime, $backswingStartTime")
-        Log.d("타이밍", "2: $downswingEndTime, $downswingStartTime")
-
 
         return SwingTiming(
             backswingTime = backswingTime,
@@ -747,11 +741,18 @@ class CameraSource(
         isDownSwingEnd = false
 
         for ((index, jointData) in jointDataList.withIndex()) {
+            // 사람으로 인식안된 프레임의 경우 스킵
+            if ((jointData[NOSE.position].score) < 0.3 ||
+                (jointData[LEFT_ANKLE.position].score) < 0.3 ||
+                (jointData[RIGHT_ANKLE.position].score < 0.3)
+            ) {
+                continue
+            }
+
             if (!modelChangeReady &&
                 jointData[RIGHT_WRIST.position].coordinate.x > jointData[RIGHT_SHOULDER.position].coordinate.x &&
                 jointData[RIGHT_WRIST.position].coordinate.y < jointData[RIGHT_SHOULDER.position].coordinate.y
             ) {
-                Log.d("포즈검증", "모델 교체 준비")
                 modelChangeReady = true
             }
 
@@ -761,17 +762,9 @@ class CameraSource(
                 && jointData[LEFT_WRIST.position].coordinate.x < jointData[RIGHT_SHOULDER.position].coordinate.x
                 && jointData[LEFT_WRIST.position].coordinate.y < jointData[RIGHT_SHOULDER.position].coordinate.y
             ) {
-                Log.d("포즈검증", "모델 교체 완료")
                 classifier = classifier4
                 poseLabelBias = 0
             }
-
-//            val classificationResults = classifier?.classify(jointData)
-//            classificationResults?.forEachIndexed { poseIndex, result ->
-//                if (result.second > poseIndexArray[poseIndex + poseLabelBias].second) {
-//                    poseIndexArray[poseIndex + poseLabelBias] = Pair(index, result.second)
-//                }
-//            }
 
             if (classifier == classifier8) {
 
@@ -805,6 +798,11 @@ class CameraSource(
 
             }
         }
+        if (!(0 in manualPoseIndexArray)) {
+            saveBitmapToGallery(context, imageDataList[manualPoseIndexArray[0]].data, "backswingStart_img${manualPoseIndexArray[0]}")
+            //Impact를 못따는 경우가 발생
+            saveBitmapToGallery(context, imageDataList[manualPoseIndexArray[5]].data, "downswingEnd_img${manualPoseIndexArray[5]}")
+        }
     }
 
     private fun analyzeSwingMotion() {
@@ -836,14 +834,6 @@ class CameraSource(
                     //swingGroupData -> 전후 프레임까지 포함한 묶음
                     val swingGroupData = indicesToPosesGroup(poseFrameGroupIndices)
 
-//                    큐에 있는 60개 이미지 갤러리에 전부 저장
-//                    imageQueue.toList().forEachIndexed { index, (imageData, _) ->
-//                        val fileName = "swing_pose_${index + 1}.jpg"
-//                        val uri = saveBitmapToGallery(context, imageData, fileName)
-//                        uri?.let {
-//                            Log.d("싸피", "Saved image $fileName at $it")
-//                        }
-//                    }
 
                     //수동으로 뽑은 이미지 포즈들을 기반으로 첫 시작 시간 추정 후 영상 제작
                     val actualSwingIndices = imageQueue
@@ -851,15 +841,6 @@ class CameraSource(
                         .takeLast(imageQueue.size - manualPoseIndexArray[0])
                         .map { it.data }
 
-//                  어드레스~피니쉬 이미지 갤러리에 전부 저장
-//                    actualSwingIndices.forEachIndexed { idx, bitmap ->
-//                        val fileName = "swing_pose_${swingData[0][0].third + idx}.jpg"
-//
-//                        val uri = saveBitmapToGallery(context, bitmap, fileName)
-//                        uri?.let {
-//                            Log.d("싸피", "Saved image $fileName at $it")
-//                        }
-//                    }
 
                     // 템포, 백스윙, 다운스윙 시간 분석하기
                     val swingTiming = analyzeSwingTime(swingData)
@@ -1111,11 +1092,13 @@ class CameraSource(
         }
 
         //코보다 왼손 높이가 커지는 시점을 갱신
-        if (leftWristY < noseY && isDownSwingEnd == false) {
-            downswingStartTime = imageDataList[index - 2].timestamp
+        if (!isDownSwingEnd && leftWristY < noseY && leftWristX < noseX) {
+            downswingStartTime = imageDataList[index + 1].timestamp
             isDownSwingEnd = true
-        } else if (leftWristY >= noseY && isDownSwingEnd) {
+        }
+        if (isDownSwingEnd && leftWristY >= noseY && leftWristX < noseX) {
             backswingEndTime = imageDataList[index - 2].timestamp
+            isDownSwingEnd = false
         }
     }
 
@@ -1189,9 +1172,9 @@ class CameraSource(
             // minAddressGap이 거리보다 큰 경우에만 업데이트
             if (minAddressGap > hipWristDistance) {
                 minAddressGap = hipWristDistance
-                if (index + 2 < imageDataList.size) {
-                    backswingStartTime = imageDataList[index + 2].timestamp // 스윙 시작시간 갱신
-                    manualPoseIndexArray[0] = index + 2
+                if (index + 1 <= imageDataList.size - 1) {
+                    backswingStartTime = imageDataList[index + 1].timestamp // 스윙 시작시간 갱신
+                    manualPoseIndexArray[0] = index + 1
                 } else {
                     backswingStartTime = imageDataList[index].timestamp // 스윙 시작시간 갱신
                     manualPoseIndexArray[0] = index
