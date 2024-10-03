@@ -2,7 +2,6 @@ package com.ijonsabae.presentation.shot
 
 
 import android.graphics.PointF
-import android.util.Log
 import com.ijonsabae.presentation.shot.ai.data.BackSwingProblem.*
 import com.ijonsabae.presentation.shot.ai.data.BadComment
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.*

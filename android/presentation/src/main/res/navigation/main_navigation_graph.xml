@@ -56,7 +56,7 @@
         </fragment>
         <dialog
             android:id="@+id/shot_option_dialog"
-            android:name="com.ijonsabae.presentation.shot.ShotOptionDialog"
+            android:name="com.ijonsabae.presentation.shot.ShotDialog"
             tools:label="shot option dialog"
             tools:layout="@layout/dialog_shot_option">
             <action

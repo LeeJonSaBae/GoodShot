@@ -883,7 +883,7 @@ class CameraSource(
                     val poseAnalysisResults = PostureFeedback.checkPosture(
                         preciseIndices,
                         jointQueue.toList().reversed(),
-                        true // TODO: 좌타 우타 여부 동적으로 넣어주기
+                        isLeftHanded.not()
                     )
                     Log.d("분석결과", "$poseAnalysisResults")
 
@@ -910,7 +910,7 @@ class CameraSource(
                         downswingTime,
                         tempoRatio,
                         backswingTime,
-                        poseAnalysisResults.solution.getSolution(true), // TODO: 좌타 우타 여부 동적으로 넣어주기
+                        poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
                         feedbackCheckListTitle,
                         feedbackCheckList
                     )
