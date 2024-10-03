@@ -66,6 +66,10 @@ import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_WRIST
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
+import com.ijonsabae.presentation.shot.ai.data.Pose
+import com.ijonsabae.presentation.shot.ai.data.Pose.*
+import com.ijonsabae.presentation.shot.ai.data.Solution
+import com.ijonsabae.presentation.shot.ai.data.Solution.*
 import com.ijonsabae.presentation.shot.ai.ml.ModelType
 import com.ijonsabae.presentation.shot.ai.ml.MoveNet
 import com.ijonsabae.presentation.shot.ai.ml.PoseClassifier
@@ -904,6 +908,51 @@ class CameraSource(
                             context.resources.getStringArray(R.array.good_tip_list).toList()
                     }
 
+                    val userSwingImage: Bitmap
+                    val answerSwingImageResId: Int
+
+                    when (poseAnalysisResults.solution) {
+                        BACK_BODY_LIFT -> {
+                            userSwingImage = preciseBitmaps[TOP.ordinal].data
+                            answerSwingImageResId = R.drawable.back_body_lift
+                        }
+
+                        BACK_ARM_EXTENSION -> {
+                            userSwingImage = preciseBitmaps[MID_BACKSWING.ordinal].data
+                            answerSwingImageResId = R.drawable.back_arm_extension
+                        }
+
+                        BACK_WEIGHT_TRANSFER -> {
+                            userSwingImage = preciseBitmaps[TOP.ordinal].data
+                            answerSwingImageResId = R.drawable.back_weight_transfer
+                        }
+
+                        BACK_BODY_BALANCE -> {
+                            userSwingImage = preciseBitmaps[MID_BACKSWING.ordinal].data
+                            answerSwingImageResId = R.drawable.back_body_balance
+                        }
+
+                        DOWN_BODY_LIFT -> {
+                            userSwingImage = preciseBitmaps[MID_DOWNSWING.ordinal].data
+                            answerSwingImageResId = R.drawable.down_body_lift
+                        }
+
+                        DOWN_WEIGHT_TRANSFER -> {
+                            userSwingImage = preciseBitmaps[IMPACT.ordinal].data
+                            answerSwingImageResId = R.drawable.down_weight_transfer
+                        }
+
+                        DOWN_BODY_BALANCE -> {
+                            userSwingImage = preciseBitmaps[MID_DOWNSWING.ordinal].data
+                            answerSwingImageResId = R.drawable.down_body_balance
+                        }
+
+                        GOOD_SHOT -> {
+                            userSwingImage = preciseBitmaps[FINISH.ordinal].data
+                            answerSwingImageResId = R.drawable.good_shot
+                        }
+                    }
+
 
                     // 뷰모델에 피드백 담기
                     val feedBack = FeedBack(
@@ -912,7 +961,9 @@ class CameraSource(
                         backswingTime,
                         poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
                         feedbackCheckListTitle,
-                        feedbackCheckList
+                        feedbackCheckList,
+                        userSwingImage,
+                        answerSwingImageResId
                     )
                     setFeedback(feedBack)
 

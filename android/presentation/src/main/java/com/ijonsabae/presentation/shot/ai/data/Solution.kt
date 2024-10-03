@@ -1,5 +1,7 @@
 package com.ijonsabae.presentation.shot.ai.data
 
+import com.bumptech.glide.Glide
+
 enum class Solution(
     private val rightHandedSolution: String,
     private val leftHandedSolution: String
