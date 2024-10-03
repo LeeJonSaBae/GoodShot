@@ -1,10 +1,12 @@
 package com.ijonsabae.data.di
 
+import com.ijonsabae.data.usecase.profile.ChangePasswordUseCaseImpl
 import com.ijonsabae.data.usecase.profile.GetProfileImgUseCaseImpl
 import com.ijonsabae.data.usecase.profile.GetProfileInfoUseCaseImpl
 import com.ijonsabae.data.usecase.profile.LogoutUseCaseImpl
 import com.ijonsabae.data.usecase.profile.UpdateProfileUseCaseImpl
 import com.ijonsabae.data.usecase.profile.UploadProfileImageUseCaseImpl
+import com.ijonsabae.domain.usecase.profile.ChangePasswordUseCase
 import com.ijonsabae.domain.usecase.profile.GetPresignedURLUseCase
 import com.ijonsabae.domain.usecase.profile.GetProfileInfoUseCase
 import com.ijonsabae.domain.usecase.profile.LogoutUseCase
@@ -32,4 +34,7 @@ abstract class ProfileModule {
 
     @Binds
     abstract fun bindUpdateProfileUseCase(uc: UpdateProfileUseCaseImpl): UpdateProfileUseCase
+
+    @Binds
+    abstract fun bindChangePasswordUseCase(uc: ChangePasswordUseCaseImpl): ChangePasswordUseCase
 }

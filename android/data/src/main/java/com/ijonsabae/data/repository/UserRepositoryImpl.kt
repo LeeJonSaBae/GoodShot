@@ -40,5 +40,10 @@ class UserRepositoryImpl @Inject constructor(private val userRemoteDataSource: U
         return userRemoteDataSource.generateTemporaryPassWord(name, email)
     }
 
-
+    override suspend fun changePassword(
+        oldPassword: String,
+        newPassword: String
+    ): Result<CommonResponse<Unit>>{
+        return userRemoteDataSource.changePassword(oldPassword, newPassword)
+    }
 }

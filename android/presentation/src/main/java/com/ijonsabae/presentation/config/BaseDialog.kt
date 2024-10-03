@@ -17,6 +17,8 @@ import androidx.fragment.app.DialogFragment
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.viewbinding.ViewBinding
+import com.ijonsabae.domain.model.RetrofitException
+import kotlinx.coroutines.CoroutineExceptionHandler
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -29,6 +31,26 @@ abstract class BaseDialog<B : ViewBinding>(
   protected val binding get() = _binding!!
   lateinit var fragmentContext: Context
   protected lateinit var navController: NavController
+  protected val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+    // error handling
+    if(throwable is RetrofitException)
+      throwable.apply {
+        printStackTrace()
+        showToastShort("$code : $message")
+      }
+    else if(throwable is RuntimeException){
+      throwable.apply {
+        printStackTrace()
+        showToastShort("통신 에러 : $message")
+      }
+    }
+    else{
+      throwable.apply {
+        printStackTrace()
+        showToastShort("$message")
+      }
+    }
+  }
 
   @Inject
   @Named("fragment")
