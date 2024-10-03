@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 private const val TAG = "ShotDialog 싸피"
 
 @AndroidEntryPoint
-class ShotDialog : BaseDialog<DialogShotOptionBinding>(
+class ShotOptionDialog : BaseDialog<DialogShotOptionBinding>(
     DialogShotOptionBinding::bind,
     R.layout.dialog_shot_option
 ) {

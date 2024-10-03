@@ -521,9 +521,9 @@ class CameraSource(
 
         // TODO: backswingEndTime - backswingStartTime가 음수로 나오는 현상 수정하기
 
-        Log.d("타이밍", "${manualPoseIndexArray.toList()}")
-        Log.d("타이밍", "1: $backswingEndTime, $backswingStartTime, $backswingTime")
-        Log.d("타이밍", "2: $downswingEndTime, $downswingStartTime, $downswingTime")
+        Log.d("swingTempoDebug", "타이밍 ${manualPoseIndexArray.toList()}")
+        Log.d("swingTempoDebug", "타이밍 1: $backswingEndTime, $backswingStartTime, $backswingTime")
+        Log.d("swingTempoDebug", "타이밍2: $downswingEndTime, $downswingStartTime, $downswingTime")
 
 
         return SwingTiming(
@@ -744,11 +744,12 @@ class CameraSource(
         isDownSwingEnd = false
 
         for ((index, jointData) in jointDataList.withIndex()) {
+
             if (!modelChangeReady &&
                 jointData[RIGHT_WRIST.position].coordinate.x > jointData[RIGHT_SHOULDER.position].coordinate.x &&
                 jointData[RIGHT_WRIST.position].coordinate.y < jointData[RIGHT_SHOULDER.position].coordinate.y
             ) {
-                Log.d("포즈검증", "모델 교체 준비")
+                Log.d("swingTempoDebug", "모델 교체 준비")
                 modelChangeReady = true
             }
 
@@ -758,8 +759,9 @@ class CameraSource(
                 && jointData[LEFT_WRIST.position].coordinate.x < jointData[RIGHT_SHOULDER.position].coordinate.x
                 && jointData[LEFT_WRIST.position].coordinate.y < jointData[RIGHT_SHOULDER.position].coordinate.y
             ) {
-                Log.d("포즈검증", "모델 교체 완료")
+                Log.d("swingTempoDebug", "모델 교체 시점 : ${index}")
                 classifier = classifier4
+                Log.d("포즈검증", "모델 교체 완료")
                 poseLabelBias = 0
             }
 
@@ -801,6 +803,11 @@ class CameraSource(
                 checkAddress(index, jointData)
 
             }
+        }
+        if (!(0 in manualPoseIndexArray)) {
+            saveBitmapToGallery(context, imageDataList[manualPoseIndexArray[0]].data, "backswingStart_img${manualPoseIndexArray[0]}")
+            //Impact를 못따는 경우가 발생
+            saveBitmapToGallery(context, imageDataList[manualPoseIndexArray[5]].data, "downswingEnd_img${manualPoseIndexArray[5]}")
         }
     }
 
@@ -1043,15 +1050,24 @@ class CameraSource(
             }
         }
 
-
-        // TODO : 문현 - 여기 시간 이랑 인덱스 문제 해결하기
         //코보다 왼손 높이가 커지는 시점을 갱신
         if (!isDownSwingEnd && leftWristY < noseY && leftWristX < noseX) {
-            downswingStartTime = imageDataList[index - 1].timestamp
+            if (index + 1 == 60) {
+                Log.d("swingTempoDebug", "checkTopOfSwing: index60번째가 이 조건을 인식함")
+                saveBitmapToGallery(context, imageDataList[index].data, "index60번째에 이 조건을 인식한 경우")
+                return
+            }
+            downswingStartTime = imageDataList[index + 1].timestamp //index가 60이 들어가는 에러 발생
+            Log.d("swingTempoDebug", "downsingStartTime idx : ${index + 1}")
+            saveBitmapToGallery(context, imageDataList[index -1].data, "downsingStartImage_${index - 1}")
+            saveBitmapToGallery(context, imageDataList[index +1].data, "downsingStartImage_${index + 1}")
             isDownSwingEnd = true
         }
         if (isDownSwingEnd && leftWristY >= noseY && leftWristX < noseX) {
             backswingEndTime = imageDataList[index - 1].timestamp
+            Log.d("swingTempoDebug", "backswingEndTime idx : ${index - 1}")
+            saveBitmapToGallery(context, imageDataList[index -1].data, "backswingEndImage_${index - 1}")
+            saveBitmapToGallery(context, imageDataList[index +1].data, "backswingEndImage_${index + 1}")
             isDownSwingEnd = false
         }
     }
