@@ -1,5 +1,6 @@
 package com.ijonsabae.data.di
 
+import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.ijonsabae.data.BuildConfig
@@ -11,6 +12,7 @@ import com.ijonsabae.data.retrofit.TokenInterceptor
 import com.ijonsabae.data.retrofit.TokenService
 import com.ijonsabae.data.retrofit.UploadImageService
 import com.ijonsabae.data.retrofit.UserService
+import com.ijonsabae.data.retrofit.YoutubeService
 import com.ijonsabae.domain.repository.TokenRepository
 import dagger.Module
 import dagger.Provides
@@ -25,7 +27,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Named
 
 const val SERVER_IP = BuildConfig.SERVER_IP
-
+const val YOUTUBE_IP = BuildConfig.YOUTUBE_IP
 @Module
 @InstallIn(SingletonComponent::class)
 class RetrofitModule {
@@ -58,7 +60,7 @@ class RetrofitModule {
 
     @Provides
     @Named("okhttp_client")
-    fun provideOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor, refreshTokenAuthorizationInterceptor: RefreshTokenAuthorizationInterceptor): OkHttpClient {
+    fun provideOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
         return OkHttpClient.Builder()
             .readTimeout(5000, TimeUnit.MILLISECONDS)
             .connectTimeout(5000, TimeUnit.MILLISECONDS)
@@ -136,6 +138,21 @@ class RetrofitModule {
     }
 
     @Provides
+    @Named("youtube_api_retrofit")
+    fun provideYoutubeAPIRetrofit(
+        @Named("okhttp_client")client: OkHttpClient,
+        scalarsConverterFactory: ScalarsConverterFactory,
+        gsonConverterFactory: GsonConverterFactory,
+    ): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(YOUTUBE_IP)
+            .addConverterFactory(scalarsConverterFactory)
+            .addConverterFactory(gsonConverterFactory)
+            .client(client)
+            .build()
+    }
+
+    @Provides
     fun provideProfileService(@Named("default_retrofit")retrofit: Retrofit): ProfileService {
         return retrofit.create(ProfileService::class.java)
     }
@@ -151,12 +168,17 @@ class RetrofitModule {
     }
 
     @Provides
-    fun provideUploadImageServiceService(@Named("no_interceptor_retrofit")retrofit: Retrofit): UploadImageService {
+    fun provideUploadImageService(@Named("no_interceptor_retrofit")retrofit: Retrofit): UploadImageService {
         return retrofit.create(UploadImageService::class.java)
     }
 
     @Provides
-    fun provideExpertServiceService(@Named("no_interceptor_retrofit")retrofit: Retrofit): ConsultService {
+    fun provideExpertService(@Named("no_interceptor_retrofit")retrofit: Retrofit): ConsultService {
         return retrofit.create(ConsultService::class.java)
+    }
+
+    @Provides
+    fun provideYoutubeService(@Named("youtube_api_retrofit")retrofit: Retrofit): YoutubeService{
+        return retrofit.create(YoutubeService::class.java)
     }
 }
