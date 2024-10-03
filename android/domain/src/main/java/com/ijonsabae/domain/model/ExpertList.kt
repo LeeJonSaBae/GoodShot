@@ -7,5 +7,5 @@ data class ExpertList(
     val pageNo: Int,
     val pageSize : Int,
     val hasNext : Boolean,
-    val expertsList : List<Expert>
+    val experts : List<Expert>
 )

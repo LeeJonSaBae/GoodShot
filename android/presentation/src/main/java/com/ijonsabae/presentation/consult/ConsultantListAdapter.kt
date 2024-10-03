@@ -1,5 +1,6 @@
 package com.ijonsabae.presentation.consult
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,9 +12,6 @@ import com.bumptech.glide.Glide
 import com.ijonsabae.domain.model.Expert
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.databinding.ItemConsultantListBinding
-
-private const val TAG = "ConsultantListAdapter_싸피"
-
 class ConsultantListAdapter :
     PagingDataAdapter<Expert, ConsultantListAdapter.ConsultantListViewHolder>(
         Comparator

@@ -7,7 +7,7 @@ import javax.inject.Inject
 
 class ExpertRemotePagingSource @Inject constructor(
     private val expertRemoteDataSource: ExpertRemoteDataSource,
-): PagingSource<Int, Expert>() {
+) : PagingSource<Int, Expert>() {
     override fun getRefreshKey(state: PagingState<Int, Expert>): Int? {
         return state.anchorPosition?.let { anchorPosition ->
             state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
@@ -20,7 +20,7 @@ class ExpertRemotePagingSource @Inject constructor(
             val currentPage = params.key ?: 0
             val response = expertRemoteDataSource.getConsultantList(currentPage, params.loadSize)
 
-            val data = response.getOrThrow().data.expertsList
+            val data = response.getOrThrow().data.experts
             val nextPageExist = response.getOrThrow().data.hasNext
 
             LoadResult.Page(
