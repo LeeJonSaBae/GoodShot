@@ -32,9 +32,10 @@
             tools:label="consult_dialog"
             tools:layout="@layout/dialog_consultant">
 
+
             <argument
-                android:name="expert_id"
-                app:argType="integer" />
+                android:name="expert_detail"
+                app:argType="com.ijonsabae.presentation.model.ExpertDetail" />
         </dialog>
     </navigation>
     <navigation
