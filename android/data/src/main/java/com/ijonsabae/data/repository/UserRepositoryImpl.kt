@@ -21,6 +21,10 @@ class UserRepositoryImpl @Inject constructor(private val userRemoteDataSource: U
         return userRemoteDataSource.join(registerParam)
     }
 
+    override suspend fun resign(): Result<CommonResponse<Unit>> {
+        return userRemoteDataSource.resign()
+    }
+
     override suspend fun requestEmailAuthCode(email: String): Result<CommonResponse<Unit>>{
         return userRemoteDataSource.requestEmailAuthCode(email)
     }
