@@ -2,16 +2,15 @@ package com.ijonsabae.presentation.replay
 
 import android.app.AlertDialog
 import android.content.Context
-import android.content.res.ColorStateList
 import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -68,18 +67,21 @@ class ReplayAdapter(val context: Context) :
 
             binding.tvTitle.text = replayItem.title
             binding.tvDate.text = replayItem.date
-            binding.tvTag1.text = replayItem.swingPose
-            binding.tvTag2.text = replayItem.golfClub
+            binding.tvTag1.text = "점수 ${replayItem.score}점"
+            binding.tvTag2.text = "템포 ${replayItem.tempo}"
 
             binding.root.setOnClickListener { itemClickListener.onItemClick(replayItem) }
             binding.ivLike.setOnClickListener {
-                check = !check // Toggle the favorite state
-                binding.ivLike.imageTintList =
-                    if (check) ColorStateList.valueOf(
-                        ContextCompat.getColor(context, R.color.like_yellow)
-                    )
-                    else ColorStateList.valueOf(ContextCompat.getColor(context, R.color.gray))
+                check = !check
+                if (check) {
+                    binding.ivLike.setImageResource(R.drawable.ic_like2)
+                } else {
+                    binding.ivLike.setImageResource(R.drawable.ic_unlike2)
+                }
                 itemClickListener.onLikeClick(replayItem, replayItem.like)
+            }
+            binding.ivEditTitle.setOnClickListener {
+                showEditCustomDialog(adapterPosition)
             }
 
             if (replayItem.isClamped) binding.cvReplayItem.translationX =
@@ -88,7 +90,7 @@ class ReplayAdapter(val context: Context) :
 
             binding.btnDelete.setOnClickListener {
                 if (getClamped())
-                    showCustomDialog(replayItem, adapterPosition)
+                    showDeleteCustomDialog(replayItem, adapterPosition)
             }
         }
 
@@ -131,7 +133,7 @@ class ReplayAdapter(val context: Context) :
         }
     }
 
-    private fun showCustomDialog(replayItem: Replay, adapterPosition: Int) {
+    private fun showDeleteCustomDialog(replayItem: Replay, adapterPosition: Int) {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_delete, null)
         val dialogBuilder = AlertDialog.Builder(context, R.style.RoundedDialog)
             .setView(dialogView)
@@ -152,9 +154,32 @@ class ReplayAdapter(val context: Context) :
         }
 
         dialogBuilder.show()
-
         setDialogSize(dialogBuilder, 0.9)
+    }
 
+    private fun showEditCustomDialog(adapterPosition: Int) {
+        val dialogView =
+            LayoutInflater.from(context).inflate(R.layout.dialog_edit_replay_title, null)
+        val dialogBuilder = AlertDialog.Builder(context, R.style.RoundedDialog)
+            .setView(dialogView)
+            .create()
+
+        val btnClose = dialogView.findViewById<ImageView>(R.id.btn_close)
+        val btnYes = dialogView.findViewById<Button>(R.id.btn_yes)
+        val etNewTitle = dialogView.findViewById<EditText>(R.id.et_new_title)
+
+        btnClose.setOnClickListener { dialogBuilder.dismiss() }
+        btnYes.setOnClickListener { // 수정
+
+            if (etNewTitle.text.isNotBlank()) {
+                editItem(adapterPosition, etNewTitle.text.toString())
+                Toast.makeText(context, "수정 완료!", Toast.LENGTH_SHORT).show()
+            }
+            dialogBuilder.dismiss()
+        }
+
+        dialogBuilder.show()
+        setDialogSize(dialogBuilder, 0.9)
     }
 
     private fun setDialogSize(dialogBuilder: AlertDialog, widthRatio: Double) {
@@ -176,5 +201,13 @@ class ReplayAdapter(val context: Context) :
         // 여러 아이템이 한 번에 삭제 버튼이 보이는 경우 없도록
         newList.forEach { it.isClamped = false }
         submitList(newList.toList())
+    }
+
+    fun editItem(position: Int, newTitle: String) {
+        val newList = currentList.toMutableList()
+        val currentItem = newList[position]
+        val updatedItem = currentItem.copy(title = newTitle)
+        newList[position] = updatedItem
+        submitList(newList)
     }
 }

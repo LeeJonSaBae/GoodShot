@@ -131,7 +131,7 @@ class CameraSource(
     private lateinit var imageDataList: List<TimestampedData<Bitmap>>
     private var manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
 
-    private var resultSkipMotionStartTime : Long = 0L //스윙결과 스킵 동작을 인식하기 위한 변수
+    private var resultSkipMotionStartTime: Long = 0L //스윙결과 스킵 동작을 인식하기 위한 변수
 
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
     private var frameProcessedInOneSecondInterval = 0
@@ -370,7 +370,10 @@ class CameraSource(
                 outputBitmap, Rect(0, 0, outputBitmap.width, outputBitmap.height),
                 Rect(0, 0, right, bottom), null
             )
-            surfaceView.holder.unlockCanvasAndPost(canvas)
+
+            if (surfaceView.holder.surface.isValid) {
+                surfaceView.holder.unlockCanvasAndPost(canvas)
+            }
         }
     }
 
@@ -393,19 +396,24 @@ class CameraSource(
         val keyPoints = person.keyPoints
         val currentState = getCurrentCameraState()
         when (currentState) {
-            RESULT -> {                    /**
-             * 1. 왼손목-왼팔꿈치가 왼쪽 일자로 펴진 경우를 감지하고 (165~195도) 이때의 시간을 전역변수에 갱신한다.
-             * 2. 완손목-왼팔꿈치가 오른쪽 일자로 펴진 경우를 감지하고 (-15~15도) 이때의 시간이 1.0초 이내면
-             *  RESULT 다이얼로그를 종료하고 어드레스 자세 잡기 상태로 변경
-             * */
+            RESULT -> {
+                /**
+                 * 1. 왼손목-왼팔꿈치가 왼쪽 일자로 펴진 경우를 감지하고 (165~195도) 이때의 시간을 전역변수에 갱신한다.
+                 * 2. 완손목-왼팔꿈치가 오른쪽 일자로 펴진 경우를 감지하고 (-15~15도) 이때의 시간이 1.0초 이내면
+                 *  RESULT 다이얼로그를 종료하고 어드레스 자세 잡기 상태로 변경
+                 * */
                 if (checkResultSkipMotion(keyPoints)) {
                     skipFeedbackDialog()
                 }
             }
+
             ANALYZING -> {
                 analyzeSwingMotion()
                 return
             }
+
+            AGAIN -> return
+
             else -> {
                 if (currentState == SWING) {
                     // 오른어깨와 왼발이 가까워지면
@@ -931,7 +939,9 @@ class CameraSource(
                     setCurrentCameraState(AGAIN)
                     Log.d("싸피", "다시 스윙해주세요")
                     CoroutineScope(Dispatchers.Main).launch {
+                        Log.d("아몬드", "전전전")
                         delay(2500L)
+                        Log.d("아몬드", "후후후후")
                         setCurrentCameraState(ADDRESS)
                     }
                 }
@@ -1127,13 +1137,13 @@ class CameraSource(
         }
     }
 
-    private fun checkResultSkipMotion(jointData: List<KeyPoint>) : Boolean{
+    private fun checkResultSkipMotion(jointData: List<KeyPoint>): Boolean {
         // 1. 카메라 안에 있는지 판별
         if ((jointData[NOSE.position].score) < 0.3 ||
             (jointData[LEFT_ANKLE.position].score) < 0.3 ||
             (jointData[RIGHT_ANKLE.position].score < 0.3)
         ) {
-           return false
+            return false
         }
 
         val leftWristX = jointData[LEFT_WRIST.position].coordinate.x

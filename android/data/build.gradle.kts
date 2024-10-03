@@ -4,10 +4,9 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
-    id("com.google.devtools.ksp")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
-    kotlin("plugin.serialization") version "2.0.20"
+    kotlin("plugin.serialization") version "1.9.22"
 }
 
 private val properties = Properties().apply {
@@ -15,6 +14,8 @@ private val properties = Properties().apply {
 }
 
 val SERVER_IP: String = properties.getProperty("SERVER_IP")
+val YOUTUBE_IP: String = properties.getProperty("YOUTUBE_IP")
+val YOUTUBE_KEY: String = properties.getProperty("YOUTUBE_KEY")
 
 android {
     namespace = "com.ijonsabae.data"
@@ -25,6 +26,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
         buildConfigField("String", "SERVER_IP", SERVER_IP)
+        buildConfigField("String", "YOUTUBE_IP", YOUTUBE_IP)
+        buildConfigField("String", "YOUTUBE_KEY", YOUTUBE_KEY)
     }
 
     buildTypes {
@@ -46,12 +49,15 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 }
 
 dependencies {
     implementation(project(":domain"))
+
+    // paging3
+    implementation(libs.androidx.paging.runtime)
 
     //serialization
     implementation(libs.kotlinx.serialization.json)

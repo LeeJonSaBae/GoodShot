@@ -31,9 +31,10 @@
             android:name="com.ijonsabae.presentation.consult.ConsultantDetailInfoDialog"
             tools:label="consult_dialog"
             tools:layout="@layout/dialog_consultant">
+
             <argument
-                android:name="consult"
-                app:argType="com.ijonsabae.presentation.model.Consultant" />
+                android:name="expert_id"
+                app:argType="integer" />
         </dialog>
     </navigation>
     <navigation
@@ -45,14 +46,18 @@
             tools:label="shot"
             tools:layout="@layout/fragment_shot">
             <action
-                android:id="@+id/action_shot_to_shot_dialog"
-                app:destination="@id/shot_dialog" />
+                android:id="@+id/action_shot_to_shot_option_dialog"
+                app:destination="@id/shot_option_dialog" />
+            <action
+                android:id="@+id/action_shot_to_shot_tutorial_dialog"
+                app:destination="@id/shot_tutorial_dialog" />
+
         </fragment>
         <dialog
-            android:id="@+id/shot_dialog"
-            android:name="com.ijonsabae.presentation.shot.ShotDialog"
-            tools:label="shot dialog"
-            tools:layout="@layout/dialog_shot">
+            android:id="@+id/shot_option_dialog"
+            android:name="com.ijonsabae.presentation.shot.ShotOptionDialog"
+            tools:label="shot option dialog"
+            tools:layout="@layout/dialog_shot_option">
             <action
                 android:id="@+id/action_shot_dialog_to_swing_example"
                 app:destination="@id/swing_example" />
@@ -60,6 +65,13 @@
                 android:id="@+id/action_shot_dialog_to_camera"
                 app:destination="@id/camera" />
         </dialog>
+
+        <dialog
+            android:id="@+id/shot_tutorial_dialog"
+            android:name="com.ijonsabae.presentation.shot.ShotTutorialDialog"
+            tools:label="shot tutorial dialog"
+            tools:layout="@layout/dialog_shot_tutorial" />
+
 
         <fragment
             android:id="@+id/swing_example"

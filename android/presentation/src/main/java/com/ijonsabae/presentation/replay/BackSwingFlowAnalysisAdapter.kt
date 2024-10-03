@@ -13,8 +13,8 @@ import com.ijonsabae.presentation.databinding.ItemSwingFlowAnalysisBinding
 
 private const val TAG = "굿샷_SwingFlowAnalysisAdapter"
 
-class SwingFlowAnalysisAdapter(private val context: Context) :
-    ListAdapter<SwingFlowAnalysisDTO, SwingFlowAnalysisAdapter.SwingFlowAnalysisViewHolder>(
+class BackSwingFlowAnalysisAdapter(private val context: Context) :
+    ListAdapter<SwingFlowAnalysisDTO, BackSwingFlowAnalysisAdapter.SwingFlowAnalysisViewHolder>(
         Comparator
     ) {
     companion object Comparator : DiffUtil.ItemCallback<SwingFlowAnalysisDTO>() {

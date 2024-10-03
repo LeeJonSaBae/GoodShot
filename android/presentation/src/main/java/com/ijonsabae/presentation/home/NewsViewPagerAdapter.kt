@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.databinding.ItemHomeNewsBinding
 
@@ -32,7 +33,7 @@ class NewsViewPagerAdapter(val context: Context) :
             val item = getItem(actualPosition)
             binding.tvNewsTitle.text = item.title
             binding.tvNewsDescription.text = item.description
-            Glide.with(binding.root).load(context.resources.getDrawable(R.drawable.golf_dummy_img))
+            Glide.with(binding.root).load(item.thumbnail).diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(binding.ivNewsImg)
 
             binding.root.setOnClickListener {
