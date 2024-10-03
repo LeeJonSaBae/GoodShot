@@ -4,7 +4,10 @@ import com.d201.goodshot.global.security.dto.CustomUser;
 import com.d201.goodshot.swing.domain.Comment;
 import com.d201.goodshot.swing.domain.Swing;
 import com.d201.goodshot.swing.domain.SwingImage;
+import com.d201.goodshot.swing.dto.CommentItem;
 import com.d201.goodshot.swing.dto.SwingData;
+import com.d201.goodshot.swing.enums.PoseType;
+import com.d201.goodshot.swing.exception.SwingImageProcessingException;
 import com.d201.goodshot.swing.repository.CommentRepository;
 import com.d201.goodshot.swing.repository.SwingImageRepository;
 import com.d201.goodshot.swing.repository.SwingRepository;
@@ -17,9 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -32,77 +35,111 @@ public class SwingService {
     private final UserRepository userRepository;
 
     // 스윙 영상 내보내기
-//    public void downloadSwingData(List<SwingData> swingDataList, CustomUser customUser) {
-//        for (SwingData swingData : swingDataList) {
-//            // 기존 데이터 확인
-//            User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
-//            // 존재하는지 확인
-//            Swing existingSwing = swingRepository.findByUser(user).orElseThrow(NotFoundUserException::new);
-//
-//            if (existingSwing == null) {
-//                // 기존 데이터가 없으면 새로 저장
-//                Swing newSwing = Swing.builder()
-//                        .user(user) // 사용자 정보
-//                        .swingVideo(swingData.getSwingVideo().getBytes()) // 비디오 데이터
-//                        .swingImages(convertMultipartFileListToByteArray(swingData.getSwingImages())) // 이미지 변환
-//                        .backSwingComments(swingData.getBackSwingComments()) // 백스윙 코멘트
-//                        .downSwingComments(swingData.getDownSwingComments()) // 다운스윙 코멘트
-//                        .poseSimilarity(swingData.getPoseSimilarity()) // 유사도
-//                        .solution(swingData.getSolution()) // 솔루션
-//                        .score(swingData.getScore()) // 점수
-//                        .tempo(swingData.getTempo()) // 템포
-//                        .likeStatus(swingData.isLikeStatus()) // 좋아요 상태
-//                        .title(swingData.getTitle()) // 타이틀
-//                        .time(LocalDateTime.now()) // 현재 시간 저장
-//                        .build();
-//
-//                Comment comment = Comment.builder()
-//                        .build();
-//
-//                // 새 데이터 저장
-//                swingRepository.save(newSwing);
-//                List<SwingImage> swingImages = convertMultipartFilesToSwingImages(swingData.getSwingImages(), newSwing);
-//                swingImageRepository.saveAll(swingImages);
-//            } else {
-//                // 기존 데이터가 있고 시간이 변경된 경우에만 업데이트
-//                if (swingData.getTime().isAfter(existingSwing.getTime())) {
-//                    // 변경된 데이터 업데이트
-//                    // 스윙 변경
-//                    // 스윙 이미지 변경
-//                    // Comment 변경
-//                }
-//            }
-//        }
-//    }
-//
-//    private List<byte[]> convertMultipartFileListToByteArray(List<MultipartFile> files) {
-//        List<byte[]> byteArrayList = new ArrayList<>();
-//        for (MultipartFile file : files) {
-//            try {
-//                byteArrayList.add(file.getBytes());
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        return byteArrayList;
-//    }
-//
-//    private List<SwingImage> convertMultipartFilesToSwingImages(List<MultipartFile> files, Swing swing) {
-//        List<SwingImage> swingImages = new ArrayList<>();
-//        for (int i = 0; i < files.size(); i++) {
-//            MultipartFile file = files.get(i);
-//            try {
-//                SwingImage swingImage = SwingImage.builder()
-//                        .swing(swing) // 연관관계 설정
-//                        .poseIndex(i) // 이미지 인덱스 저장
-//                        .swingImage(file.getBytes()) // 이미지 데이터 저장
-//                        .build();
-//                swingImages.add(swingImage);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        return swingImages;
-//    }
+    public void downloadSwingData(List<SwingData> swingDataList, CustomUser customUser) throws IOException {
+
+        User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
+        List<Swing> swings = swingRepository.findByUser(user);
+
+        // swings list 돌면서 swing, swingImage, comment 찾기
+        for(SwingData swingData : swingDataList) {
+            boolean isNewSwing = true;
+
+            // 기존 스윙 리스트에서 동일한 id 찾기
+            for (Swing swing : swings) {
+                if (Objects.equals(swing.getId(), swingData.getId())) {
+                    // 시간을 비교하여 받아온 데이터가 더 최신일 경우에만 갱신
+                    if (swingData.getTime().isAfter(swing.getTime())) {
+                        // Swing 이미지 업데이트
+                        swingImageRepository.deleteAll(swing.getSwingImages());
+                        List<SwingImage> newSwingImages = convertMultipartFilesToSwingImages(swingData.getSwingImages(), swing);
+                        swingImageRepository.saveAll(newSwingImages);
+
+                        // 코멘트 업데이트 (기존 코멘트를 삭제 후 새로 저장)
+                        commentRepository.deleteAll(swing.getComments());
+                        List<Comment> newComments = convertCommentItemsToComments(swingData.getBackSwingComments(), swingData.getDownSwingComments(), swing);
+                        commentRepository.saveAll(newComments);
+
+                        // 변경된 Swing 데이터 업데이트
+                        swing.updateSwing(swingData);
+                    }
+                    isNewSwing = false; // 기존 Swing 데이터가 있으므로 새로운 Swing 이 아님
+                    break;
+                }
+            }
+
+            if (isNewSwing) {
+
+                Swing newSwing = Swing.builder()
+                        .user(user)
+                        .solution(swingData.getSolution())
+                        .score(swingData.getScore())
+                        .tempo(swingData.getTempo())
+                        .likeStatus(swingData.isLikeStatus())
+                        .title(swingData.getTitle())
+                        .time(swingData.getTime())
+                        .swingVideo(swingData.getSwingVideo().getBytes())
+                        .similarity(swingData.getPoseSimilarity().toString())
+                        .build();
+
+                List<SwingImage> newSwingImages = convertMultipartFilesToSwingImages(swingData.getSwingImages(), newSwing);
+                swingImageRepository.saveAll(newSwingImages);
+
+                List<Comment> newComments = convertCommentItemsToComments(swingData.getBackSwingComments(), swingData.getDownSwingComments(), newSwing);
+                commentRepository.saveAll(newComments);
+
+                swingRepository.save(newSwing);
+            }
+        }
+    }
+
+    // Swing 이미지 변환 로직
+    private List<SwingImage> convertMultipartFilesToSwingImages(List<MultipartFile> files, Swing swing) {
+        List<SwingImage> swingImages = new ArrayList<>();
+
+        for (int i = 0; i < files.size(); i++) {
+            MultipartFile file = files.get(i);
+            try {
+                SwingImage swingImage = SwingImage.builder()
+                        .swing(swing)
+                        .poseIndex(i)
+                        .swingImage(file.getBytes())
+                        .build();
+                swingImages.add(swingImage);
+            } catch (IOException e) {
+                throw new SwingImageProcessingException();
+            }
+        }
+
+        return swingImages;
+    }
+
+    // CommentItem 을 Comment 로 변환하는 로직
+    private List<Comment> convertCommentItemsToComments(List<CommentItem> backSwingComments, List<CommentItem> downSwingComments, Swing swing) {
+        List<Comment> comments = new ArrayList<>();
+
+        // 백스윙 코멘트 변환
+        for (CommentItem commentItem : backSwingComments) {
+            Comment comment = Comment.builder()
+                    .swing(swing)
+                    .poseType(PoseType.BACK)
+                    .commentType(commentItem.getCommentType())
+                    .content(commentItem.getContent())
+                    .build();
+            comments.add(comment);
+        }
+
+        // 다운스윙 코멘트 변환
+        for (CommentItem commentItem : downSwingComments) {
+            Comment comment = Comment.builder()
+                    .swing(swing)
+                    .poseType(PoseType.DOWN)
+                    .commentType(commentItem.getCommentType())
+                    .content(commentItem.getContent())
+                    .build();
+            comments.add(comment);
+        }
+
+        return comments;
+    }
 
 }
