@@ -84,6 +84,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
@@ -586,8 +588,9 @@ class CameraSource(
     private fun convertBitmapsToVideo(bitmapIndices: List<Bitmap>, userName: String) {
 
 
-        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val videoFileName = "pose_$timestamp.mp4"
+//        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val fileSaveTime = System.currentTimeMillis()
+        val videoFileName = "pose_${fileSaveTime}.mp4"
         val videoDir = File(context.filesDir, "videos/$userName")
         if (!videoDir.exists()) {
             videoDir.mkdirs()
@@ -608,37 +611,22 @@ class CameraSource(
         }
 
         videoEncoder.finish()
-        saveBitmapToGallery(context,
-            loadVideoThumbnail(userName, videoFileName, Size(bitmapIndices[0].width, bitmapIndices[0].height))!!, "mp4Thumbnail" )
-
+        saveBitmapToInternalStorage(bitmapIndices[0], userName, fileSaveTime)
     }
 
-    //    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun saveVideoToGallery(videoFile: File): Uri? {
-        val values = ContentValues().apply {
-            put(MediaStore.Video.Media.DISPLAY_NAME, videoFile.name)
-            put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-            put(
-                MediaStore.Video.Media.RELATIVE_PATH,
-                Environment.DIRECTORY_MOVIES + "/PoseEstimation"
-            ) // 수정된 부분
-            put(MediaStore.Video.Media.IS_PENDING, 1)
+    fun saveBitmapToInternalStorage(bitmap: Bitmap, userName: String, fileSaveTime: Long) {
+        val thumbnailFileName = "pose_${fileSaveTime}.jpg"
+        val thumbnailDir = File(context.filesDir, "thumbnails/$userName")
+        if (!thumbnailDir.exists()) {
+            thumbnailDir.mkdirs()
         }
 
-        val resolver = context.contentResolver
-        val collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        val uri = resolver.insert(collection, values)
-
-        uri?.let {
-            resolver.openOutputStream(it)?.use { os ->
-                videoFile.inputStream().use { it.copyTo(os) }
-            }
-            values.clear()
-            values.put(MediaStore.Video.Media.IS_PENDING, 0)
-            resolver.update(it, values, null, null)
+        val file = File(thumbnailDir, thumbnailFileName)
+        FileOutputStream(file).use { out ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
         }
-
-        return uri
+        file.absolutePath
+        Log.d("MainActivity_Capture", "썸네일 저장 완료")
     }
 
     private fun bitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {
@@ -677,34 +665,6 @@ class CameraSource(
                 }
             }
         }
-    }
-
-    fun loadVideoThumbnail(userName: String, fileName: String, targetSize: Size): Bitmap? {
-        val videoDir = File(context.filesDir, "videos/$userName")
-        val videoFile = File(videoDir, fileName)
-
-        if (!videoFile.exists()) {
-            return null
-        }
-
-        val retriever = MediaMetadataRetriever()
-        retriever.setDataSource(videoFile.absolutePath)
-
-        val bitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)?.let { frame ->
-            val scale = minOf(
-                targetSize.width.toFloat() / frame.width,
-                targetSize.height.toFloat() / frame.height
-            )
-            Bitmap.createScaledBitmap(
-                frame,
-                (frame.width * scale).toInt(),
-                (frame.height * scale).toInt(),
-                true
-            )
-        }
-
-        retriever.release()
-        return bitmap
     }
 
 
@@ -823,11 +783,6 @@ class CameraSource(
 
             }
         }
-        if (!(0 in manualPoseIndexArray)) {
-            saveBitmapToGallery(context, imageDataList[manualPoseIndexArray[0]].data, "backswingStart_img${manualPoseIndexArray[0]}")
-            //Impact를 못따는 경우가 발생
-            saveBitmapToGallery(context, imageDataList[manualPoseIndexArray[5]].data, "downswingEnd_img${manualPoseIndexArray[5]}")
-        }
     }
 
     private fun analyzeSwingMotion() {
@@ -868,17 +823,6 @@ class CameraSource(
                     val actualSwingIndices = imageDataList
                         .take(manualPoseIndexArray[0])
                         .map { it.data }
-
-                    var swingVideoFrameIndex = ""
-                    actualSwingIndices.forEachIndexed { idx, bitMap ->
-                        val fileName =
-                        "actualSwing_${idx}_bitmap.jpg"
-                        val uri = saveBitmapToGallery(context, bitMap, fileName)
-                        uri?.let {
-                            Log.d("MainActivity_Capture", "Saved image $fileName at $it")
-                        }
-
-                    }
 
                     Log.d("MainActivity_Capture", "인덱스들: ${actualSwingIndices}")
 
