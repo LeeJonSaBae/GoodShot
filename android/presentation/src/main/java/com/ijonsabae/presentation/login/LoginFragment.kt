@@ -30,14 +30,6 @@ class LoginFragment :
     @Inject
     lateinit var loginUseCase: LoginUseCase
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return super.onCreateView(inflater, container, savedInstanceState)
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         hideAppBar()
@@ -68,6 +60,9 @@ class LoginFragment :
                         )
                     ).getOrThrow()
                     loginViewModel.setToken(result.data)
+                    if(binding.checkbox.isChecked){
+                        loginViewModel.saveToken(result.data)
+                    }
                 }
             }
         }

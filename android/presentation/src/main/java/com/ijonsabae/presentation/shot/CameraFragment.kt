@@ -34,6 +34,7 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentCameraBinding
 import com.ijonsabae.presentation.main.MainActivity
+import com.ijonsabae.presentation.model.FeedBack
 import com.ijonsabae.presentation.shot.CameraState.ADDRESS
 import com.ijonsabae.presentation.shot.CameraState.AGAIN
 import com.ijonsabae.presentation.shot.CameraState.ANALYZING

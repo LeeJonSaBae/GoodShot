@@ -16,8 +16,11 @@ class GetSwingFeedBackUseCaseImpl @Inject constructor() : GetSwingFeedBackUseCas
             "어깨 회전과 팔을 함께 사용해 백스윙 탑 만들기",
             "척추 각도는 어드레스와 같은 상태로 유지하기",
             "백스윙 탑에서 손목과 클럽 페이스가 같은 방향을 바라보도록 하고, 손등 펴기"
-        )
+        ),
+        userSwingImage = byteArrayOf(),
+        expertSwingImageResId = 0
     )
+
     override fun invoke(): Result<FeedBack> {
         return kotlin.runCatching {
             feedBack

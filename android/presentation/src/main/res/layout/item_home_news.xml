@@ -36,9 +36,11 @@
             <!-- 기사 제목 + 내용 -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/layout_title_and_description"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
                 android:layout_marginStart="20dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginVertical="10dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@id/iv_link"
                 app:layout_constraintHorizontal_chainStyle="spread_inside"
@@ -48,26 +50,32 @@
                 <!-- 기사 제목 -->
                 <TextView
                     android:id="@+id/tv_news_title"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:textSize="11sp"
                     android:textStyle="bold"
+                    android:singleLine="true"
+                    android:ellipsize="end"
                     app:layout_constraintBottom_toTopOf="@id/tv_news_description"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintVertical_chainStyle="packed"
                     tools:text="훅 vS 슬라이스" />
 
                 <!-- 기사 내용 -->
                 <TextView
                     android:id="@+id/tv_news_description"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
                     android:layout_marginTop="5dp"
                     android:textSize="8sp"
+                    android:ellipsize="end"
+                    android:gravity="center_vertical"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="@id/tv_news_title"
                     app:layout_constraintTop_toBottomOf="@id/tv_news_title"
+                    app:layout_constraintEnd_toEndOf="parent"
                     tools:text="다르지만 비슷한 스윙 교정 방법에\n대해 알아볼까요?!" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>

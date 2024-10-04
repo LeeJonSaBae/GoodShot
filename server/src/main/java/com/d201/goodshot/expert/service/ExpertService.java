@@ -60,6 +60,7 @@ public class ExpertService {
                 .certificates(certificates)
                 .expYears(expert.getExpYears())
                 .counselUrl(expert.getCounselUrl())
+                .phoneNumber(expert.getPhoneNumber())
                 .build();
     }
 

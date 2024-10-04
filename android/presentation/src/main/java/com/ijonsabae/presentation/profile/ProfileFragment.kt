@@ -71,17 +71,6 @@ class ProfileFragment :
         }
     }
 
-    private fun startCrop(uri: Uri) {
-        cropImage.launch(
-            CropImageContractOptions(
-                uri = uri,
-                cropImageOptions = CropImageOptions(
-                    outputCompressFormat = Bitmap.CompressFormat.PNG
-                )
-            )
-        )
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -90,37 +79,6 @@ class ProfileFragment :
         getUserInfo()
 
         return super.onCreateView(inflater, container, savedInstanceState)
-    }
-
-    private fun getUserInfo() {
-        lifecycleScope.launch(coroutineExceptionHandler) {
-            profileViewModel.getProfileInfo()
-
-            profileViewModel.profileInfo.collect { profileInfo ->
-                Log.d(TAG, "profileInfo: $profileInfo")
-                if (profileInfo != null) {
-                    setUserInfo(
-                        profileImgUrl = Uri.parse(profileInfo.profileUrl),
-                        name = profileInfo.name
-                    )
-                }
-            }
-        }
-    }
-
-    private fun setUserInfo(profileImgUrl: Uri, name: String) {
-        setUserProfileImage(profileImgUrl)
-        setUserProfileName(name)
-    }
-
-    private fun setUserProfileImage(profileImgUrl: Uri) {
-        Glide.with(this)
-            .load(profileImgUrl)
-            .into(binding.ivProfileImg)
-    }
-
-    private fun setUserProfileName(name: String) {
-        binding.tvName.text = name
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -138,7 +96,7 @@ class ProfileFragment :
             checkPermissionAndOpenGallery()
         }
         binding.layoutChangePassword.setOnClickListener {
-            showCustomDialog()
+            navController.navigate(R.id.action_profile_to_change_password_dialog)
         }
 
         binding.layoutGoTotalReport.setOnClickListener {
@@ -152,84 +110,8 @@ class ProfileFragment :
         }
 
         binding.layoutResign.setOnClickListener {
-            showResignDialog()
+            navController.navigate(R.id.action_profile_to_resign_dialog)
         }
-    }
-
-    private fun showCustomDialog() {
-        val customDialog = ChangePasswordDialog()
-        customDialog.show(parentFragmentManager, "CustomDialogFragment")
-    }
-
-    private fun showTotalReport() {
-        findNavController().navigate(R.id.action_profile_to_totalReport)
-    }
-
-    private fun showResignDialog() {
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_resign, null)
-        val dialogBuilder = AlertDialog.Builder(context, R.style.RoundedDialog)
-            .setView(dialogView)
-            .create()
-
-        val btnClose = dialogView.findViewById<ImageView>(R.id.btn_close)
-        val btnYes = dialogView.findViewById<Button>(R.id.btn_yes)
-        val btnNo = dialogView.findViewById<Button>(R.id.btn_no)
-
-        btnClose.setOnClickListener { dialogBuilder.dismiss() }
-        btnNo.setOnClickListener { dialogBuilder.dismiss() }
-        btnYes.setOnClickListener {
-            // 탈퇴
-            showToastShort("탈퇴되었습니다!")
-            dialogBuilder.dismiss()
-        }
-
-        dialogBuilder.show()
-        setDialogSize(dialogBuilder, 0.9)
-    }
-
-    private fun setDialogSize(dialogBuilder: AlertDialog, widthRatio: Double) {
-        val window = dialogBuilder.window
-        if (window != null) {
-            val displayMetrics = DisplayMetrics()
-            window.windowManager.defaultDisplay.getMetrics(displayMetrics)
-            val width = displayMetrics.widthPixels
-
-            window.setLayout((width * widthRatio).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT)
-        }
-    }
-
-
-    private fun checkPermissionAndOpenGallery() {
-        if(permissionChecker.checkPermission(fragmentContext, GalleryPermission)){
-            openGallery()
-        }else{
-            showToastShort("권한을 설정하셔야 기록 서비스를 이용 가능합니다!")
-            //ask for permission
-            permissionChecker.requestPermissionLauncher.launch(GalleryPermission)
-        }
-        // 권한 체크 후 갤러리 열기
-        if (fragmentContext.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-
-        } else {
-            requestPermissions(
-                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-                REQUEST_PERMISSION_CODE
-            )
-        }
-
-    }
-
-    private fun openGallery() {
-        val intent = Intent(Intent.ACTION_PICK).apply {
-            type = "image/*"
-        }
-        galleryLauncher.launch(intent)
-    }
-
-    private fun getImageExtension(contentResolver: ContentResolver, uri: Uri): String? {
-        val mimeType = contentResolver.getType(uri)
-
-        return MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
     }
 
     private fun initFlow(){
@@ -286,9 +168,72 @@ class ProfileFragment :
         }
     }
 
-    companion object {
-        private const val REQUEST_PERMISSION_CODE = 1001
-        private const val myAccessToken =
-            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0IiwiaWF0IjoxNzI3NDI1NTk4LCJlbWFpbCI6InRlc3QiLCJleHAiOjE3MzAwMTc1OTh9.tboPAOJ2e7J1D-BVU-RrE0b4eRF7rdkjTBk7MAZlWRA"
+    private fun startCrop(uri: Uri) {
+        cropImage.launch(
+            CropImageContractOptions(
+                uri = uri,
+                cropImageOptions = CropImageOptions(
+                    outputCompressFormat = Bitmap.CompressFormat.PNG
+                )
+            )
+        )
+    }
+
+    private fun getUserInfo() {
+        lifecycleScope.launch(coroutineExceptionHandler) {
+            profileViewModel.getProfileInfo()
+
+            profileViewModel.profileInfo.collect { profileInfo ->
+                Log.d(TAG, "profileInfo: $profileInfo")
+                if (profileInfo != null) {
+                    setUserInfo(
+                        profileImgUrl = Uri.parse(profileInfo.profileUrl),
+                        name = profileInfo.name
+                    )
+                }
+            }
+        }
+    }
+
+    private fun setUserInfo(profileImgUrl: Uri, name: String) {
+        setUserProfileImage(profileImgUrl)
+        setUserProfileName(name)
+    }
+
+    private fun setUserProfileImage(profileImgUrl: Uri) {
+        Glide.with(this)
+            .load(profileImgUrl)
+            .into(binding.ivProfileImg)
+    }
+
+    private fun setUserProfileName(name: String) {
+        binding.tvName.text = name
+    }
+
+    private fun showTotalReport() {
+        findNavController().navigate(R.id.action_profile_to_totalReport)
+    }
+
+    private fun checkPermissionAndOpenGallery() {
+        if(permissionChecker.checkPermission(fragmentContext, GalleryPermission)){
+            openGallery()
+        }else{
+            showToastShort("권한을 설정하셔야 기록 서비스를 이용 가능합니다!")
+            //ask for permission
+            permissionChecker.requestPermissionLauncher.launch(GalleryPermission)
+        }
+    }
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK).apply {
+            type = "image/*"
+        }
+        galleryLauncher.launch(intent)
+    }
+
+    private fun getImageExtension(contentResolver: ContentResolver, uri: Uri): String? {
+        val mimeType = contentResolver.getType(uri)
+
+        return MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
     }
 }

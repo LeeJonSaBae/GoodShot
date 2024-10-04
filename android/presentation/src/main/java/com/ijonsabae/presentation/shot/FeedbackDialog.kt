@@ -109,11 +109,11 @@ class FeedbackDialog :
         args.feedback.apply {
             binding.apply {
                 Glide.with(root)
-                    .load(R.drawable.swing_example)
+                    .load(userSwingImage)
                     .into(ivMySwing)
 
                 Glide.with(root)
-                    .load(R.drawable.swing_example)
+                    .load(expertSwingImageResId)
                     .into(ivExpertSwing)
 
                 tvTempo.text = tempo.toString()

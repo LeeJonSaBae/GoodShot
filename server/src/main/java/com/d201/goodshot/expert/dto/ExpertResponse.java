@@ -42,6 +42,7 @@ public class ExpertResponse {
         int expYears;
         List<String> certificates;
         String counselUrl;
+        String phoneNumber;
     }
 
 }

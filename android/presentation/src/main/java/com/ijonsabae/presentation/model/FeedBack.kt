@@ -1,7 +1,7 @@
 package com.ijonsabae.presentation.model
 
+import android.graphics.Bitmap
 import android.os.Parcelable
-import com.ijonsabae.domain.model.FeedBack
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -11,16 +11,7 @@ data class FeedBack(
     val back: Float,
     val feedBackSolution: String,
     val feedBackCheckListTitle: String,
-    val feedBackCheckList: List<String>
+    val feedBackCheckList: List<String>,
+    val userSwingImage : Bitmap,
+    val expertSwingImageResId : Int
 ) : Parcelable
-
-fun convertFeedBack(feedBack: FeedBack): com.ijonsabae.presentation.model.FeedBack {
-    return com.ijonsabae.presentation.model.FeedBack(
-        down = feedBack.down,
-        tempo = feedBack.tempo,
-        back = feedBack.back,
-        feedBackSolution = feedBack.feedBackSolution,
-        feedBackCheckListTitle = feedBack.feedBackCheckListTitle,
-        feedBackCheckList = feedBack.feedBackCheckList
-    )
-}

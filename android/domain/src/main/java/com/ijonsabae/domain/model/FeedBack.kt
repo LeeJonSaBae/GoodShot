@@ -6,5 +6,7 @@ data class FeedBack(
     val back: Float,
     val feedBackSolution: String,
     val feedBackCheckListTitle: String,
-    val feedBackCheckList: List<String>
+    val feedBackCheckList: List<String>,
+    val userSwingImage: ByteArray,
+    val expertSwingImageResId: Int
 )

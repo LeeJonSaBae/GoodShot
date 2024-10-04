@@ -1,12 +1,15 @@
 package com.ijonsabae.presentation.config
 
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.annotation.LayoutRes
@@ -14,6 +17,8 @@ import androidx.fragment.app.DialogFragment
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.viewbinding.ViewBinding
+import com.ijonsabae.domain.model.RetrofitException
+import kotlinx.coroutines.CoroutineExceptionHandler
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -26,6 +31,26 @@ abstract class BaseDialog<B : ViewBinding>(
   protected val binding get() = _binding!!
   lateinit var fragmentContext: Context
   protected lateinit var navController: NavController
+  protected val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+    // error handling
+    if(throwable is RetrofitException)
+      throwable.apply {
+        printStackTrace()
+        showToastShort("$code : $message")
+      }
+    else if(throwable is RuntimeException){
+      throwable.apply {
+        printStackTrace()
+        showToastShort("통신 에러 : $message")
+      }
+    }
+    else{
+      throwable.apply {
+        printStackTrace()
+        showToastShort("$message")
+      }
+    }
+  }
 
   @Inject
   @Named("fragment")
@@ -41,6 +66,8 @@ abstract class BaseDialog<B : ViewBinding>(
     container: ViewGroup?,
     savedInstanceState: Bundle?
   ): View {
+    dialog?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+    dialog?.window?.requestFeature(Window.FEATURE_NO_TITLE)
     _binding = bind(super.onCreateView(inflater, container, savedInstanceState)!!)
     return binding.root
   }
@@ -106,5 +133,10 @@ abstract class BaseDialog<B : ViewBinding>(
   protected fun setScreenHeightPercentage(percentage: Float){
     val layoutParams = requireView().layoutParams
     layoutParams.height = (getScreenHeight(fragmentContext)*percentage).toInt()
+  }
+
+  protected fun setScreenHeightConstraint(option: Int){
+    val layoutParams = requireView().layoutParams
+    layoutParams.height = option
   }
 }

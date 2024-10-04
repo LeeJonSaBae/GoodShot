@@ -2,6 +2,7 @@ package com.ijonsabae.data.retrofit
 
 import com.ijonsabae.data.model.GenerateTemporaryPassWordParam
 import com.ijonsabae.data.model.RequestEmailAuthCodeParam
+import com.ijonsabae.domain.model.ChangePasswordParam
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.LoginParam
 import com.ijonsabae.domain.model.RegisterParam
@@ -9,6 +10,7 @@ import com.ijonsabae.domain.model.Token
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Query
 
 interface UserService {
@@ -28,4 +30,6 @@ interface UserService {
     suspend fun generateTemporaryPassWord(@Body generatedTemporaryPassWordParam: GenerateTemporaryPassWordParam): Result<CommonResponse<Unit>>
     @POST("users/logout")
     suspend fun logout(): Result<CommonResponse<Unit>>
+    @PUT("users/password")
+    suspend fun changePassword(@Body changePasswordParam: ChangePasswordParam):Result<CommonResponse<Unit>>
 }

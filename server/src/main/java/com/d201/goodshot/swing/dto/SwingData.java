@@ -17,6 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 public class SwingData {
 
+    private Long id;
     private MultipartFile swingVideo;
     private List<MultipartFile> swingImages;
     private List<CommentItem> backSwingComments;
@@ -31,4 +32,5 @@ public class SwingData {
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime time;
+
 }

@@ -16,6 +16,7 @@ limitations under the License.
 
 
 import VideoEncoder
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -23,6 +24,7 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.PointF
 import android.graphics.Rect
+import android.media.MediaMetadataRetriever
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
@@ -31,7 +33,10 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.provider.MediaStore
+import android.provider.Settings
+import android.provider.Settings.Secure.getString
 import android.util.Log
+import android.util.Size
 import android.view.PixelCopy
 import android.view.SurfaceView
 import androidx.annotation.RequiresApi
@@ -66,6 +71,10 @@ import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_WRIST
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
+import com.ijonsabae.presentation.shot.ai.data.Pose
+import com.ijonsabae.presentation.shot.ai.data.Pose.*
+import com.ijonsabae.presentation.shot.ai.data.Solution
+import com.ijonsabae.presentation.shot.ai.data.Solution.*
 import com.ijonsabae.presentation.shot.ai.ml.ModelType
 import com.ijonsabae.presentation.shot.ai.ml.MoveNet
 import com.ijonsabae.presentation.shot.ai.ml.PoseClassifier
@@ -78,6 +87,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
@@ -417,14 +428,17 @@ class CameraSource(
             else -> {
                 if (currentState == SWING) {
                     // 오른어깨와 왼발이 가까워지면
-                    if (abs(keyPoints[RIGHT_SHOULDER.position].coordinate.x - keyPoints[LEFT_ANKLE.position].coordinate.x) < 0.05f &&
+                    if (pelvisTwisting.not() &&
+                        abs(keyPoints[RIGHT_SHOULDER.position].coordinate.x - keyPoints[LEFT_ANKLE.position].coordinate.x) < 0.05f &&
                         abs(keyPoints[RIGHT_SHOULDER.position].coordinate.y - keyPoints[RIGHT_ANKLE.position].coordinate.y) > 0.3f &&
                         keyPoints[RIGHT_ELBOW.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x
                     ) {
                         pelvisTwisting = true
                         setCurrentCameraState(ANALYZING)
                         Log.d("싸피", "피니쉬 인식 완료")
+                        return
                     }
+
                     if (((keyPoints[LEFT_WRIST.position].coordinate.x < keyPoints[LEFT_SHOULDER.position].coordinate.x) ||
                                 (keyPoints[RIGHT_WRIST.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x)).not()
                     ) {
@@ -512,18 +526,12 @@ class CameraSource(
     private fun analyzeSwingTime(poses: List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>): SwingTiming {
         //이상적인 템포 비율은 약 3:1(백스윙:다운스윙)로 알려져 있지만, 개인의 스타일과 체형에 따라 다를 수 있다.
         val finishTime = poses[7].first.timestamp
-
         val backswingTime = backswingEndTime - backswingStartTime
         val downswingTime = downswingEndTime - downswingStartTime
 
         val totalSwingTime = finishTime - backswingStartTime
 
         val tempoRatio = backswingTime.toDouble() / downswingTime.toDouble()
-
-        // TODO: backswingEndTime - backswingStartTime가 음수로 나오는 현상 수정하기
-        Log.d("타이밍", "1: $backswingEndTime, $backswingStartTime")
-        Log.d("타이밍", "2: $downswingEndTime, $downswingStartTime")
-
 
         return SwingTiming(
             backswingTime = backswingTime,
@@ -583,21 +591,25 @@ class CameraSource(
 
 
     //    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun convertBitmapsToVideo(bitmapIndices: List<Bitmap>) {
+    @SuppressLint("HardwareIds")
+    private fun convertBitmapsToVideo(bitmapIndices: List<Bitmap>, userName: String) {
 
-
-        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val videoFileName = "pose_$timestamp.mp4"
-        val videoFile = File(context.cacheDir, videoFileName)
-
+        val fileSaveTime = System.currentTimeMillis()
+        val ssidName = getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+        val videoFileName = "${ssidName}_${fileSaveTime}.mp4"
+        val videoDir = File(context.filesDir, "videos/$userName")
+        if (!videoDir.exists()) {
+            videoDir.mkdirs()
+        }
+        val videoFile = File(videoDir, videoFileName)
         val videoEncoder = VideoEncoder(
             bitmapIndices[0].width,
             bitmapIndices[0].height,
-            24,
+            12,
             videoFile.absolutePath
         )
         videoEncoder.start()
-
+        Log.d("MainActivity_Capture", "인덱스들: ${bitmapIndices.size}")
         bitmapIndices.forEachIndexed { index, bitmap ->
             val byteBuffer = bitmapToByteBuffer(bitmap)
             Log.d("MainActivity_Capture", "프레임 인덱스: $index")
@@ -605,45 +617,22 @@ class CameraSource(
         }
 
         videoEncoder.finish()
-
-        val uri = saveVideoToGallery(videoFile)
-        uri?.let {
-            Log.d("MainActivity_Capture", "비디오 URI: $it")
-            MediaScannerConnection.scanFile(context, arrayOf(it.toString()), null, null)
-
-
-        } ?: Log.d("MainActivity_Capture", "비디오 저장 실패")
-
-        // 임시 파일 삭제
-        videoFile.delete()
+        saveBitmapToInternalStorage(bitmapIndices[0], userName, ssidName, fileSaveTime)
     }
 
-    //    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun saveVideoToGallery(videoFile: File): Uri? {
-        val values = ContentValues().apply {
-            put(MediaStore.Video.Media.DISPLAY_NAME, videoFile.name)
-            put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-            put(
-                MediaStore.Video.Media.RELATIVE_PATH,
-                Environment.DIRECTORY_MOVIES + "/PoseEstimation"
-            ) // 수정된 부분
-            put(MediaStore.Video.Media.IS_PENDING, 1)
+    fun saveBitmapToInternalStorage(bitmap: Bitmap, userName: String, ssidName: String, fileSaveTime: Long) {
+        val thumbnailFileName = "${ssidName}_${fileSaveTime}.jpg"
+        val thumbnailDir = File(context.filesDir, "thumbnails/$userName")
+        if (!thumbnailDir.exists()) {
+            thumbnailDir.mkdirs()
         }
 
-        val resolver = context.contentResolver
-        val collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        val uri = resolver.insert(collection, values)
-
-        uri?.let {
-            resolver.openOutputStream(it)?.use { os ->
-                videoFile.inputStream().use { it.copyTo(os) }
-            }
-            values.clear()
-            values.put(MediaStore.Video.Media.IS_PENDING, 0)
-            resolver.update(it, values, null, null)
+        val file = File(thumbnailDir, thumbnailFileName)
+        FileOutputStream(file).use { out ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
         }
-
-        return uri
+        file.absolutePath
+        Log.d("MainActivity_Capture", "썸네일 저장 완료")
     }
 
     private fun bitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {
@@ -743,11 +732,18 @@ class CameraSource(
         isDownSwingEnd = false
 
         for ((index, jointData) in jointDataList.withIndex()) {
+            // 사람으로 인식안된 프레임의 경우 스킵
+            if ((jointData[NOSE.position].score) < 0.3 ||
+                (jointData[LEFT_ANKLE.position].score) < 0.3 ||
+                (jointData[RIGHT_ANKLE.position].score < 0.3)
+            ) {
+                continue
+            }
+
             if (!modelChangeReady &&
                 jointData[RIGHT_WRIST.position].coordinate.x > jointData[RIGHT_SHOULDER.position].coordinate.x &&
                 jointData[RIGHT_WRIST.position].coordinate.y < jointData[RIGHT_SHOULDER.position].coordinate.y
             ) {
-                Log.d("포즈검증", "모델 교체 준비")
                 modelChangeReady = true
             }
 
@@ -757,17 +753,9 @@ class CameraSource(
                 && jointData[LEFT_WRIST.position].coordinate.x < jointData[RIGHT_SHOULDER.position].coordinate.x
                 && jointData[LEFT_WRIST.position].coordinate.y < jointData[RIGHT_SHOULDER.position].coordinate.y
             ) {
-                Log.d("포즈검증", "모델 교체 완료")
                 classifier = classifier4
                 poseLabelBias = 0
             }
-
-//            val classificationResults = classifier?.classify(jointData)
-//            classificationResults?.forEachIndexed { poseIndex, result ->
-//                if (result.second > poseIndexArray[poseIndex + poseLabelBias].second) {
-//                    poseIndexArray[poseIndex + poseLabelBias] = Pair(index, result.second)
-//                }
-//            }
 
             if (classifier == classifier8) {
 
@@ -832,30 +820,18 @@ class CameraSource(
                     //swingGroupData -> 전후 프레임까지 포함한 묶음
                     val swingGroupData = indicesToPosesGroup(poseFrameGroupIndices)
 
-//                    큐에 있는 60개 이미지 갤러리에 전부 저장
-//                    imageQueue.toList().forEachIndexed { index, (imageData, _) ->
-//                        val fileName = "swing_pose_${index + 1}.jpg"
-//                        val uri = saveBitmapToGallery(context, imageData, fileName)
-//                        uri?.let {
-//                            Log.d("싸피", "Saved image $fileName at $it")
-//                        }
-//                    }
 
                     //수동으로 뽑은 이미지 포즈들을 기반으로 첫 시작 시간 추정 후 영상 제작
-                    val actualSwingIndices = imageQueue
-                        .toList()
-                        .takeLast(imageQueue.size - manualPoseIndexArray[0])
+//                    val actualSwingIndices = imageQueue
+//                        .toList()
+//                        .takeLast(imageQueue.size - manualPoseIndexArray[0])
+//                        .map { it.data }
+                    val actualSwingIndices = imageDataList
+                        .take(manualPoseIndexArray[0])
                         .map { it.data }
 
-//                  어드레스~피니쉬 이미지 갤러리에 전부 저장
-//                    actualSwingIndices.forEachIndexed { idx, bitmap ->
-//                        val fileName = "swing_pose_${swingData[0][0].third + idx}.jpg"
-//
-//                        val uri = saveBitmapToGallery(context, bitmap, fileName)
-//                        uri?.let {
-//                            Log.d("싸피", "Saved image $fileName at $it")
-//                        }
-//                    }
+                    Log.d("MainActivity_Capture", "인덱스들: ${actualSwingIndices}")
+
 
                     // 템포, 백스윙, 다운스윙 시간 분석하기
                     val swingTiming = analyzeSwingTime(swingData)
@@ -883,7 +859,7 @@ class CameraSource(
                     val poseAnalysisResults = PostureFeedback.checkPosture(
                         preciseIndices,
                         jointQueue.toList().reversed(),
-                        true // TODO: 좌타 우타 여부 동적으로 넣어주기
+                        isLeftHanded.not()
                     )
                     Log.d("분석결과", "$poseAnalysisResults")
 
@@ -904,15 +880,61 @@ class CameraSource(
                             context.resources.getStringArray(R.array.good_tip_list).toList()
                     }
 
+                    val userSwingImage: Bitmap
+                    val answerSwingImageResId: Int
+
+                    when (poseAnalysisResults.solution) {
+                        BACK_BODY_LIFT -> {
+                            userSwingImage = preciseBitmaps[TOP.ordinal].data
+                            answerSwingImageResId = R.drawable.back_body_lift
+                        }
+
+                        BACK_ARM_EXTENSION -> {
+                            userSwingImage = preciseBitmaps[MID_BACKSWING.ordinal].data
+                            answerSwingImageResId = R.drawable.back_arm_extension
+                        }
+
+                        BACK_WEIGHT_TRANSFER -> {
+                            userSwingImage = preciseBitmaps[TOP.ordinal].data
+                            answerSwingImageResId = R.drawable.back_weight_transfer
+                        }
+
+                        BACK_BODY_BALANCE -> {
+                            userSwingImage = preciseBitmaps[MID_BACKSWING.ordinal].data
+                            answerSwingImageResId = R.drawable.back_body_balance
+                        }
+
+                        DOWN_BODY_LIFT -> {
+                            userSwingImage = preciseBitmaps[MID_DOWNSWING.ordinal].data
+                            answerSwingImageResId = R.drawable.down_body_lift
+                        }
+
+                        DOWN_WEIGHT_TRANSFER -> {
+                            userSwingImage = preciseBitmaps[IMPACT.ordinal].data
+                            answerSwingImageResId = R.drawable.down_weight_transfer
+                        }
+
+                        DOWN_BODY_BALANCE -> {
+                            userSwingImage = preciseBitmaps[MID_DOWNSWING.ordinal].data
+                            answerSwingImageResId = R.drawable.down_body_balance
+                        }
+
+                        GOOD_SHOT -> {
+                            userSwingImage = preciseBitmaps[FINISH.ordinal].data
+                            answerSwingImageResId = R.drawable.good_shot
+                        }
+                    }
 
                     // 뷰모델에 피드백 담기
                     val feedBack = FeedBack(
                         downswingTime,
                         tempoRatio,
                         backswingTime,
-                        poseAnalysisResults.solution.getSolution(true), // TODO: 좌타 우타 여부 동적으로 넣어주기
+                        poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
                         feedbackCheckListTitle,
-                        feedbackCheckList
+                        feedbackCheckList,
+                        userSwingImage,
+                        answerSwingImageResId
                     )
                     setFeedback(feedBack)
 
@@ -937,27 +959,23 @@ class CameraSource(
 //                    }
 
                     // 영상 만들기`
-                    convertBitmapsToVideo(actualSwingIndices)
+//                    convertBitmapsToVideo(actualSwingIndices, "guest")
+                    convertBitmapsToVideo(actualSwingIndices.reversed(), "guest")
 
-                    // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) 룸에 저장하기
+                    // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) + @ 룸에 저장하기
 
-                    // TODO: 영상 + 8개 비트맵 + 8개 유사도 + 피드백 서버로 보내기
+                    // TODO: 영상 + 8개 비트맵 + 8개 유사도 + 피드백 + @ 서버로 보내기
 
                     // 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
                     increaseSwingCnt.invoke()
                     setCurrentCameraState(RESULT)
                     Log.d("processDetectedInfo", "상태 Result로 변경됨")
                     resultSkipMotionStartTime = 0L //스킵 동작 탐지를 위한 변수 초기화
-
-                    // TODO: 다이얼로그가 닫히는 순간 swingViewModel.currentState 바꿔주기
-
                 } else {
                     setCurrentCameraState(AGAIN)
                     Log.d("싸피", "다시 스윙해주세요")
                     CoroutineScope(Dispatchers.Main).launch {
-                        Log.d("아몬드", "전전전")
                         delay(2500L)
-                        Log.d("아몬드", "후후후후")
                         setCurrentCameraState(ADDRESS)
                     }
                 }
@@ -1001,15 +1019,16 @@ class CameraSource(
     private fun checkImpact(index: Int, jointData: List<KeyPoint>) {
         // 임팩트 - 손목의 평균 좌표가 골반의 중앙과 가장 가까울 때
         val leftHipX = jointData[LEFT_HIP.position].coordinate.x
-        val leftHipY = jointData[LEFT_HIP.position].coordinate.y
         val rightHipX = jointData[RIGHT_HIP.position].coordinate.x
-
         val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
         val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
+        val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
+        val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
 
+
+        if (leftWristY > leftElbowY && leftWristX < leftElbowX && leftWristX >= rightHipX ) {
         //손목이 골반 아래 위치할 때 골반 중심과 x좌표 거리가 가장 가까운 경우를 추출
 
-        if (leftHipY <= leftWristY) {
             val hipCenterX = (rightHipX + leftHipX) / 2
             val impactGap = abs(hipCenterX - leftWristX)
 
@@ -1060,11 +1079,13 @@ class CameraSource(
         }
 
         //코보다 왼손 높이가 커지는 시점을 갱신
-        if (leftWristY < noseY && isDownSwingEnd == false) {
-            downswingStartTime = imageDataList[index - 2].timestamp
+        if (!isDownSwingEnd && leftWristY < noseY && leftWristX < noseX) {
+            downswingStartTime = imageDataList[index + 1].timestamp
             isDownSwingEnd = true
-        } else if (leftWristY >= noseY && isDownSwingEnd) {
+        }
+        if (isDownSwingEnd && leftWristY >= noseY && leftWristX < noseX) {
             backswingEndTime = imageDataList[index - 2].timestamp
+            isDownSwingEnd = false
         }
     }
 
@@ -1125,10 +1146,12 @@ class CameraSource(
         // 골반과 거리가 가장 가까운 시점을 검사
         val rightHipX = jointData[RIGHT_HIP.position].coordinate.x
         val rightHipY = jointData[RIGHT_HIP.position].coordinate.y
+        val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
+
         val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
         val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
 
-        if (leftWristY > rightHipY) {
+        if (leftWristY > leftElbowY && leftWristX > rightHipX) {
             // 거리 계산을 위해 제곱근을 사용
             val hipWristDistance = sqrt(
                 (rightHipX - leftWristX).pow(2) +
@@ -1138,7 +1161,7 @@ class CameraSource(
             // minAddressGap이 거리보다 큰 경우에만 업데이트
             if (minAddressGap > hipWristDistance) {
                 minAddressGap = hipWristDistance
-                if (index + 2 < imageDataList.size) {
+                if (index + 2 <= imageDataList.size - 1) {
                     backswingStartTime = imageDataList[index + 2].timestamp // 스윙 시작시간 갱신
                     manualPoseIndexArray[0] = index + 2
                 } else {

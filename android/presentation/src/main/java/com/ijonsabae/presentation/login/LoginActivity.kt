@@ -86,7 +86,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::i
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 loginViewModel.token.collect {
-                    if (it != Token("", "")) {
+                    if (it != Token.EMPTY) {
                        login()
                     }
                     else{

@@ -31,9 +31,11 @@
             android:name="com.ijonsabae.presentation.consult.ConsultantDetailInfoDialog"
             tools:label="consult_dialog"
             tools:layout="@layout/dialog_consultant">
+
+
             <argument
-                android:name="consult"
-                app:argType="com.ijonsabae.presentation.model.Consultant" />
+                android:name="expert_detail"
+                app:argType="com.ijonsabae.presentation.model.ExpertDetail" />
         </dialog>
     </navigation>
     <navigation
@@ -154,6 +156,12 @@
             <action
                 android:id="@+id/action_profile_to_totalReport"
                 app:destination="@id/profile_total_report" />
+            <action
+                android:id="@+id/action_profile_to_resign_dialog"
+                app:destination="@id/resign_dialog" />
+            <action
+                android:id="@+id/action_profile_to_change_password_dialog"
+                app:destination="@id/change_password_dialog" />
         </fragment>
 
         <fragment
@@ -161,6 +169,20 @@
             android:name="com.ijonsabae.presentation.profile.TotalReportFragment"
             tools:label="total report"
             tools:layout="@layout/fragment_total_report" />
+
+        <dialog
+            android:id="@+id/resign_dialog"
+            android:name="com.ijonsabae.presentation.profile.ResignDialog"
+            tools:label="resign_dialog"
+            tools:layout="@layout/dialog_resign">
+        </dialog>
+
+        <dialog
+            android:id="@+id/change_password_dialog"
+            android:name="com.ijonsabae.presentation.profile.ChangePasswordDialog"
+            tools:label="change_password_dialog"
+            tools:layout="@layout/dialog_change_password">
+        </dialog>
     </navigation>
 
 

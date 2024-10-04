@@ -3,6 +3,7 @@ package com.ijonsabae.data.datastore.remote
 import com.ijonsabae.data.model.GenerateTemporaryPassWordParam
 import com.ijonsabae.data.model.RequestEmailAuthCodeParam
 import com.ijonsabae.data.retrofit.UserService
+import com.ijonsabae.domain.model.ChangePasswordParam
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.LoginParam
 import com.ijonsabae.domain.model.RegisterParam
@@ -22,6 +23,10 @@ class UserRemoteDataSource @Inject constructor(private val userService: UserServ
         return userService.join(registerParam)
     }
 
+    suspend fun resign(): Result<CommonResponse<Unit>>{
+        return userService.exit()
+    }
+
     suspend fun requestEmailAuthCode(email: String): Result<CommonResponse<Unit>>{
         return userService.sendEmailAuthCode(RequestEmailAuthCodeParam(email))
     }
@@ -39,5 +44,9 @@ class UserRemoteDataSource @Inject constructor(private val userService: UserServ
             name = name,
             email = email
         ))
+    }
+
+    suspend fun changePassword(oldPassword: String, newPassword: String): Result<CommonResponse<Unit>>{
+        return userService.changePassword(ChangePasswordParam( oldPassword, newPassword))
     }
 }

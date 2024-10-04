@@ -36,6 +36,9 @@ class LoginViewModel @Inject constructor(
 
     suspend fun setToken(token: Token) {
         _token.emit(token)
+    }
+
+    suspend fun saveToken(token: Token){
         setLocalTokenUseCase(token)
     }
 
