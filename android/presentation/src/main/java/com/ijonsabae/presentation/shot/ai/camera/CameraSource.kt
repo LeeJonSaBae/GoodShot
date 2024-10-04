@@ -581,21 +581,24 @@ class CameraSource(
 
 
     //    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun convertBitmapsToVideo(bitmapIndices: List<Bitmap>) {
+    private fun convertBitmapsToVideo(bitmapIndices: List<Bitmap>, userName: String) {
 
 
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val videoFileName = "pose_$timestamp.mp4"
-        val videoFile = File(context.cacheDir, videoFileName)
-
+        val videoDir = File(context.filesDir, "videos/$userName")
+        if (!videoDir.exists()) {
+            videoDir.mkdirs()
+        }
+        val videoFile = File(videoDir, videoFileName)
         val videoEncoder = VideoEncoder(
             bitmapIndices[0].width,
             bitmapIndices[0].height,
-            24,
+            12,
             videoFile.absolutePath
         )
         videoEncoder.start()
-
+        Log.d("MainActivity_Capture", "인덱스들: ${bitmapIndices.size}")
         bitmapIndices.forEachIndexed { index, bitmap ->
             val byteBuffer = bitmapToByteBuffer(bitmap)
             Log.d("MainActivity_Capture", "프레임 인덱스: $index")
@@ -603,17 +606,6 @@ class CameraSource(
         }
 
         videoEncoder.finish()
-
-        val uri = saveVideoToGallery(videoFile)
-        uri?.let {
-            Log.d("MainActivity_Capture", "비디오 URI: $it")
-            MediaScannerConnection.scanFile(context, arrayOf(it.toString()), null, null)
-
-
-        } ?: Log.d("MainActivity_Capture", "비디오 저장 실패")
-
-        // 임시 파일 삭제
-        videoFile.delete()
     }
 
     //    @RequiresApi(Build.VERSION_CODES.Q)
@@ -836,10 +828,26 @@ class CameraSource(
 
 
                     //수동으로 뽑은 이미지 포즈들을 기반으로 첫 시작 시간 추정 후 영상 제작
-                    val actualSwingIndices = imageQueue
-                        .toList()
-                        .takeLast(imageQueue.size - manualPoseIndexArray[0])
+//                    val actualSwingIndices = imageQueue
+//                        .toList()
+//                        .takeLast(imageQueue.size - manualPoseIndexArray[0])
+//                        .map { it.data }
+                    val actualSwingIndices = imageDataList
+                        .take(manualPoseIndexArray[0])
                         .map { it.data }
+
+                    var swingVideoFrameIndex = ""
+                    actualSwingIndices.forEachIndexed { idx, bitMap ->
+                        val fileName =
+                        "actualSwing_${idx}_bitmap.jpg"
+                        val uri = saveBitmapToGallery(context, bitMap, fileName)
+                        uri?.let {
+                            Log.d("MainActivity_Capture", "Saved image $fileName at $it")
+                        }
+
+                    }
+
+                    Log.d("MainActivity_Capture", "인덱스들: ${actualSwingIndices}")
 
 
                     // 템포, 백스윙, 다운스윙 시간 분석하기
@@ -969,7 +977,8 @@ class CameraSource(
 //                    }
 
                     // 영상 만들기`
-                    convertBitmapsToVideo(actualSwingIndices)
+//                    convertBitmapsToVideo(actualSwingIndices, "guest")
+                    convertBitmapsToVideo(actualSwingIndices.reversed(), "guest")
 
                     // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) 룸에 저장하기
 
@@ -1156,6 +1165,7 @@ class CameraSource(
     }
 
     private fun checkAddress(index: Int, jointData: List<KeyPoint>) {
+        // TODO : address 손목높이 처리
         // 골반과 거리가 가장 가까운 시점을 검사
         val rightHipX = jointData[RIGHT_HIP.position].coordinate.x
         val rightHipY = jointData[RIGHT_HIP.position].coordinate.y
@@ -1172,9 +1182,9 @@ class CameraSource(
             // minAddressGap이 거리보다 큰 경우에만 업데이트
             if (minAddressGap > hipWristDistance) {
                 minAddressGap = hipWristDistance
-                if (index + 1 <= imageDataList.size - 1) {
-                    backswingStartTime = imageDataList[index + 1].timestamp // 스윙 시작시간 갱신
-                    manualPoseIndexArray[0] = index + 1
+                if (index + 2 <= imageDataList.size - 1) {
+                    backswingStartTime = imageDataList[index + 2].timestamp // 스윙 시작시간 갱신
+                    manualPoseIndexArray[0] = index + 2
                 } else {
                     backswingStartTime = imageDataList[index].timestamp // 스윙 시작시간 갱신
                     manualPoseIndexArray[0] = index
