@@ -79,11 +79,11 @@ class ShotDialog : BaseDialog<DialogShotOptionBinding>(
                 selectButton(btnGolfClubDriver)
                 deselectButton(btnGolfClubIron)
             }
-            tbPoseReport.setOnClickListener {
-                lifecycleScope.launch {
-                    setShowPoseReportStatus(tbPoseReport.isChecked)
-                }
-            }
+//            tbPoseReport.setOnClickListener {
+//                lifecycleScope.launch {
+//                    setShowPoseReportStatus(tbPoseReport.isChecked)
+//                }
+//            }
         }
     }
 
@@ -131,9 +131,9 @@ class ShotDialog : BaseDialog<DialogShotOptionBinding>(
             .build()
 
 
-        binding.ivHelp.setOnClickListener {
-            balloon1.showAlignTop(it)
-        }
+//        binding.ivHelp.setOnClickListener {
+//            balloon1.showAlignTop(it)
+//        }
         binding.ivHelp2.setOnClickListener {
             balloon2.showAlignTop(it)
         }
