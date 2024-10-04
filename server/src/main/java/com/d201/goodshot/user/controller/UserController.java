@@ -59,7 +59,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public BaseResponse<TokenResponse> login(@RequestBody LoginRequest loginRequest) {
         Token token = userService.login(loginRequest);
-        TokenResponse response = TokenResponse.builder().accessToken(token.getAccessToken()).refreshToken(token.getRefreshToken()).build();
+        TokenResponse response = TokenResponse.builder().accessToken(token.getAccessToken()).refreshToken(token.getRefreshToken()).userId(token.getUserId()).build();
         return BaseResponse.created(response);
     }
 
