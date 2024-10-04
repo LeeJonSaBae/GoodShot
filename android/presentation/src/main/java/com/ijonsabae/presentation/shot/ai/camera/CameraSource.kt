@@ -51,6 +51,7 @@ import com.ijonsabae.presentation.shot.CameraState.POSITIONING
 import com.ijonsabae.presentation.shot.CameraState.RESULT
 import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.PostureFeedback
+import com.ijonsabae.presentation.shot.SwingVideoProcessor
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ANKLE
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_EAR
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ELBOW
@@ -559,121 +560,6 @@ class CameraSource(
         return true
     }
 
-
-    private fun saveBitmapToGallery(context: Context, bitmap: Bitmap, fileName: String): Uri? {
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-            put(
-                MediaStore.MediaColumns.RELATIVE_PATH,
-                Environment.DIRECTORY_PICTURES + "/SwingAnalysis"
-            )
-        }
-
-        var uri: Uri? = null
-        try {
-            uri = context.contentResolver.insert(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                contentValues
-            )
-            uri?.let {
-                val outputStream: OutputStream? = context.contentResolver.openOutputStream(it)
-                outputStream?.use { stream ->
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("싸피", "Error saving bitmap: ${e.message}")
-        }
-
-        return uri
-    }
-
-
-    //    @RequiresApi(Build.VERSION_CODES.Q)
-    @SuppressLint("HardwareIds")
-    private fun convertBitmapsToVideo(bitmapIndices: List<Bitmap>, userName: String) {
-
-        val fileSaveTime = System.currentTimeMillis()
-        val ssidName = getString(context.contentResolver, Settings.Secure.ANDROID_ID)
-        val videoFileName = "${ssidName}_${fileSaveTime}.mp4"
-        val videoDir = File(context.filesDir, "videos/$userName")
-        if (!videoDir.exists()) {
-            videoDir.mkdirs()
-        }
-        val videoFile = File(videoDir, videoFileName)
-        val videoEncoder = VideoEncoder(
-            bitmapIndices[0].width,
-            bitmapIndices[0].height,
-            12,
-            videoFile.absolutePath
-        )
-        videoEncoder.start()
-        Log.d("MainActivity_Capture", "인덱스들: ${bitmapIndices.size}")
-        bitmapIndices.forEachIndexed { index, bitmap ->
-            val byteBuffer = bitmapToByteBuffer(bitmap)
-            Log.d("MainActivity_Capture", "프레임 인덱스: $index")
-            videoEncoder.encodeFrame(byteBuffer)
-        }
-
-        videoEncoder.finish()
-        saveBitmapToInternalStorage(bitmapIndices[0], userName, ssidName, fileSaveTime)
-    }
-
-    fun saveBitmapToInternalStorage(bitmap: Bitmap, userName: String, ssidName: String, fileSaveTime: Long) {
-        val thumbnailFileName = "${ssidName}_${fileSaveTime}.jpg"
-        val thumbnailDir = File(context.filesDir, "thumbnails/$userName")
-        if (!thumbnailDir.exists()) {
-            thumbnailDir.mkdirs()
-        }
-
-        val file = File(thumbnailDir, thumbnailFileName)
-        FileOutputStream(file).use { out ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-        }
-        file.absolutePath
-        Log.d("MainActivity_Capture", "썸네일 저장 완료")
-    }
-
-    private fun bitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {
-        val inputWidth = bitmap.width
-        val inputHeight = bitmap.height
-        val yuvImage = ByteArray(inputWidth * inputHeight * 3 / 2)
-        val argb = IntArray(inputWidth * inputHeight)
-
-        bitmap.getPixels(argb, 0, inputWidth, 0, 0, inputWidth, inputHeight)
-
-        encodeYUV420SP(yuvImage, argb, inputWidth, inputHeight)
-
-        return ByteBuffer.wrap(yuvImage)
-    }
-
-
-    private fun encodeYUV420SP(yuv420sp: ByteArray, argb: IntArray, width: Int, height: Int) {
-        val frameSize = width * height
-        var yIndex = 0
-        var uvIndex = frameSize
-
-        for (j in 0 until height) {
-            for (i in 0 until width) {
-                val rgb = argb[j * width + i]
-                val r = rgb shr 16 and 0xFF
-                val g = rgb shr 8 and 0xFF
-                val b = rgb and 0xFF
-                val y = (66 * r + 129 * g + 25 * b + 128 shr 8) + 16
-                yuv420sp[yIndex++] = y.toByte()
-
-                if (j % 2 == 0 && i % 2 == 0) {
-                    val u = (-38 * r - 74 * g + 112 * b + 128 shr 8) + 128
-                    val v = (112 * r - 94 * g - 18 * b + 128 shr 8) + 128
-                    yuv420sp[uvIndex++] = u.toByte()
-                    yuv420sp[uvIndex++] = v.toByte()
-                }
-            }
-        }
-    }
-
-
     private fun mirrorKeyPoints(keyPoints: List<KeyPoint>): List<KeyPoint> {
         return keyPoints.map { keyPoint ->
             val mirroredBodyPart = when (keyPoint.bodyPart) {
@@ -959,8 +845,7 @@ class CameraSource(
 //                    }
 
                     // 영상 만들기`
-//                    convertBitmapsToVideo(actualSwingIndices, "guest")
-                    convertBitmapsToVideo(actualSwingIndices.reversed(), "guest")
+                    SwingVideoProcessor.convertBitmapsToVideo(context, actualSwingIndices.reversed()) // TODO : userName 넘겨주기
 
                     // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) + @ 룸에 저장하기
 
@@ -987,7 +872,6 @@ class CameraSource(
 
     private fun checkFinish(index: Int, jointData: List<KeyPoint>) {
         //오른쪽 어깨.x가 왼쪽 골반.x보다 왼쪽에 있고 왼손목의 x좌표가 가장 작을때
-
         val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
         val rightShoulderX = jointData[RIGHT_SHOULDER.position].coordinate.x
         val leftHipX = jointData[LEFT_HIP.position].coordinate.x
@@ -1161,9 +1045,9 @@ class CameraSource(
             // minAddressGap이 거리보다 큰 경우에만 업데이트
             if (minAddressGap > hipWristDistance) {
                 minAddressGap = hipWristDistance
-                if (index + 2 <= imageDataList.size - 1) {
-                    backswingStartTime = imageDataList[index + 2].timestamp // 스윙 시작시간 갱신
-                    manualPoseIndexArray[0] = index + 2
+                if (index + 5 <= imageDataList.size - 1) {
+                    backswingStartTime = imageDataList[index + 5].timestamp // 스윙 시작시간 갱신
+                    manualPoseIndexArray[0] = index + 5
                 } else {
                     backswingStartTime = imageDataList[index].timestamp // 스윙 시작시간 갱신
                     manualPoseIndexArray[0] = index
