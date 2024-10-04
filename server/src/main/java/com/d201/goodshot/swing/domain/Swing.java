@@ -1,6 +1,7 @@
 package com.d201.goodshot.swing.domain;
 
-import com.d201.goodshot.swing.dto.SwingData;
+import com.d201.goodshot.swing.dto.SwingRequest;
+import com.d201.goodshot.swing.dto.SwingRequest.SwingDataRequest;
 import com.d201.goodshot.swing.exception.SwingVideoProcessingException;
 import com.d201.goodshot.user.domain.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -60,7 +61,7 @@ public class Swing {
     @OneToMany(mappedBy = "swing", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
 
-    public void updateSwing(SwingData swingData) {
+    public void updateSwing(SwingDataRequest swingData) {
         this.solution = swingData.getSolution();
         this.score = swingData.getScore();
         this.tempo = swingData.getTempo();
