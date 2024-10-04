@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.ijonsabae.domain.model.Token
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import java.util.Calendar
@@ -21,6 +22,7 @@ class TokenLocalDataSource @Inject constructor(@ApplicationContext private val c
     companion object{
         private val ACCESS_TOKEN = stringPreferencesKey("access_token")
         private val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
+        private val USER_ID = longPreferencesKey("user_id")
         private val TOKEN_CREATED_TIME = longPreferencesKey("token_created_time")
     }
 
@@ -28,6 +30,7 @@ class TokenLocalDataSource @Inject constructor(@ApplicationContext private val c
         context.tokenDataStore.edit { pref ->
             pref[ACCESS_TOKEN] = token.accessToken
             pref[REFRESH_TOKEN] = token.refreshToken
+            pref[USER_ID] = token.userId
         }
     }
 
@@ -53,6 +56,10 @@ class TokenLocalDataSource @Inject constructor(@ApplicationContext private val c
 
     suspend fun getRefreshToken(): String? {
         return context.tokenDataStore.data.map { it[REFRESH_TOKEN] }.firstOrNull()
+    }
+
+    suspend fun getUserId(): Long{
+        return context.tokenDataStore.data.map{it[USER_ID]}.first() ?: -1
     }
 
     suspend fun clear() {
