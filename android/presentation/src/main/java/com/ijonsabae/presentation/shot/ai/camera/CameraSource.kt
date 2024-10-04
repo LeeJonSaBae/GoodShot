@@ -159,7 +159,7 @@ class CameraSource(
         val classifier8 = PoseClassifier.create(context, MODEL_FILENAME_8, LABELS_FILENAME_8)
         setClassifier(classifier4, classifier8)
 
-        initializeSwingCnt.invoke()
+        initializeSwingCnt()
     }
 
     companion object {
@@ -895,7 +895,7 @@ class CameraSource(
                     // TODO: 영상 + 8개 비트맵 + 8개 유사도 + 피드백 + @ 서버로 보내기
 
                     // 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
-                    increaseSwingCnt.invoke()
+                    increaseSwingCnt()
                     setCurrentCameraState(RESULT)
                     Log.d("processDetectedInfo", "상태 Result로 변경됨")
                     resultSkipMotionStartTime = 0L //스킵 동작 탐지를 위한 변수 초기화
