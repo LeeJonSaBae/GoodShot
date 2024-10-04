@@ -1,7 +1,5 @@
 package com.d201.goodshot.swing.domain;
 
-import com.d201.goodshot.swing.dto.CommentItem;
-import com.d201.goodshot.swing.dto.SwingData;
 import com.d201.goodshot.swing.enums.CommentType;
 import com.d201.goodshot.swing.enums.PoseType;
 import jakarta.persistence.*;
@@ -10,8 +8,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicInsert;
-
-import java.util.List;
 
 @Entity
 @Getter
