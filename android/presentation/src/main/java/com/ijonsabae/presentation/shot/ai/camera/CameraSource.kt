@@ -16,6 +16,7 @@ limitations under the License.
 
 
 import VideoEncoder
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -32,6 +33,8 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.provider.MediaStore
+import android.provider.Settings
+import android.provider.Settings.Secure.getString
 import android.util.Log
 import android.util.Size
 import android.view.PixelCopy
@@ -588,12 +591,12 @@ class CameraSource(
 
 
     //    @RequiresApi(Build.VERSION_CODES.Q)
+    @SuppressLint("HardwareIds")
     private fun convertBitmapsToVideo(bitmapIndices: List<Bitmap>, userName: String) {
 
-
-//        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val fileSaveTime = System.currentTimeMillis()
-        val videoFileName = "pose_${fileSaveTime}.mp4"
+        val ssidName = getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+        val videoFileName = "${ssidName}_${fileSaveTime}.mp4"
         val videoDir = File(context.filesDir, "videos/$userName")
         if (!videoDir.exists()) {
             videoDir.mkdirs()
@@ -614,11 +617,11 @@ class CameraSource(
         }
 
         videoEncoder.finish()
-        saveBitmapToInternalStorage(bitmapIndices[0], userName, fileSaveTime)
+        saveBitmapToInternalStorage(bitmapIndices[0], userName, ssidName, fileSaveTime)
     }
 
-    fun saveBitmapToInternalStorage(bitmap: Bitmap, userName: String, fileSaveTime: Long) {
-        val thumbnailFileName = "pose_${fileSaveTime}.jpg"
+    fun saveBitmapToInternalStorage(bitmap: Bitmap, userName: String, ssidName: String, fileSaveTime: Long) {
+        val thumbnailFileName = "${ssidName}_${fileSaveTime}.jpg"
         val thumbnailDir = File(context.filesDir, "thumbnails/$userName")
         if (!thumbnailDir.exists()) {
             thumbnailDir.mkdirs()
