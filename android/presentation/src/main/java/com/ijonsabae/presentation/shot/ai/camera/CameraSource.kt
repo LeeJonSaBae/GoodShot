@@ -1019,15 +1019,16 @@ class CameraSource(
     private fun checkImpact(index: Int, jointData: List<KeyPoint>) {
         // 임팩트 - 손목의 평균 좌표가 골반의 중앙과 가장 가까울 때
         val leftHipX = jointData[LEFT_HIP.position].coordinate.x
-        val leftHipY = jointData[LEFT_HIP.position].coordinate.y
         val rightHipX = jointData[RIGHT_HIP.position].coordinate.x
-
         val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
         val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
+        val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
+        val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
 
+
+        if (leftWristY > leftElbowY && leftWristX < leftElbowX && leftWristX >= rightHipX ) {
         //손목이 골반 아래 위치할 때 골반 중심과 x좌표 거리가 가장 가까운 경우를 추출
 
-        if (leftHipY <= leftWristY) {
             val hipCenterX = (rightHipX + leftHipX) / 2
             val impactGap = abs(hipCenterX - leftWristX)
 
