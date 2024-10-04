@@ -109,7 +109,7 @@ public class UserController {
             throw new InvalidTokenException();
         }
         Token token = userService.reissue(refreshToken, request);
-        TokenResponse response = TokenResponse.builder().accessToken(token.getAccessToken()).refreshToken(token.getRefreshToken()).build();
+        TokenResponse response = TokenResponse.builder().accessToken(token.getAccessToken()).refreshToken(token.getRefreshToken()).userId(token.getUserId()).build();
         return BaseResponse.created(response);
     }
 
