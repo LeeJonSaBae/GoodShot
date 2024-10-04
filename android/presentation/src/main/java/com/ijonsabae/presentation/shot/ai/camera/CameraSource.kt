@@ -1169,10 +1169,14 @@ class CameraSource(
         // 골반과 거리가 가장 가까운 시점을 검사
         val rightHipX = jointData[RIGHT_HIP.position].coordinate.x
         val rightHipY = jointData[RIGHT_HIP.position].coordinate.y
+        val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
+        val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
+
         val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
         val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
 
-        if (leftWristY > rightHipY) {
+//        if (leftWristY > rightHipY) {
+        if (leftWristY > leftElbowY && leftWristX > leftElbowX) {
             // 거리 계산을 위해 제곱근을 사용
             val hipWristDistance = sqrt(
                 (rightHipX - leftWristX).pow(2) +
