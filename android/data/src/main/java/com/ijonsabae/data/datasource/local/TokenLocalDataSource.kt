@@ -1,4 +1,4 @@
-package com.ijonsabae.data.datastore.local
+package com.ijonsabae.data.datasource.local
 
 import android.content.Context
 import androidx.datastore.core.DataStore

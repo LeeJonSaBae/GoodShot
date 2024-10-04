@@ -1,4 +1,4 @@
-package com.ijonsabae.data.datastore.remote
+package com.ijonsabae.data.datasource.remote
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
