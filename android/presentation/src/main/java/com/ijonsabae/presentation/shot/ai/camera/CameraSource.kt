@@ -16,6 +16,7 @@ limitations under the License.
 
 
 import VideoEncoder
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -23,6 +24,7 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.PointF
 import android.graphics.Rect
+import android.media.MediaMetadataRetriever
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
@@ -31,7 +33,10 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.provider.MediaStore
+import android.provider.Settings
+import android.provider.Settings.Secure.getString
 import android.util.Log
+import android.util.Size
 import android.view.PixelCopy
 import android.view.SurfaceView
 import androidx.annotation.RequiresApi
@@ -66,9 +71,7 @@ import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_WRIST
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
-import com.ijonsabae.presentation.shot.ai.data.Pose
 import com.ijonsabae.presentation.shot.ai.data.Pose.*
-import com.ijonsabae.presentation.shot.ai.data.Solution
 import com.ijonsabae.presentation.shot.ai.data.Solution.*
 import com.ijonsabae.presentation.shot.ai.ml.ModelType
 import com.ijonsabae.presentation.shot.ai.ml.MoveNet
@@ -82,6 +85,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
@@ -521,10 +526,6 @@ class CameraSource(
         val backswingTime = backswingEndTime - backswingStartTime
         val downswingTime = downswingEndTime - downswingStartTime
 
-        Log.d(
-            "아몬드",
-            "$backswingEndTime, $backswingStartTime, $downswingEndTime, $downswingStartTime"
-        )
         val totalSwingTime = finishTime - backswingStartTime
 
         val tempoRatio = backswingTime.toDouble() / downswingTime.toDouble()
@@ -539,6 +540,7 @@ class CameraSource(
 
     private fun validateSwingPose(poseIndices: Array<Int>): Boolean {
         Log.d("분석결과", "파라미터 : ${Arrays.toString(poseIndices)}")
+
 
         // 중복 검사
         val uniqueIndices = poseIndices.toSet()
@@ -590,21 +592,25 @@ class CameraSource(
 
 
     //    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun convertBitmapsToVideo(bitmapIndices: List<Bitmap>) {
+    @SuppressLint("HardwareIds")
+    private fun convertBitmapsToVideo(bitmapIndices: List<Bitmap>, userName: String) {
 
-
-        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val videoFileName = "pose_$timestamp.mp4"
-        val videoFile = File(context.cacheDir, videoFileName)
-
+        val fileSaveTime = System.currentTimeMillis()
+        val ssidName = getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+        val videoFileName = "${ssidName}_${fileSaveTime}.mp4"
+        val videoDir = File(context.filesDir, "videos/$userName")
+        if (!videoDir.exists()) {
+            videoDir.mkdirs()
+        }
+        val videoFile = File(videoDir, videoFileName)
         val videoEncoder = VideoEncoder(
             bitmapIndices[0].width,
             bitmapIndices[0].height,
-            24,
+            12,
             videoFile.absolutePath
         )
         videoEncoder.start()
-
+        Log.d("MainActivity_Capture", "인덱스들: ${bitmapIndices.size}")
         bitmapIndices.forEachIndexed { index, bitmap ->
             val byteBuffer = bitmapToByteBuffer(bitmap)
             Log.d("MainActivity_Capture", "프레임 인덱스: $index")
@@ -612,45 +618,22 @@ class CameraSource(
         }
 
         videoEncoder.finish()
-
-        val uri = saveVideoToGallery(videoFile)
-        uri?.let {
-            Log.d("MainActivity_Capture", "비디오 URI: $it")
-            MediaScannerConnection.scanFile(context, arrayOf(it.toString()), null, null)
-
-
-        } ?: Log.d("MainActivity_Capture", "비디오 저장 실패")
-
-        // 임시 파일 삭제
-        videoFile.delete()
+        saveBitmapToInternalStorage(bitmapIndices[0], userName, ssidName, fileSaveTime)
     }
 
-    //    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun saveVideoToGallery(videoFile: File): Uri? {
-        val values = ContentValues().apply {
-            put(MediaStore.Video.Media.DISPLAY_NAME, videoFile.name)
-            put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-            put(
-                MediaStore.Video.Media.RELATIVE_PATH,
-                Environment.DIRECTORY_MOVIES + "/PoseEstimation"
-            ) // 수정된 부분
-            put(MediaStore.Video.Media.IS_PENDING, 1)
+    fun saveBitmapToInternalStorage(bitmap: Bitmap, userName: String, ssidName: String, fileSaveTime: Long) {
+        val thumbnailFileName = "${ssidName}_${fileSaveTime}.jpg"
+        val thumbnailDir = File(context.filesDir, "thumbnails/$userName")
+        if (!thumbnailDir.exists()) {
+            thumbnailDir.mkdirs()
         }
 
-        val resolver = context.contentResolver
-        val collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        val uri = resolver.insert(collection, values)
-
-        uri?.let {
-            resolver.openOutputStream(it)?.use { os ->
-                videoFile.inputStream().use { it.copyTo(os) }
-            }
-            values.clear()
-            values.put(MediaStore.Video.Media.IS_PENDING, 0)
-            resolver.update(it, values, null, null)
+        val file = File(thumbnailDir, thumbnailFileName)
+        FileOutputStream(file).use { out ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
         }
-
-        return uri
+        file.absolutePath
+        Log.d("MainActivity_Capture", "썸네일 저장 완료")
     }
 
     private fun bitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {
@@ -807,19 +790,6 @@ class CameraSource(
 
             }
         }
-        if (!(0 in manualPoseIndexArray)) {
-            saveBitmapToGallery(
-                context,
-                imageDataList[manualPoseIndexArray[0]].data,
-                "backswingStart_img${manualPoseIndexArray[0]}"
-            )
-            //Impact를 못따는 경우가 발생
-            saveBitmapToGallery(
-                context,
-                imageDataList[manualPoseIndexArray[5]].data,
-                "downswingEnd_img${manualPoseIndexArray[5]}"
-            )
-        }
     }
 
     private fun analyzeSwingMotion() {
@@ -853,10 +823,15 @@ class CameraSource(
 
 
                     //수동으로 뽑은 이미지 포즈들을 기반으로 첫 시작 시간 추정 후 영상 제작
-                    val actualSwingIndices = imageQueue
-                        .toList()
-                        .takeLast(imageQueue.size - manualPoseIndexArray[0])
+//                    val actualSwingIndices = imageQueue
+//                        .toList()
+//                        .takeLast(imageQueue.size - manualPoseIndexArray[0])
+//                        .map { it.data }
+                    val actualSwingIndices = imageDataList
+                        .take(manualPoseIndexArray[0])
                         .map { it.data }
+
+                    Log.d("MainActivity_Capture", "인덱스들: ${actualSwingIndices}")
 
 
                     // 템포, 백스윙, 다운스윙 시간 분석하기
@@ -866,15 +841,16 @@ class CameraSource(
                             Locale.getDefault(),
                             "%.2f",
                             swingTiming.backswingTime / 1000.0
-                        )
+                        ).toFloat()
                     val downswingTime =
                         String.format(
                             Locale.getDefault(),
                             "%.2f",
                             swingTiming.downswingTime / 1000.0
-                        )
+                        ).toFloat()
                     val tempoRatio =
                         String.format(Locale.getDefault(), "%.2f", swingTiming.tempoRatio)
+                            .toFloat()
 
                     // 백스윙, 탑스윙 피드백 체크하기
                     val preciseIndices = swingData.map { it.third }
@@ -984,7 +960,8 @@ class CameraSource(
 //                    }
 
                     // 영상 만들기`
-                    convertBitmapsToVideo(actualSwingIndices)
+//                    convertBitmapsToVideo(actualSwingIndices, "guest")
+                    convertBitmapsToVideo(actualSwingIndices.reversed(), "guest")
 
                     // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) + @ 룸에 저장하기
 
@@ -1042,14 +1019,16 @@ class CameraSource(
     private fun checkImpact(index: Int, jointData: List<KeyPoint>) {
         // 임팩트 - 손목의 평균 좌표가 골반의 중앙과 가장 가까울 때
         val leftHipX = jointData[LEFT_HIP.position].coordinate.x
-        val leftHipY = jointData[LEFT_HIP.position].coordinate.y
         val rightHipX = jointData[RIGHT_HIP.position].coordinate.x
-
         val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
         val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
+        val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
+        val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
 
+
+        if (leftWristY > leftElbowY && leftWristX < leftElbowX && leftWristX >= rightHipX ) {
         //손목이 골반 아래 위치할 때 골반 중심과 x좌표 거리가 가장 가까운 경우를 추출
-        if (leftHipY <= leftWristY) {
+
             val hipCenterX = (rightHipX + leftHipX) / 2
             val impactGap = abs(hipCenterX - leftWristX)
 
@@ -1087,7 +1066,6 @@ class CameraSource(
 
         val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
         val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
-        val leftShoulder = jointData[LEFT_SHOULDER.position].coordinate.y
         val leftShoulderY = jointData[LEFT_SHOULDER.position].coordinate.y
         val noseX = jointData[NOSE.position].coordinate.x
         val noseY = jointData[NOSE.position].coordinate.y
@@ -1179,10 +1157,12 @@ class CameraSource(
         // 골반과 거리가 가장 가까운 시점을 검사
         val rightHipX = jointData[RIGHT_HIP.position].coordinate.x
         val rightHipY = jointData[RIGHT_HIP.position].coordinate.y
+        val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
+
         val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
         val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
 
-        if (leftWristY > rightHipY) {
+        if (leftWristY > leftElbowY && leftWristX > rightHipX) {
             // 거리 계산을 위해 제곱근을 사용
             val hipWristDistance = sqrt(
                 (rightHipX - leftWristX).pow(2) +
@@ -1192,9 +1172,9 @@ class CameraSource(
             // minAddressGap이 거리보다 큰 경우에만 업데이트
             if (minAddressGap > hipWristDistance) {
                 minAddressGap = hipWristDistance
-                if (index + 1 <= imageDataList.size - 1) {
-                    backswingStartTime = imageDataList[index + 1].timestamp // 스윙 시작시간 갱신
-                    manualPoseIndexArray[0] = index + 1
+                if (index + 2 <= imageDataList.size - 1) {
+                    backswingStartTime = imageDataList[index + 2].timestamp // 스윙 시작시간 갱신
+                    manualPoseIndexArray[0] = index + 2
                 } else {
                     backswingStartTime = imageDataList[index].timestamp // 스윙 시작시간 갱신
                     manualPoseIndexArray[0] = index
