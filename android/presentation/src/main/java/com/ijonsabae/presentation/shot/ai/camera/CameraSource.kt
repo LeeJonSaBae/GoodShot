@@ -421,14 +421,17 @@ class CameraSource(
             else -> {
                 if (currentState == SWING) {
                     // 오른어깨와 왼발이 가까워지면
-                    if (abs(keyPoints[RIGHT_SHOULDER.position].coordinate.x - keyPoints[LEFT_ANKLE.position].coordinate.x) < 0.05f &&
+                    if (pelvisTwisting.not() &&
+                        abs(keyPoints[RIGHT_SHOULDER.position].coordinate.x - keyPoints[LEFT_ANKLE.position].coordinate.x) < 0.05f &&
                         abs(keyPoints[RIGHT_SHOULDER.position].coordinate.y - keyPoints[RIGHT_ANKLE.position].coordinate.y) > 0.3f &&
                         keyPoints[RIGHT_ELBOW.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x
                     ) {
                         pelvisTwisting = true
                         setCurrentCameraState(ANALYZING)
                         Log.d("싸피", "피니쉬 인식 완료")
+                        return
                     }
+
                     if (((keyPoints[LEFT_WRIST.position].coordinate.x < keyPoints[LEFT_SHOULDER.position].coordinate.x) ||
                                 (keyPoints[RIGHT_WRIST.position].coordinate.x > keyPoints[RIGHT_SHOULDER.position].coordinate.x)).not()
                     ) {
@@ -934,7 +937,6 @@ class CameraSource(
                         }
                     }
 
-
                     // 뷰모델에 피드백 담기
                     val feedBack = FeedBack(
                         downswingTime,
@@ -971,25 +973,20 @@ class CameraSource(
                     // 영상 만들기`
                     convertBitmapsToVideo(actualSwingIndices)
 
-                    // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) 룸에 저장하기
+                    // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) + @ 룸에 저장하기
 
-                    // TODO: 영상 + 8개 비트맵 + 8개 유사도 + 피드백 서버로 보내기
+                    // TODO: 영상 + 8개 비트맵 + 8개 유사도 + 피드백 + @ 서버로 보내기
 
                     // 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
                     increaseSwingCnt.invoke()
                     setCurrentCameraState(RESULT)
                     Log.d("processDetectedInfo", "상태 Result로 변경됨")
                     resultSkipMotionStartTime = 0L //스킵 동작 탐지를 위한 변수 초기화
-
-                    // TODO: 다이얼로그가 닫히는 순간 swingViewModel.currentState 바꿔주기
-
                 } else {
                     setCurrentCameraState(AGAIN)
                     Log.d("싸피", "다시 스윙해주세요")
                     CoroutineScope(Dispatchers.Main).launch {
-                        Log.d("아몬드", "전전전")
                         delay(2500L)
-                        Log.d("아몬드", "후후후후")
                         setCurrentCameraState(ADDRESS)
                     }
                 }
