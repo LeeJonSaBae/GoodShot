@@ -1,4 +1,4 @@
-package com.ijonsabae.data.datastore.remote
+package com.ijonsabae.data.datasource.remote
 
 import com.ijonsabae.data.model.GenerateTemporaryPassWordParam
 import com.ijonsabae.data.model.RequestEmailAuthCodeParam

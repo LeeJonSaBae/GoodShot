@@ -1,6 +1,6 @@
 package com.ijonsabae.data.repository
 
-import com.ijonsabae.data.datastore.remote.UserRemoteDataSource
+import com.ijonsabae.data.datasource.remote.UserRemoteDataSource
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.LoginParam
 import com.ijonsabae.domain.model.RegisterParam
