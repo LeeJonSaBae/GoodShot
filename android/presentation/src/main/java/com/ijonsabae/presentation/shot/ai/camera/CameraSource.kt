@@ -428,7 +428,6 @@ class CameraSource(
                     ) {
                         pelvisTwisting = true
                         setCurrentCameraState(ANALYZING)
-                        Log.d("싸피", "피니쉬 인식 완료")
                         return
                     }
 
@@ -522,6 +521,10 @@ class CameraSource(
         val backswingTime = backswingEndTime - backswingStartTime
         val downswingTime = downswingEndTime - downswingStartTime
 
+        Log.d(
+            "아몬드",
+            "$backswingEndTime, $backswingStartTime, $downswingEndTime, $downswingStartTime"
+        )
         val totalSwingTime = finishTime - backswingStartTime
 
         val tempoRatio = backswingTime.toDouble() / downswingTime.toDouble()
@@ -537,14 +540,17 @@ class CameraSource(
     private fun validateSwingPose(poseIndices: Array<Int>): Boolean {
         Log.d("분석결과", "파라미터 : ${Arrays.toString(poseIndices)}")
 
-
         // 중복 검사
         val uniqueIndices = poseIndices.toSet()
-        if (uniqueIndices.size != poseIndices.size) return false
+        if (uniqueIndices.size != poseIndices.size) {
+            Log.d("분석결과", "중복 발생")
+            return false
+        }
 
         // 지속적으로 감소하는지 검사 -> 순서 보장
         for (i in 0 until poseIndices.size - 1) {
             if (poseIndices[i] <= poseIndices[i + 1]) {
+                Log.d("분석결과", "순서 오류")
                 return false
             }
         }
@@ -802,9 +808,17 @@ class CameraSource(
             }
         }
         if (!(0 in manualPoseIndexArray)) {
-            saveBitmapToGallery(context, imageDataList[manualPoseIndexArray[0]].data, "backswingStart_img${manualPoseIndexArray[0]}")
+            saveBitmapToGallery(
+                context,
+                imageDataList[manualPoseIndexArray[0]].data,
+                "backswingStart_img${manualPoseIndexArray[0]}"
+            )
             //Impact를 못따는 경우가 발생
-            saveBitmapToGallery(context, imageDataList[manualPoseIndexArray[5]].data, "downswingEnd_img${manualPoseIndexArray[5]}")
+            saveBitmapToGallery(
+                context,
+                imageDataList[manualPoseIndexArray[5]].data,
+                "downswingEnd_img${manualPoseIndexArray[5]}"
+            )
         }
     }
 
@@ -852,16 +866,15 @@ class CameraSource(
                             Locale.getDefault(),
                             "%.2f",
                             swingTiming.backswingTime / 1000.0
-                        ).toFloat()
+                        )
                     val downswingTime =
                         String.format(
                             Locale.getDefault(),
                             "%.2f",
                             swingTiming.downswingTime / 1000.0
-                        ).toFloat()
+                        )
                     val tempoRatio =
                         String.format(Locale.getDefault(), "%.2f", swingTiming.tempoRatio)
-                            .toFloat()
 
                     // 백스윙, 탑스윙 피드백 체크하기
                     val preciseIndices = swingData.map { it.third }
@@ -984,7 +997,6 @@ class CameraSource(
                     resultSkipMotionStartTime = 0L //스킵 동작 탐지를 위한 변수 초기화
                 } else {
                     setCurrentCameraState(AGAIN)
-                    Log.d("싸피", "다시 스윙해주세요")
                     CoroutineScope(Dispatchers.Main).launch {
                         delay(2500L)
                         setCurrentCameraState(ADDRESS)
@@ -1037,7 +1049,6 @@ class CameraSource(
         val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
 
         //손목이 골반 아래 위치할 때 골반 중심과 x좌표 거리가 가장 가까운 경우를 추출
-
         if (leftHipY <= leftWristY) {
             val hipCenterX = (rightHipX + leftHipX) / 2
             val impactGap = abs(hipCenterX - leftWristX)
@@ -1076,6 +1087,7 @@ class CameraSource(
 
         val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
         val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
+        val leftShoulder = jointData[LEFT_SHOULDER.position].coordinate.y
         val leftShoulderY = jointData[LEFT_SHOULDER.position].coordinate.y
         val noseX = jointData[NOSE.position].coordinate.x
         val noseY = jointData[NOSE.position].coordinate.y
@@ -1088,14 +1100,25 @@ class CameraSource(
             }
         }
 
-        //코보다 왼손 높이가 커지는 시점을 갱신
-        if (!isDownSwingEnd && leftWristY < noseY && leftWristX < noseX) {
-            downswingStartTime = imageDataList[index + 1].timestamp
-            isDownSwingEnd = true
-        }
-        if (isDownSwingEnd && leftWristY >= noseY && leftWristX < noseX) {
-            backswingEndTime = imageDataList[index - 2].timestamp
-            isDownSwingEnd = false
+        // 코보다 왼손 높이가 커지는 시점을 갱신
+        if (leftWristX < noseY) {
+            if (!isDownSwingEnd && leftWristY < noseY && leftWristX < noseX) {
+                downswingStartTime = imageDataList[index + 1].timestamp
+                isDownSwingEnd = true
+            }
+            if (isDownSwingEnd && leftWristY >= noseY && leftWristX < noseX) {
+                backswingEndTime = imageDataList[index - 2].timestamp
+                isDownSwingEnd = false
+            }
+        } else {
+            if (!isDownSwingEnd && leftWristY < leftShoulderY && leftWristX < noseX) {
+                downswingStartTime = imageDataList[index + 1].timestamp
+                isDownSwingEnd = true
+            }
+            if (isDownSwingEnd && leftWristY >= leftShoulderY && leftWristX < noseX) {
+                backswingEndTime = imageDataList[index - 2].timestamp
+                isDownSwingEnd = false
+            }
         }
     }
 
