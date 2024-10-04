@@ -23,6 +23,7 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.PointF
 import android.graphics.Rect
+import android.media.MediaMetadataRetriever
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
@@ -32,6 +33,7 @@ import android.os.HandlerThread
 import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
+import android.util.Size
 import android.view.PixelCopy
 import android.view.SurfaceView
 import androidx.annotation.RequiresApi
@@ -606,6 +608,9 @@ class CameraSource(
         }
 
         videoEncoder.finish()
+        saveBitmapToGallery(context,
+            loadVideoThumbnail(userName, videoFileName, Size(bitmapIndices[0].width, bitmapIndices[0].height))!!, "mp4Thumbnail" )
+
     }
 
     //    @RequiresApi(Build.VERSION_CODES.Q)
@@ -672,6 +677,34 @@ class CameraSource(
                 }
             }
         }
+    }
+
+    fun loadVideoThumbnail(userName: String, fileName: String, targetSize: Size): Bitmap? {
+        val videoDir = File(context.filesDir, "videos/$userName")
+        val videoFile = File(videoDir, fileName)
+
+        if (!videoFile.exists()) {
+            return null
+        }
+
+        val retriever = MediaMetadataRetriever()
+        retriever.setDataSource(videoFile.absolutePath)
+
+        val bitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)?.let { frame ->
+            val scale = minOf(
+                targetSize.width.toFloat() / frame.width,
+                targetSize.height.toFloat() / frame.height
+            )
+            Bitmap.createScaledBitmap(
+                frame,
+                (frame.width * scale).toInt(),
+                (frame.height * scale).toInt(),
+                true
+            )
+        }
+
+        retriever.release()
+        return bitmap
     }
 
 
@@ -1165,18 +1198,15 @@ class CameraSource(
     }
 
     private fun checkAddress(index: Int, jointData: List<KeyPoint>) {
-        // TODO : address 손목높이 처리
         // 골반과 거리가 가장 가까운 시점을 검사
         val rightHipX = jointData[RIGHT_HIP.position].coordinate.x
         val rightHipY = jointData[RIGHT_HIP.position].coordinate.y
-        val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
         val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
 
         val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
         val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
 
-//        if (leftWristY > rightHipY) {
-        if (leftWristY > leftElbowY && leftWristX > leftElbowX) {
+        if (leftWristY > leftElbowY && leftWristX > rightHipX) {
             // 거리 계산을 위해 제곱근을 사용
             val hipWristDistance = sqrt(
                 (rightHipX - leftWristX).pow(2) +
