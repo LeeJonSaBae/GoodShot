@@ -621,7 +621,12 @@ class CameraSource(
         saveBitmapToInternalStorage(bitmapIndices[0], userName, ssidName, fileSaveTime)
     }
 
-    fun saveBitmapToInternalStorage(bitmap: Bitmap, userName: String, ssidName: String, fileSaveTime: Long) {
+    fun saveBitmapToInternalStorage(
+        bitmap: Bitmap,
+        userName: String,
+        ssidName: String,
+        fileSaveTime: Long
+    ) {
         val thumbnailFileName = "${ssidName}_${fileSaveTime}.jpg"
         val thumbnailDir = File(context.filesDir, "thumbnails/$userName")
         if (!thumbnailDir.exists()) {
@@ -841,16 +846,15 @@ class CameraSource(
                             Locale.getDefault(),
                             "%.2f",
                             swingTiming.backswingTime / 1000.0
-                        ).toFloat()
+                        )
                     val downswingTime =
                         String.format(
                             Locale.getDefault(),
                             "%.2f",
                             swingTiming.downswingTime / 1000.0
-                        ).toFloat()
+                        )
                     val tempoRatio =
                         String.format(Locale.getDefault(), "%.2f", swingTiming.tempoRatio)
-                            .toFloat()
 
                     // 백스윙, 탑스윙 피드백 체크하기
                     val preciseIndices = swingData.map { it.third }
@@ -1025,9 +1029,8 @@ class CameraSource(
         val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
         val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
 
-
-        if (leftWristY > leftElbowY && leftWristX < leftElbowX && leftWristX >= rightHipX ) {
-        //손목이 골반 아래 위치할 때 골반 중심과 x좌표 거리가 가장 가까운 경우를 추출
+        if (leftWristY > leftElbowY && leftWristX < leftElbowX && leftWristX >= rightHipX) {
+            //손목이 골반 아래 위치할 때 골반 중심과 x좌표 거리가 가장 가까운 경우를 추출
 
             val hipCenterX = (rightHipX + leftHipX) / 2
             val impactGap = abs(hipCenterX - leftWristX)
