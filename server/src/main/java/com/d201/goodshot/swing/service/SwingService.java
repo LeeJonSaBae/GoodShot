@@ -34,8 +34,21 @@ public class SwingService {
     private final SwingImageRepository swingImageRepository;
     private final UserRepository userRepository;
 
-    // 스윙 영상 내보내기
-    public void downloadSwingData(List<SwingData> swingDataList, CustomUser customUser) throws IOException {
+    // 스윙 데이터 가져오기
+    public SwingData getSwingData(CustomUser customUser) {
+
+        User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
+        List<Swing> swings = swingRepository.findByUser(user); // 사용자 스윙 List 찾기
+
+        
+
+        return SwingData.builder()
+
+                .build();
+    }
+
+    // 스윙 데이터 내보내기
+    public void postSwingData(List<SwingData> swingDataList, CustomUser customUser) throws IOException {
 
         User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
         List<Swing> swings = swingRepository.findByUser(user);
@@ -49,7 +62,7 @@ public class SwingService {
                 if (Objects.equals(swing.getId(), swingData.getId())) {
                     // 시간을 비교하여 받아온 데이터가 더 최신일 경우에만 갱신
                     if (swingData.getTime().isAfter(swing.getTime())) {
-                        // Swing 이미지 업데이트
+                        // swing 이미지 업데이트
                         swingImageRepository.deleteAll(swing.getSwingImages());
                         List<SwingImage> newSwingImages = convertMultipartFilesToSwingImages(swingData.getSwingImages(), swing);
                         swingImageRepository.saveAll(newSwingImages);

@@ -17,7 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 public class SwingData {
 
-    private Long id;
+    private Long id; // swing id
     private MultipartFile swingVideo;
     private List<MultipartFile> swingImages;
     private List<CommentItem> backSwingComments;
