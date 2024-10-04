@@ -19,6 +19,10 @@ class TokenRepositoryImpl @Inject constructor(
         return tokenLocalDataSource.getRefreshToken()
     }
 
+    override suspend fun getUserId(): Long {
+        return tokenLocalDataSource.getUserId()
+    }
+
     override suspend fun setLocalToken(token: Token){
         tokenLocalDataSource.setToken(token)
         tokenLocalDataSource.setLocalTokenCreatedTime()

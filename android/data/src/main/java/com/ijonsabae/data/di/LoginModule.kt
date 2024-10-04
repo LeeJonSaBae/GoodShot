@@ -8,6 +8,7 @@ import com.ijonsabae.data.usecase.login.GenerateTemporaryPassWordUseCaseImpl
 import com.ijonsabae.data.usecase.login.GetLocalAccessTokenCreatedTimeUseCaseImpl
 import com.ijonsabae.data.usecase.login.GetLocalAccessTokenUseCaseImpl
 import com.ijonsabae.data.usecase.login.GetLocalRefreshTokenUseCaseImpl
+import com.ijonsabae.data.usecase.login.GetUserIdUseCaseImpl
 import com.ijonsabae.data.usecase.login.LoginUseCaseImpl
 import com.ijonsabae.data.usecase.login.RegisterUseCaseImpl
 import com.ijonsabae.data.usecase.login.ReissueTokenUseCaseImpl
@@ -22,6 +23,7 @@ import com.ijonsabae.domain.usecase.login.GenerateTemporaryPassWordUseCase
 import com.ijonsabae.domain.usecase.login.GetLocalAccessTokenCreatedTimeUseCase
 import com.ijonsabae.domain.usecase.login.GetLocalAccessTokenUseCase
 import com.ijonsabae.domain.usecase.login.GetLocalRefreshTokenUseCase
+import com.ijonsabae.domain.usecase.login.GetUserIdUseCase
 import com.ijonsabae.domain.usecase.login.LoginUseCase
 import com.ijonsabae.domain.usecase.login.RegisterUseCase
 import com.ijonsabae.domain.usecase.login.ReissueTokenUseCase
@@ -44,6 +46,9 @@ abstract class LoginModule {
 
     @Binds
     abstract fun bindGetLocalRefreshTokenUseCase(uc: GetLocalRefreshTokenUseCaseImpl): GetLocalRefreshTokenUseCase
+
+    @Binds
+    abstract fun bindGetLocalUserIdUseCase(uc: GetUserIdUseCaseImpl): GetUserIdUseCase
 
     @Binds
     abstract fun bindSetLocalAccessTokenUseCase(uc: SetLocalTokenUseCaseImpl): SetLocalTokenUseCase
