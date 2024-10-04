@@ -1,4 +1,4 @@
-package com.ijonsabae.data.datastore.remote
+package com.ijonsabae.data.datasource.remote
 
 import com.ijonsabae.data.BuildConfig
 import com.ijonsabae.data.retrofit.YoutubeService

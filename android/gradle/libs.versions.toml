@@ -64,6 +64,7 @@ androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version
 androidx-room-common = { module = "androidx.room:room-common", version.ref = "roomKtx" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomKtx" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
+androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "roomKtx" }
 androidx-window = { module = "androidx.window:window", version.ref = "window" }
 balloon = { module = "com.github.skydoves:balloon", version.ref = "balloon" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }

@@ -1,7 +1,6 @@
 package com.ijonsabae.data.retrofit
 
-import com.ijonsabae.data.datastore.local.TokenLocalDataSource
-import com.ijonsabae.domain.repository.TokenRepository
+import com.ijonsabae.data.datasource.local.TokenLocalDataSource
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response

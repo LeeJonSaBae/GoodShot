@@ -186,7 +186,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/dialog_shot_margin_top_between_options"
-        app:layout_constraintBottom_toTopOf="@id/layout_pose_report"
+        app:layout_constraintBottom_toTopOf="@id/layout_golf_club"
         app:layout_constraintTop_toBottomOf="@id/layout_golf_club">
 
         <TextView
