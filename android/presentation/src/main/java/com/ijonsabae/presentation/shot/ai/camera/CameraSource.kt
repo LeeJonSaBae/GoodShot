@@ -15,28 +15,17 @@ limitations under the License.
 */
 
 
-import VideoEncoder
-import android.annotation.SuppressLint
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.PointF
 import android.graphics.Rect
-import android.media.MediaMetadataRetriever
-import android.media.MediaScannerConnection
-import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
-import android.provider.MediaStore
-import android.provider.Settings
-import android.provider.Settings.Secure.getString
 import android.util.Log
-import android.util.Size
 import android.view.PixelCopy
 import android.view.SurfaceView
 import androidx.annotation.RequiresApi
@@ -72,9 +61,7 @@ import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_WRIST
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
-import com.ijonsabae.presentation.shot.ai.data.Pose
 import com.ijonsabae.presentation.shot.ai.data.Pose.*
-import com.ijonsabae.presentation.shot.ai.data.Solution
 import com.ijonsabae.presentation.shot.ai.data.Solution.*
 import com.ijonsabae.presentation.shot.ai.ml.ModelType
 import com.ijonsabae.presentation.shot.ai.ml.MoveNet
@@ -89,12 +76,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
-import java.io.OutputStream
 import java.nio.ByteBuffer
-import java.text.SimpleDateFormat
 import java.util.Arrays
-import java.util.Date
 import java.util.LinkedList
 import java.util.Locale
 import java.util.Queue
@@ -436,7 +419,6 @@ class CameraSource(
                     ) {
                         pelvisTwisting = true
                         setCurrentCameraState(ANALYZING)
-                        Log.d("싸피", "피니쉬 인식 완료")
                         return
                     }
 
@@ -548,16 +530,78 @@ class CameraSource(
 
         // 중복 검사
         val uniqueIndices = poseIndices.toSet()
-        if (uniqueIndices.size != poseIndices.size) return false
+        if (uniqueIndices.size != poseIndices.size) {
+            Log.d("분석결과", "중복 발생")
+            return false
+        }
 
         // 지속적으로 감소하는지 검사 -> 순서 보장
         for (i in 0 until poseIndices.size - 1) {
             if (poseIndices[i] <= poseIndices[i + 1]) {
+                Log.d("분석결과", "순서 오류")
                 return false
             }
         }
 
         return true
+    }
+
+    private fun saveBitmapToInternalStorage(
+        bitmap: Bitmap,
+        userName: String,
+        ssidName: String,
+        fileSaveTime: Long
+    ) {
+        val thumbnailFileName = "${ssidName}_${fileSaveTime}.jpg"
+        val thumbnailDir = File(context.filesDir, "thumbnails/$userName")
+        if (!thumbnailDir.exists()) {
+            thumbnailDir.mkdirs()
+        }
+
+        val file = File(thumbnailDir, thumbnailFileName)
+        FileOutputStream(file).use { out ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+        }
+        file.absolutePath
+        Log.d("MainActivity_Capture", "썸네일 저장 완료")
+    }
+
+    private fun bitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {
+        val inputWidth = bitmap.width
+        val inputHeight = bitmap.height
+        val yuvImage = ByteArray(inputWidth * inputHeight * 3 / 2)
+        val argb = IntArray(inputWidth * inputHeight)
+
+        bitmap.getPixels(argb, 0, inputWidth, 0, 0, inputWidth, inputHeight)
+
+        encodeYUV420SP(yuvImage, argb, inputWidth, inputHeight)
+
+        return ByteBuffer.wrap(yuvImage)
+    }
+
+
+    private fun encodeYUV420SP(yuv420sp: ByteArray, argb: IntArray, width: Int, height: Int) {
+        val frameSize = width * height
+        var yIndex = 0
+        var uvIndex = frameSize
+
+        for (j in 0 until height) {
+            for (i in 0 until width) {
+                val rgb = argb[j * width + i]
+                val r = rgb shr 16 and 0xFF
+                val g = rgb shr 8 and 0xFF
+                val b = rgb and 0xFF
+                val y = (66 * r + 129 * g + 25 * b + 128 shr 8) + 16
+                yuv420sp[yIndex++] = y.toByte()
+
+                if (j % 2 == 0 && i % 2 == 0) {
+                    val u = (-38 * r - 74 * g + 112 * b + 128 shr 8) + 128
+                    val v = (112 * r - 94 * g - 18 * b + 128 shr 8) + 128
+                    yuv420sp[uvIndex++] = u.toByte()
+                    yuv420sp[uvIndex++] = v.toByte()
+                }
+            }
+        }
     }
 
     private fun mirrorKeyPoints(keyPoints: List<KeyPoint>): List<KeyPoint> {
@@ -726,16 +770,15 @@ class CameraSource(
                             Locale.getDefault(),
                             "%.2f",
                             swingTiming.backswingTime / 1000.0
-                        ).toFloat()
+                        )
                     val downswingTime =
                         String.format(
                             Locale.getDefault(),
                             "%.2f",
                             swingTiming.downswingTime / 1000.0
-                        ).toFloat()
+                        )
                     val tempoRatio =
                         String.format(Locale.getDefault(), "%.2f", swingTiming.tempoRatio)
-                            .toFloat()
 
                     // 백스윙, 탑스윙 피드백 체크하기
                     val preciseIndices = swingData.map { it.third }
@@ -858,7 +901,6 @@ class CameraSource(
                     resultSkipMotionStartTime = 0L //스킵 동작 탐지를 위한 변수 초기화
                 } else {
                     setCurrentCameraState(AGAIN)
-                    Log.d("싸피", "다시 스윙해주세요")
                     CoroutineScope(Dispatchers.Main).launch {
                         delay(2500L)
                         setCurrentCameraState(ADDRESS)
@@ -909,9 +951,8 @@ class CameraSource(
         val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
         val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
 
-
-        if (leftWristY > leftElbowY && leftWristX < leftElbowX && leftWristX >= rightHipX ) {
-        //손목이 골반 아래 위치할 때 골반 중심과 x좌표 거리가 가장 가까운 경우를 추출
+        if (leftWristY > leftElbowY && leftWristX < leftElbowX && leftWristX >= rightHipX) {
+            //손목이 골반 아래 위치할 때 골반 중심과 x좌표 거리가 가장 가까운 경우를 추출
 
             val hipCenterX = (rightHipX + leftHipX) / 2
             val impactGap = abs(hipCenterX - leftWristX)
@@ -962,14 +1003,25 @@ class CameraSource(
             }
         }
 
-        //코보다 왼손 높이가 커지는 시점을 갱신
-        if (!isDownSwingEnd && leftWristY < noseY && leftWristX < noseX) {
-            downswingStartTime = imageDataList[index + 1].timestamp
-            isDownSwingEnd = true
-        }
-        if (isDownSwingEnd && leftWristY >= noseY && leftWristX < noseX) {
-            backswingEndTime = imageDataList[index - 2].timestamp
-            isDownSwingEnd = false
+        // 코보다 왼손 높이가 커지는 시점을 갱신
+        if (leftWristX < noseY) {
+            if (!isDownSwingEnd && leftWristY < noseY && leftWristX < noseX) {
+                downswingStartTime = imageDataList[index + 1].timestamp
+                isDownSwingEnd = true
+            }
+            if (isDownSwingEnd && leftWristY >= noseY && leftWristX < noseX) {
+                backswingEndTime = imageDataList[index - 2].timestamp
+                isDownSwingEnd = false
+            }
+        } else {
+            if (!isDownSwingEnd && leftWristY < leftShoulderY && leftWristX < noseX) {
+                downswingStartTime = imageDataList[index + 1].timestamp
+                isDownSwingEnd = true
+            }
+            if (isDownSwingEnd && leftWristY >= leftShoulderY && leftWristX < noseX) {
+                backswingEndTime = imageDataList[index - 2].timestamp
+                isDownSwingEnd = false
+            }
         }
     }
 

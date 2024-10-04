@@ -95,8 +95,10 @@ class FeedbackDialog :
 
     private fun checkSwingCompletionAndNavigate() {
         if (args.swingCnt == args.totalSwingCnt) {
-            navController.navigate(R.id.action_feedback_dialog_to_shot)
-            showToastLong("스윙 촬영 횟수를 모두 채워 분석이 종료되었습니다.")
+            if (navController.currentDestination?.id == R.id.feedback_dialog) {
+                navController.navigate(R.id.action_feedback_dialog_to_shot)
+                showToastLong("스윙 촬영 횟수를 모두 채워 분석이 종료되었습니다.")
+            }
         }
     }
 
@@ -116,9 +118,9 @@ class FeedbackDialog :
                     .load(expertSwingImageResId)
                     .into(ivExpertSwing)
 
-                tvTempo.text = tempo.toString()
-                tvBack.text = back.toString()
-                tvDown.text = down.toString()
+                tvTempo.text = tempo
+                "${back}초".also { tvBack.text = it }
+                "${down}초".also { tvDown.text = it }
 
                 tvCheckListTitle.text = feedBackCheckListTitle
                 tvFeedbackSolution.text = feedBackSolution
