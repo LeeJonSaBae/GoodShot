@@ -23,6 +23,10 @@ class UserRemoteDataSource @Inject constructor(private val userService: UserServ
         return userService.join(registerParam)
     }
 
+    suspend fun resign(): Result<CommonResponse<Unit>>{
+        return userService.exit()
+    }
+
     suspend fun requestEmailAuthCode(email: String): Result<CommonResponse<Unit>>{
         return userService.sendEmailAuthCode(RequestEmailAuthCodeParam(email))
     }

@@ -9,6 +9,7 @@ interface UserRepository {
     suspend fun login(loginParam: LoginParam): Result<CommonResponse<Token>>
     suspend fun logout(): Result<CommonResponse<Unit>>
     suspend fun join(registerParam: RegisterParam): Result<CommonResponse<Unit>>
+    suspend fun resign(): Result<CommonResponse<Unit>>
     suspend fun requestEmailAuthCode(email: String): Result<CommonResponse<Unit>>
     suspend fun verifyEmailAuthCode(email: String, emailAuthCode: String): Result<CommonResponse<Boolean>>
     suspend fun checkEmailDuplicated(email: String): Result<CommonResponse<Boolean>>
