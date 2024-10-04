@@ -21,6 +21,7 @@ import com.ijonsabae.presentation.databinding.FragmentHomeBinding
 import com.ijonsabae.presentation.main.MainActivity
 import com.ijonsabae.presentation.replay.HorizontalMarginItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -48,10 +49,10 @@ class HomeFragment :
     }
 
     private fun initFlow(){
-        lifecycleScope.launch {
+        lifecycleScope.launch(coroutineExceptionHandler) {
             repeatOnLifecycle(Lifecycle.State.STARTED){
-                homeViewModel.youtubeList.collect{
-                    val list = it.items.map { videoItem ->
+                homeViewModel.youtubeList.collectLatest{
+                    val list = it.getOrThrow().items.map { videoItem ->
                         convertVideoItemToYoutubeDTO(videoItem)
                     }
                     youtubeRecyclerViewAdapter.submitList(list)
