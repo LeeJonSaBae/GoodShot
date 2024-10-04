@@ -12,7 +12,7 @@ class YoutubeRemoteDataSource @Inject constructor(
     suspend fun getSearchVideos(
                                part: String,
                                query: String,
-                               maxResults: Int): YouTubeResponse{
+                               maxResults: Int): Result<YouTubeResponse>{
         val result = youtubeService.searchVideos(
             part = part,
             query = query,
