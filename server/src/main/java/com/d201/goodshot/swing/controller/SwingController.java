@@ -2,7 +2,10 @@ package com.d201.goodshot.swing.controller;
 
 import com.d201.goodshot.global.base.BaseResponse;
 import com.d201.goodshot.global.security.dto.CustomUser;
-import com.d201.goodshot.swing.dto.SwingData;
+import com.d201.goodshot.swing.dto.SwingRequest;
+import com.d201.goodshot.swing.dto.SwingRequest.SwingDataRequest;
+import com.d201.goodshot.swing.dto.SwingResponse;
+import com.d201.goodshot.swing.dto.SwingResponse.SwingDataResponse;
 import com.d201.goodshot.swing.service.SwingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -36,7 +39,7 @@ public class SwingController {
                             examples = @ExampleObject(value = "")))
     })
     @ResponseStatus(HttpStatus.OK)
-    public BaseResponse<Void> postSwingData(@AuthenticationPrincipal CustomUser customUser, @RequestBody List<SwingData> swingDataList) throws IOException {
+    public BaseResponse<Void> postSwingData(@AuthenticationPrincipal CustomUser customUser, @RequestBody List<SwingDataRequest> swingDataList) throws IOException {
         swingService.postSwingData(swingDataList, customUser);
         return BaseResponse.of(HttpStatus.OK, "스윙 데이터 내보내기에 성공했습니다.", null);
     }
@@ -51,9 +54,9 @@ public class SwingController {
                             examples = @ExampleObject(value = "")))
     })
     @ResponseStatus(HttpStatus.OK)
-    public BaseResponse<SwingData> getSwingData(@AuthenticationPrincipal CustomUser customUser) {
-        SwingData swingData = swingService.getSwingData(customUser);
-        return BaseResponse.of(HttpStatus.OK, "스윙 데이터 가져오기에 성공했습니다.", swingData);
+    public BaseResponse<List<SwingDataResponse>> getSwingData(@AuthenticationPrincipal CustomUser customUser) {
+        List<SwingDataResponse> swingDataList = swingService.getSwingData(customUser);
+        return BaseResponse.of(HttpStatus.OK, "스윙 데이터 가져오기에 성공했습니다.", swingDataList);
     }
 
 }
