@@ -116,9 +116,9 @@ class FeedbackDialog :
                     .load(expertSwingImageResId)
                     .into(ivExpertSwing)
 
-                tvTempo.text = tempo.toString()
-                tvBack.text = back.toString()
-                tvDown.text = down.toString()
+                tvTempo.text = tempo
+                "${back}초".also { tvBack.text = it }
+                "${down}초".also { tvDown.text = it }
 
                 tvCheckListTitle.text = feedBackCheckListTitle
                 tvFeedbackSolution.text = feedBackSolution
