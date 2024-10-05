@@ -2,6 +2,7 @@ package com.ijonsabae.presentation.shot
 
 
 import android.graphics.PointF
+import android.util.Log
 import com.ijonsabae.presentation.shot.ai.data.BackSwingProblem
 import com.ijonsabae.presentation.shot.ai.data.BackSwingProblem.*
 import com.ijonsabae.presentation.shot.ai.data.BadComment
@@ -165,7 +166,7 @@ object PostureFeedback {
         val trailingKneeSway = finalTrailingKneeX - initialTrailingKneeX
 
         val totalSway = leadingKneeSway + trailingKneeSway
-        val threshold = 0.1f  // 무릎 이동을 문제로 간주할 임계값
+        val threshold = 0.07f  // 무릎 이동을 문제로 간주할 임계값
 
         val isProblem = totalSway < threshold
 
@@ -303,7 +304,7 @@ object PostureFeedback {
         val trailingKneeSway = initialTrailingKneeX - finalTrailingKneeX
 
         val totalSway = leadingKneeSway + trailingKneeSway
-        val threshold = 0.1f  // 무릎 이동을 문제로 간주할 임계값
+        val threshold = 0.05f  // 무릎 이동을 문제로 간주할 임계값
 
         val isProblem = totalSway < threshold
 
@@ -323,7 +324,7 @@ object PostureFeedback {
         val wristIndex = LEFT_WRIST.ordinal
 
         var isProblem = false
-        val threshold = 10f  // 팔이 구부러진 것으로 간주할 각도 임계값
+        val threshold = 15f  // 팔이 구부러진 것으로 간주할 각도 임계값
 
         for (frameIndex in frameIndexes[ADDRESS.ordinal] downTo frameIndexes[TOE_UP.ordinal]) {
             val shoulder = jointList[frameIndex][shoulderIndex].coordinate

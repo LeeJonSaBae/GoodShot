@@ -67,6 +67,7 @@ class CameraFragment :
 
     @Inject
     lateinit var getUserIdUseCase: GetUserIdUseCase
+
     //TODO: Inject 유즈케이스 받아서 lateinitvar로 받아서 camerasource에 던져주면 된다
     private val permissionList = arrayOf(Manifest.permission.CAMERA)
     private var camera: Camera? = null
@@ -142,6 +143,12 @@ class CameraFragment :
             } else {
                 Log.e(TAG, "TTS Initialization failed!")
             }
+        }
+    }
+
+    private fun stopTts() {
+        if (tts?.isSpeaking == true) {
+            tts?.stop()
         }
     }
 
@@ -237,6 +244,7 @@ class CameraFragment :
     }
 
     override fun onPause() {
+        stopTts()
         cameraSource.pause()
         super.onPause()
     }
@@ -470,14 +478,14 @@ class CameraFragment :
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
 
-                    swingViewModel.getFeedBack()?.let {
-                        navController.navigate(
-                            CameraFragmentDirections.actionCameraToFeedbackDialog(
-                                it,
-                                swingViewModel.getSwingCnt(),
-                                shotSettingViewModel.totalSwingCnt.value
-                            )
+                    navController.navigate(
+                        CameraFragmentDirections.actionCameraToFeedbackDialog(
+                            swingViewModel.getSwingCnt(),
+                            shotSettingViewModel.totalSwingCnt.value
                         )
+                    )
+                    val feedback = swingViewModel.getFeedBack()
+                    feedback?.let {
                         if (it.goodShot) soundPool.play(soundId, 0.8f, 0.8f, 1, 0, 1.0f)
                         tts?.speak(it.feedBackSolution, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
                     }

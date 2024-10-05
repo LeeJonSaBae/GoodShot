@@ -76,6 +76,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Arrays
 import java.util.LinkedList
 import java.util.Locale
 import java.util.Queue
@@ -498,14 +499,14 @@ class CameraSource(
         // 중복 검사
         val uniqueIndices = poseIndices.toSet()
         if (uniqueIndices.size != poseIndices.size) {
-            Log.d("분석결과", "중복 발생")
+            Log.d("분석결과", "중복 발생 ${Arrays.toString(poseIndices)}")
             return false
         }
 
         // 지속적으로 감소하는지 검사 -> 순서 보장
         for (i in 0 until poseIndices.size - 1) {
             if (poseIndices[i] <= poseIndices[i + 1]) {
-                Log.d("분석결과", "순서 오류")
+                Log.d("분석결과", "순서 오류 ${Arrays.toString(poseIndices)}")
                 return false
             }
         }
@@ -700,7 +701,6 @@ class CameraSource(
                     val swingScore = calculateScore(PostureExtractor.manualPoseIndexArray)
                     setFeedback(feedBack)
 
-
                     // 영상 만들기
                     val userId = getUserId()
                     val fileName = SwingVideoProcessor.saveSwingVideo(
@@ -723,7 +723,6 @@ class CameraSource(
                     )
                     // 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
                     increaseSwingCnt()
-
                     setCurrentCameraState(RESULT)
 
                 } else {

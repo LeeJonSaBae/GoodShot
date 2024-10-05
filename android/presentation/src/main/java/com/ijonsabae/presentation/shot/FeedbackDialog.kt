@@ -63,7 +63,7 @@ class FeedbackDialog :
         initBackPress()
         initButtons()
         initRecyclerView()
-        setArgs()
+        setFeedback()
     }
 
     override fun onStart() {
@@ -104,11 +104,13 @@ class FeedbackDialog :
 
     private fun initRecyclerView() {
         binding.rvCheckList.adapter = checkListAdapter
-        checkListAdapter.submitList(args.feedback.feedBackCheckList)
+        swingViewModel.getFeedBack()?.let {
+            checkListAdapter.submitList(it.feedBackCheckList)
+        }
     }
 
-    private fun setArgs() {
-        args.feedback.apply {
+    private fun setFeedback() {
+        swingViewModel.getFeedBack()?.apply {
             binding.apply {
                 Glide.with(root)
                     .load(userSwingImage)
