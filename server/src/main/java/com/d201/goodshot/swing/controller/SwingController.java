@@ -19,6 +19,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -29,7 +30,7 @@ public class SwingController {
 
     private final SwingService swingService;
 
-    @PostMapping()
+    @PostMapping("/export")
     @Operation(summary = "스윙 내보내기", description = "Room 에 저장되어 있는 데이터 전부 내보내기")
     @ApiResponses(value = {
             @ApiResponse(
@@ -39,12 +40,11 @@ public class SwingController {
                             examples = @ExampleObject(value = "")))
     })
     @ResponseStatus(HttpStatus.OK)
-    public BaseResponse<Void> postSwingData(@AuthenticationPrincipal CustomUser customUser) {
-        swingService.postSwingData(customUser);
-        return BaseResponse.of(HttpStatus.OK, "스윙 데이터 내보내기에 성공했습니다.", null);
+    public BaseResponse<Void> exportSwingData(@AuthenticationPrincipal CustomUser customUser) {
+        return null;
     }
 
-    @GetMapping()
+    @GetMapping("/import")
     @Operation(summary = "스윙 가져오기", description = "DB 에 저장되어 있는 데이터 가져오기")
     @ApiResponses(value = {
             @ApiResponse(
@@ -54,9 +54,9 @@ public class SwingController {
                             examples = @ExampleObject(value = "")))
     })
     @ResponseStatus(HttpStatus.OK)
-    public BaseResponse<List<SwingDataResponse>> getSwingData(@AuthenticationPrincipal CustomUser customUser) {
-        List<SwingDataResponse> swingDataList = swingService.getSwingData(customUser);
-        return BaseResponse.of(HttpStatus.OK, "스윙 데이터 가져오기에 성공했습니다.", swingDataList);
+    public BaseResponse<List<SwingDataResponse>> importSwingData(@AuthenticationPrincipal CustomUser customUser, @RequestBody SwingDataRequest swingDataRequest) {
+        List<SwingDataResponse> swingDataResponses = swingService.importSwingData(customUser, swingDataRequest);
+        return BaseResponse.of(HttpStatus.OK, "스윙 데이터 가져오기에 성공했습니다.", swingDataResponses);
     }
 
 }
