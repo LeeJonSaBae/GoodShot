@@ -75,7 +75,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.ArrayList
 import java.util.LinkedList
 import java.util.Locale
 import java.util.Queue
@@ -671,8 +670,6 @@ class CameraSource(
                     val actualSwingIndices = imageDataList
                         .take(manualPoseIndexArray[0])
                         .map { it.data }
-                    //TODO 문현 : 여기서 poseFrameGroup이나 actualSwingIndices 또는 manualPoseIndexArray를 통해서 Similarity를 체크해주자
-                    updateSimilarity(manualPoseIndexArray)
 
                     // 템포, 백스윙, 다운스윙 시간 분석하기
                     val swingTiming = analyzeSwingTime(swingData)
@@ -735,7 +732,9 @@ class CameraSource(
                         userSwingImage,
                         answerSwingImageResId
                     )
+                    val swingScore = calculateScore(manualPoseIndexArray)
                     setFeedback(feedBack)
+                    
 
                     // 영상 만들기
                     val userId = getUserId()
@@ -746,9 +745,9 @@ class CameraSource(
                         videoName = fileName,
                         similarity = swingSimilarity,
                         solution = poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
-                        score = 100, //TODO 문현 : SCORE 기준 알아보기
+                        score = swingScore, //TODO 문현 : SCORE 기준 회의 후 정하기
                         tempo = tempoRatio.toDouble(),
-                        title = fileName, // TODO 문현 : score로 주기
+                        title = swingScore.toString() + "점 스윙",
                         date = System.currentTimeMillis()
                     ))
                     // 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
@@ -840,11 +839,12 @@ class CameraSource(
         return Pair(feedbackCheckList, feedbackCheckListTitle)
     }
 
-    private fun updateSimilarity(indices: Array<Int>) {
+    private fun calculateScore(indices: Array<Int>) : Int {
         /**
-         * 수동 측정된 스윙 자세들에 대해 모델을 통한 유사도 점수 측정 및 갱신
+         * 수동 측정된 스윙 자세들에 대해 모델을 통한 유사도 점수를 갱신하고 score 반환
+         * TODO 문현 : 점수가 낮게 나오는 문제 해결방안 생각하고 적용해보기
          * */
-        val scores = Array (5) { 0.0f }
+        val scores = Array (8) { 0.0f }
 
         indices.forEachIndexed{ poseNumber, frameIndex ->
             val classifierResultList = classifier4!!.classify(jointDataList[frameIndex])
@@ -868,6 +868,11 @@ class CameraSource(
             scores[6].toDouble(),
             scores[7].toDouble(),
         )
+        var scoreResult = 0.0
+        scores.forEachIndexed{ _, score ->
+            scoreResult += (score * 100)
+        }
+        return (scoreResult/8).toInt()
     }
 
     private fun checkFinish(index: Int, jointData: List<KeyPoint>) {
