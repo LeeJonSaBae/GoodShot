@@ -137,6 +137,8 @@ class CameraSource(
     private var downswingEndTime: Long = 0
     private var isDownSwingEnd: Boolean = false
 
+    private var selfCameraOptionEnable: Boolean = false
+
     private lateinit var surfaceView: SurfaceView
 
     init {
@@ -235,6 +237,8 @@ class CameraSource(
 
     fun processImage(bitmap: Bitmap, isSelfCamera: Boolean) {
         frameCount++
+
+        selfCameraOptionEnable = isSelfCamera //selfcamera값 camerasource에서 갱신
 
         val shouldProcessFrame =
             framesPerSecond <= TARGET_FPS || frameCount % max(1, framesPerSecond / TARGET_FPS) == 0
@@ -695,7 +699,7 @@ class CameraSource(
                     // 영상 만들기
                     val userId = getUserId()
 
-                    val fileName = SwingVideoProcessor.saveSwingVideo(context, actualSwingIndices.reversed(), false, userId) //TODO 문현 : 여기 동적으로 전면카메라 처리 필요
+                    val fileName = SwingVideoProcessor.saveSwingVideo(context, actualSwingIndices.reversed(), selfCameraOptionEnable, userId) //TODO 문현 : 여기 동적으로 전면카메라 처리 필요
                     // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) + @ 룸에 저장하기
                     insertLocalSwingFeedback(SwingFeedback(
                         userID = userId,

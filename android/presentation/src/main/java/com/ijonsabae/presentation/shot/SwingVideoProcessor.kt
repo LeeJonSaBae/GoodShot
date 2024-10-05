@@ -18,7 +18,6 @@ import java.nio.ByteBuffer
 
 
 object SwingVideoProcessor {
-    // TODO 문현 : 영상 self일 때 반대 방향으로 저장되게 하기
     const val GUEST_ID: Long = -1L
     fun saveBitmapToGallery(context: Context, bitmap: Bitmap, fileName: String): Uri? {
         val contentValues = ContentValues().apply {
