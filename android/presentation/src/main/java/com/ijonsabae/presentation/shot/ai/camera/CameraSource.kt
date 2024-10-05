@@ -138,6 +138,8 @@ class CameraSource(
     private var downswingEndTime: Long = 0
     private var isDownSwingEnd: Boolean = false
 
+    private var selfCameraOptionEnable: Boolean = false
+
     private lateinit var surfaceView: SurfaceView
 
     init {
@@ -236,6 +238,8 @@ class CameraSource(
 
     fun processImage(bitmap: Bitmap, isSelfCamera: Boolean) {
         frameCount++
+
+        selfCameraOptionEnable = isSelfCamera //selfcamera값 camerasource에서 갱신
 
         val shouldProcessFrame =
             framesPerSecond <= TARGET_FPS || frameCount % max(1, framesPerSecond / TARGET_FPS) == 0
@@ -706,13 +710,14 @@ class CameraSource(
                     val fileName = SwingVideoProcessor.saveSwingVideo(
                         context,
                         actualSwingIndices.reversed(),
+                        selfCameraOptionEnable,
                         userId
-                    )
+                    ) //TODO 문현 : 여기 동적으로 전면카메라 처리 필요
                     // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) + @ 룸에 저장하기
                     insertLocalSwingFeedback(
                         SwingFeedback(
                             userID = userId,
-                            videoName = fileName,
+                            swingCode = fileName,
                             similarity = swingSimilarity,
                             solution = poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
                             score = swingScore, //TODO 문현 : SCORE 기준 회의 후 정하기
@@ -721,6 +726,7 @@ class CameraSource(
                             date = System.currentTimeMillis()
                         )
                     )
+
                     // 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
                     increaseSwingCnt()
                     setCurrentCameraState(RESULT)

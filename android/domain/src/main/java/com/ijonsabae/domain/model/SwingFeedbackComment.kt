@@ -1,13 +1,28 @@
 package com.ijonsabae.domain.model
 
 import androidx.room.Entity
-import kotlinx.serialization.json.JsonNull.content
+import androidx.room.ForeignKey
 
-@Entity(tableName = "swing_feedback_comment", primaryKeys = ["userID", "videoName", "poseType", "content", "commentType"])
+@Entity(tableName = "swing_feedback_comment",
+    primaryKeys = ["userID", "swingCode", "poseType", "content", "commentType"],
+    foreignKeys = [ForeignKey(
+        entity = SwingFeedback::class,
+        parentColumns = [
+        "userID",
+        "swingCode",
+        ],
+        childColumns = [
+            "userID",
+            "swingCode",
+        ],
+        onUpdate = ForeignKey.CASCADE,
+        onDelete = ForeignKey.CASCADE
+    )]
+    )
 data class SwingFeedbackComment(
     val userID: Long,
-    val videoName: String,
-    val poseType: String,
+    val swingCode: String,
+    val poseType: Int,
     val content: String,
-    val commentType: String
+    val commentType: Int
 )

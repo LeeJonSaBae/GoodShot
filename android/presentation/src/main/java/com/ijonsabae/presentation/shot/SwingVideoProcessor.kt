@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
@@ -48,7 +49,11 @@ object SwingVideoProcessor {
     }
 
     @SuppressLint("HardwareIds")
-    fun saveSwingVideo(context: Context, bitmapIndices: List<Bitmap>, userId: Long = GUEST_ID) : String {
+    fun saveSwingVideo(context: Context, bitmapIndices: List<Bitmap>, isSelf: Boolean, userId: Long = GUEST_ID) : String {
+        var bitmaps = bitmapIndices
+        if (isSelf) {
+            bitmaps = flipBitmapsHorizontally(bitmapIndices)
+        }
         val fileSaveTime = System.currentTimeMillis()
         val ssidName = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
         val videoFileName = "${ssidName}_${fileSaveTime}.mp4"
@@ -58,21 +63,21 @@ object SwingVideoProcessor {
         }
         val videoFile = File(videoDir, videoFileName)
         val videoEncoder = VideoEncoder(
-            bitmapIndices[0].width,
-            bitmapIndices[0].height,
+            bitmaps[0].width,
+            bitmaps[0].height,
             12,
             videoFile.absolutePath
         )
         videoEncoder.start()
-        Log.d("MainActivity_Capture", "인덱스들: ${bitmapIndices.size}")
-        bitmapIndices.forEachIndexed { index, bitmap ->
+        Log.d("MainActivity_Capture", "인덱스들: ${bitmaps.size}")
+        bitmaps.forEachIndexed { index, bitmap ->
             val byteBuffer = bitmapToByteBuffer(bitmap)
             Log.d("MainActivity_Capture", "프레임 인덱스: $index")
             videoEncoder.encodeFrame(byteBuffer)
         }
 
         videoEncoder.finish()
-        saveBitmapToInternalStorage(context, bitmapIndices[0], userId, ssidName, fileSaveTime)
+        saveBitmapToInternalStorage(context, bitmaps[0], userId, ssidName, fileSaveTime)
 
         return videoFileName
 
@@ -126,6 +131,13 @@ object SwingVideoProcessor {
                     yuv420sp[uvIndex++] = v.toByte()
                 }
             }
+        }
+    }
+
+    fun flipBitmapsHorizontally(bitmaps: List<Bitmap>): List<Bitmap> {
+        return bitmaps.map { bitmap ->
+            val matrix = Matrix().apply { postScale(-1f, 1f, bitmap.width / 2f, bitmap.height / 2f) }
+            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
         }
     }
 

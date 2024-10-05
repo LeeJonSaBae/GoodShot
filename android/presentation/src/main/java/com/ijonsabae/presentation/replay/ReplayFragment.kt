@@ -8,37 +8,52 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ijonsabae.domain.model.Replay
-import com.ijonsabae.domain.usecase.replay.GetReplayUseCase
+import com.ijonsabae.domain.model.SwingFeedback
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentReplayBinding
 import com.ijonsabae.presentation.main.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 private const val TAG = "굿샷_ReplayFragment"
 
 @AndroidEntryPoint
 class ReplayFragment :
     BaseFragment<FragmentReplayBinding>(FragmentReplayBinding::bind, R.layout.fragment_replay) {
-
-    @Inject
-    lateinit var getReplayUseCase: GetReplayUseCase
+    private val viewModel: ReplayFragmentViewModel by viewModels()
 
     private val replayAdapter by lazy {
-        ReplayAdapter(requireContext()).apply {
+        ReplayAdapter(fragmentContext).apply {
             setItemClickListener(
                 object : ReplayAdapter.OnItemClickListener {
-                    override fun onItemClick(item: Replay) {
+                    override fun onItemClick(item: SwingFeedback) {
                         findNavController().navigate(R.id.action_replay_to_replayReport)
                     }
 
-                    override fun onLikeClick(item: Replay, check: Boolean) {
+                    override fun onLikeClick(item: SwingFeedback) {
+
                         Toast.makeText(context, "즐겨찾기 클릭~!", Toast.LENGTH_SHORT).show()
+                    }
+
+                    override fun onItemDelete(item: SwingFeedback) {
+
+                    }
+
+                    override fun onTitleChange(item: SwingFeedback, title: String) {
+
+                    }
+
+                    override fun changeClampStatus(clampStatus: Boolean) {
                     }
                 }
             )
@@ -48,7 +63,7 @@ class ReplayFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (fragmentContext as MainActivity).showAppBar("영상 다시보기")
-
+        initFlow()
         initMoreBtn()
         initRecyclerView()
     }
@@ -66,6 +81,17 @@ class ReplayFragment :
 
         ivMore.setOnClickListener {
             showCustomPopup(ivMore)
+        }
+    }
+
+    private fun initFlow(){
+        lifecycleScope.launch(coroutineExceptionHandler) {
+            repeatOnLifecycle(Lifecycle.State.STARTED){
+                viewModel.swingFeedbackList.collectLatest {
+                    Log.d(TAG, "initFlow: $it")
+                    replayAdapter.submitData(it)
+                }
+            }
         }
     }
 
@@ -107,8 +133,6 @@ class ReplayFragment :
     }
 
     private fun initRecyclerView() {
-        val list = getReplayUseCase().getOrThrow()
-        replayAdapter.submitList(list)
         val mountainRecyclerView = binding.rvReplay
         mountainRecyclerView.layoutManager = LinearLayoutManager(context)
         mountainRecyclerView.adapter = replayAdapter
