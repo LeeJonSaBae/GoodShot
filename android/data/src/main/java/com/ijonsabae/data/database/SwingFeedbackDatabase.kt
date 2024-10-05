@@ -10,9 +10,10 @@ import com.ijonsabae.data.dao.SwingFeedbackCommentDao
 import com.ijonsabae.data.dao.SwingFeedbackDao
 import com.ijonsabae.domain.model.SwingFeedback
 import com.ijonsabae.domain.model.SwingFeedbackComment
-import com.ijonsabae.domain.typeconverter.SimilarityTypeConverter
+import com.ijonsabae.data.typeconverter.SimilarityTypeConverter
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executors
+import javax.inject.Inject
 
 @Database(
     entities = [SwingFeedback::class, SwingFeedbackComment::class],
@@ -27,6 +28,7 @@ abstract class SwingFeedbackDatabase: RoomDatabase() {
     companion object {
         fun getInstance(context: Context): SwingFeedbackDatabase = Room
             .databaseBuilder(context, SwingFeedbackDatabase::class.java, "swing_feedback.db")
+            .addTypeConverter(SimilarityTypeConverter())
             .addCallback(object : Callback() {
                 override fun onCreate(db: SupportSQLiteDatabase) {
                     super.onCreate(db)
