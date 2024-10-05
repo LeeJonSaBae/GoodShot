@@ -507,9 +507,10 @@ class CameraFragment :
                 { swingViewModel.currentState.value },
                 { cameraState -> swingViewModel.setCurrentState(cameraState) },
                 { feedback -> swingViewModel.setFeedBack(feedback) },
+                { swingViewModel.getUserId() },
+                { swingFeedback -> swingViewModel.insertSwingFeedback(swingFeedback) },
                 swingViewModel::initializeSwingCnt,
                 swingViewModel::increaseSwingCnt,
-                getUserIdUseCase
             )
             cameraSource.setSurfaceView(binding.camera)
         }

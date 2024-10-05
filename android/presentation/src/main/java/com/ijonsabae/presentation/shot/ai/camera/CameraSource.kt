@@ -98,9 +98,10 @@ class CameraSource(
     private val getCurrentCameraState: () -> CameraState?,
     private val setCurrentCameraState: (cameraState: CameraState) -> Unit,
     private val setFeedback: (FeedBack) -> Unit,
+    private val getUserId: () -> Long,
+    private val insertLocalSwingFeedback: (SwingFeedback) -> Unit,
     private val initializeSwingCnt: () -> Unit,
     private val increaseSwingCnt: () -> Unit,
-    private val getUserIdUseCase: GetUserIdUseCase
     // TODO: 여기서 유즈케이스 받아서 사용
 ) {
     private var lock = Any()
