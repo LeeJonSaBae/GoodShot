@@ -36,8 +36,8 @@ public class ExpertController {
     })
     @ResponseStatus(HttpStatus.OK)
     public BaseResponse<ExpertItemResponse> getExpertList(@RequestParam(value = "pageNo") int pageNo, @RequestParam(value = "pageSize") int pageSize) {
-        ExpertItemResponse expertItemResponse = expertService.getExpertList(pageNo, pageSize);
-        return BaseResponse.of(HttpStatus.OK, "전문가 목록 조회를 성공했습니다.", expertItemResponse);
+        ExpertItemResponse response = expertService.getExpertList(pageNo, pageSize);
+        return BaseResponse.of(HttpStatus.OK, "전문가 목록 조회를 성공했습니다.", response);
     }
 
     @GetMapping("/{id}")
@@ -51,8 +51,8 @@ public class ExpertController {
     })
     @ResponseStatus(HttpStatus.OK)
     public BaseResponse<ExpertDetailItem> getExpertDetail(@PathVariable int id) {
-        ExpertDetailItem expertDetailItem = expertService.getExpertDetail(id);
-        return BaseResponse.of(HttpStatus.OK, "전문가 상세 목록 조회를 성공했습니다.", expertDetailItem);
+        ExpertDetailItem response = expertService.getExpertDetail(id);
+        return BaseResponse.of(HttpStatus.OK, "전문가 상세 목록 조회를 성공했습니다.", response);
     }
 
 }
