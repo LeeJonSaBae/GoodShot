@@ -120,6 +120,7 @@ class HomeFragment :
                     }
                 })
             }
+//        youtubeRecyclerViewAdapter.submitList(homeViewModel.youtubeList.v)
         recyclerView.adapter = youtubeRecyclerViewAdapter
         recyclerView.layoutManager =
             LinearLayoutManager(fragmentContext, LinearLayoutManager.HORIZONTAL, false)

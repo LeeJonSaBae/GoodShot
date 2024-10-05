@@ -8,10 +8,12 @@ import com.d201.goodshot.swing.dto.CommentItem;
 import com.d201.goodshot.swing.dto.SwingRequest;
 import com.d201.goodshot.swing.dto.SwingRequest.SwingDataRequest;
 import com.d201.goodshot.swing.dto.SwingResponse;
+import com.d201.goodshot.swing.dto.SwingResponse.ReportResponse;
 import com.d201.goodshot.swing.dto.SwingResponse.SwingDataResponse;
 import com.d201.goodshot.swing.enums.PoseType;
 import com.d201.goodshot.swing.exception.SwingImageProcessingException;
 import com.d201.goodshot.swing.repository.CommentRepository;
+import com.d201.goodshot.swing.repository.ReportRepository;
 import com.d201.goodshot.swing.repository.SwingImageRepository;
 import com.d201.goodshot.swing.repository.SwingRepository;
 import com.d201.goodshot.user.domain.User;
@@ -36,6 +38,25 @@ public class SwingService {
     private final CommentRepository commentRepository;
     private final SwingImageRepository swingImageRepository;
     private final UserRepository userRepository;
+    private final ReportRepository reportRepository;
+
+    // 종합 리포트 조회
+    public ReportResponse getReport(CustomUser customUser) {
+
+        User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
+
+        // 1. DB 에 있는 Back, Down Comment 가져오기
+
+        // 2. 스윙 찾아서
+
+        // 2. DB 에 저장되어 있는 Report 가져오기
+
+        // 3. Chat GPT API 활용 (DB 에 저장되어 있는 Report 중에 1개 골라줘)
+
+        return ReportResponse.builder()
+                .name(user.getName())
+                .build();
+    }
 
     // 스윙 데이터 가져오기
     public List<SwingDataResponse> getSwingData(CustomUser customUser) {
