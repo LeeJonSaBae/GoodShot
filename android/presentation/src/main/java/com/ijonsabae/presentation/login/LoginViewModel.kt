@@ -29,11 +29,7 @@ class LoginViewModel @Inject constructor(
             val accessToken = getLocalAccessTokenUseCase()
             val refreshToken = getLocalRefreshTokenUseCase()
             if (accessToken != null && refreshToken != null) {
-<<<<<<< HEAD
-                setToken(Token(accessToken, refreshToken, 1))
-=======
                 setToken(Token(accessToken, refreshToken, getUserIdUseCase()))
->>>>>>> develop
             } else {
                 setToken(Token.EMPTY)
             }
