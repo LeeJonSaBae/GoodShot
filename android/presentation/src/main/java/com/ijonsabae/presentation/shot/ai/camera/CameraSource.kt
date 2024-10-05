@@ -41,6 +41,7 @@ import com.ijonsabae.presentation.shot.CameraState.RESULT
 import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.PostureFeedback
 import com.ijonsabae.presentation.shot.SwingVideoProcessor
+import com.ijonsabae.presentation.shot.ai.PostureExtractor
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ANKLE
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_EAR
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ELBOW
@@ -112,20 +113,9 @@ class CameraSource(
     private val imageQueue: Queue<TimestampedData<Bitmap>> = LinkedList()
     private val jointQueue: Queue<List<KeyPoint>> = LinkedList()
 
-    //수동측정을 위한 값들
-    private var minFinishGap = 1f
-    private var minFollowThroughGap = 1f
-    private var minImpactGap = 1f
-    private var minDownSwingGap = 1f
-    private var minTopOfSwingGap = 1f
-    private var minMidBackSwingGap = 1f
-    private var minTakeAwayGap = 1f
-    private var minAddressGap = 1f
     private lateinit var jointDataList: List<List<KeyPoint>>
     private lateinit var imageDataList: List<TimestampedData<Bitmap>>
-    private var manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
 
-    private var resultSkipMotionStartTime: Long = 0L //스윙결과 스킵 동작을 인식하기 위한 변수
     private lateinit var swingSimilarity: Similarity
 
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
@@ -394,7 +384,7 @@ class CameraSource(
                  * 2. 완손목-왼팔꿈치가 오른쪽 일자로 펴진 경우를 감지하고 (-15~15도) 이때의 시간이 1.0초 이내면
                  *  RESULT 다이얼로그를 종료하고 어드레스 자세 잡기 상태로 변경
                  * */
-                if (checkResultSkipMotion(keyPoints)) {
+                if (PostureExtractor.checkResultSkipMotion(keyPoints)) {
                     skipFeedbackDialog()
                 }
             }
@@ -453,10 +443,6 @@ class CameraSource(
                 return
             }
         }
-        // 결과 분석 보여주는 동안은 이미지 처리 안함
-        /**
-         * 1. 상태가 RESULT일 때 상태를 호출하는 경우로 변경하기
-         */
 
     }
 
@@ -490,7 +476,7 @@ class CameraSource(
         return poses
     }
 
-    private fun analyzeSwingTime(poses: List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>): SwingTiming {
+    private fun analyzeSwingTime(): SwingTiming {
         //이상적인 템포 비율은 약 3:1(백스윙:다운스윙)로 알려져 있지만, 개인의 스타일과 체형에 따라 다를 수 있다.
         var backswingTime = backswingEndTime - backswingStartTime
         var downswingTime = downswingEndTime - downswingStartTime
@@ -565,22 +551,8 @@ class CameraSource(
         var classifier = classifier8
         var modelChangeReady = false
 
-        //수동측정을 위한 값들
-        minFinishGap = 100f
-        minFollowThroughGap = 100f
-        minImpactGap = 100f
-        minDownSwingGap = 100f
-        minTopOfSwingGap = 100f
-        minMidBackSwingGap = 100f
-        minTakeAwayGap = 100f
-        minAddressGap = 100f
-        manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
+        PostureExtractor.initVariables(imageDataList)
 
-        backswingStartTime = 0
-        backswingEndTime = 0
-        downswingStartTime = 0
-        downswingEndTime = 0
-        isDownSwingEnd = false
 
         for ((index, jointData) in jointDataList.withIndex()) {
             // 사람으로 인식안된 프레임의 경우 스킵
@@ -610,35 +582,36 @@ class CameraSource(
             if (classifier == classifier8) {
 
                 //피니시 검사
-                checkFinish(index, jointData)
+                PostureExtractor.checkFinish(index, jointData)
 
                 //팔로스루 검사
-                checkFollowThrough(index, jointData)
+                PostureExtractor.checkFollowThrough(index, jointData)
 
                 //임팩트 검사
-                checkImpact(index, jointData)
+                PostureExtractor.checkImpact(index, jointData)
 
                 //다운스윙 검사
-                checkDownSwing(index, jointData)
+                PostureExtractor.checkDownSwing(index, jointData)
 
             }
 
             if (classifier == classifier4) {
 
                 //탑 오브 스윙 검사
-                checkTopOfSwing(index, jointData)
+                PostureExtractor.checkTopOfSwing(index, jointData)
 
                 //미드 백 스윙 검사
-                checkMidBackSwing(index, jointData)
+                PostureExtractor.checkMidBackSwing(index, jointData)
 
                 //테이크 어웨이 검사
-                checkTakeAway(index, jointData)
+                PostureExtractor.checkTakeAway(index, jointData)
 
                 //어드레스 검사
-                checkAddress(index, jointData)
+                PostureExtractor.checkAddress(index, jointData)
 
             }
         }
+
     }
 
     private fun analyzeSwingMotion() {
@@ -647,32 +620,15 @@ class CameraSource(
                 swingFrameCount++
             } else {
                 extractBestPoseIndices()
-                if (validateSwingPose(manualPoseIndexArray)) {
-                    val poseFrameGroupIndices: Array<IntArray> = Array(8) { IntArray(3) }
-                    manualPoseIndexArray.forEachIndexed { index, manualPoseIndex ->
-                        poseFrameGroupIndices[index] = when (manualPoseIndex) {
-                            0 -> intArrayOf(1, 0, 0)  // 첫 번째 프레임인 경우
-                            QUEUE_SIZE - 1 -> intArrayOf(
-                                QUEUE_SIZE - 1,
-                                QUEUE_SIZE - 1,
-                                QUEUE_SIZE - 2
-                            )  // 마지막 프레임인 경우
-                            else -> intArrayOf(
-                                manualPoseIndex + 1,
-                                manualPoseIndex,
-                                manualPoseIndex - 1
-                            )  // 일반적인 경우
-                        }
-                    }
-
+                if (validateSwingPose(PostureExtractor.manualPoseIndexArray)) {
                     //swingData -> 수동으로 뽑은 8개의 프레임
-                    val swingData = indicesToPoses(manualPoseIndexArray)
+                    val swingData = indicesToPoses(PostureExtractor.manualPoseIndexArray)
                     val actualSwingIndices = imageDataList
-                        .take(manualPoseIndexArray[0])
+                        .take(PostureExtractor.manualPoseIndexArray[0])
                         .map { it.data }
 
                     // 템포, 백스윙, 다운스윙 시간 분석하기
-                    val swingTiming = analyzeSwingTime(swingData)
+                    val swingTiming = analyzeSwingTime()
 
                     val backswingTime = String.format(
                         Locale.getDefault(),
@@ -732,7 +688,7 @@ class CameraSource(
                         userSwingImage,
                         answerSwingImageResId
                     )
-                    val swingScore = calculateScore(manualPoseIndexArray)
+                    val swingScore = calculateScore(PostureExtractor.manualPoseIndexArray)
                     setFeedback(feedBack)
                     
 
@@ -754,7 +710,7 @@ class CameraSource(
                     increaseSwingCnt()
 
                     setCurrentCameraState(RESULT)
-                    resultSkipMotionStartTime = 0L //스킵 동작 탐지를 위한 변수 초기화
+
                 } else {
                     setCurrentCameraState(AGAIN)
                     CoroutineScope(Dispatchers.Main).launch {
@@ -875,247 +831,7 @@ class CameraSource(
         return (scoreResult/8).toInt()
     }
 
-    private fun checkFinish(index: Int, jointData: List<KeyPoint>) {
-        //오른쪽 어깨.x가 왼쪽 골반.x보다 왼쪽에 있고 왼손목의 x좌표가 가장 작을때
-        val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
-        val rightShoulderX = jointData[RIGHT_SHOULDER.position].coordinate.x
-        val leftHipX = jointData[LEFT_HIP.position].coordinate.x
-
-        if (rightShoulderX >= leftHipX) {
-            if (minFinishGap > leftWristX) {
-                minFinishGap = leftWristX
-                manualPoseIndexArray[7] = index
-            }
-        }
-    }
-
-    private fun checkFollowThrough(index: Int, jointData: List<KeyPoint>) {
-        // 왼손.x가 왼어꺠.x보다 클 때
-        val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
-        val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
-        val rightHipY = jointData[RIGHT_HIP.position].coordinate.y
-        val leftShoulderX = jointData[LEFT_SHOULDER.position].coordinate.x
-
-        if (leftShoulderX < leftWristX) {
-            val followThroughGap = abs(leftWristY - rightHipY)
-            if (minFollowThroughGap > followThroughGap) {
-                minFollowThroughGap = followThroughGap
-                manualPoseIndexArray[6] = index
-            }
-        }
-    }
-
-    private fun checkImpact(index: Int, jointData: List<KeyPoint>) {
-        // 임팩트 - 손목의 평균 좌표가 골반의 중앙과 가장 가까울 때
-        val leftHipX = jointData[LEFT_HIP.position].coordinate.x
-        val rightHipX = jointData[RIGHT_HIP.position].coordinate.x
-        val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
-        val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
-        val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
-        val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
-
-        if (leftWristY > leftElbowY && leftWristX < leftElbowX && leftWristX >= rightHipX) {
-            //손목이 골반 아래 위치할 때 골반 중심과 x좌표 거리가 가장 가까운 경우를 추출
-
-            val hipCenterX = (rightHipX + leftHipX) / 2
-            val impactGap = abs(hipCenterX - leftWristX)
-
-            if (minImpactGap > impactGap) {
-                minImpactGap = impactGap
-                manualPoseIndexArray[5] = index
-                downswingEndTime = imageDataList[index].timestamp
-            }
-        }
-    }
-
-    private fun checkDownSwing(index: Int, jointData: List<KeyPoint>) {
-        // 다운스윙 - 왼손이 가장 왼쪽에 있고 허리와 어꺠 사이에 있을때
-        val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
-        val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
-        val rightHipX = jointData[RIGHT_HIP.position].coordinate.x
-        val rightShoulderY = jointData[RIGHT_SHOULDER.position].coordinate.y
-        val rightHipY = jointData[RIGHT_HIP.position].coordinate.y
-
-        if (
-            leftWristX < rightHipX &&
-            rightShoulderY < leftWristY &&
-            leftWristY < rightHipY
-        ) {
-            if (minDownSwingGap > leftWristX) {
-                minDownSwingGap = leftWristX
-                manualPoseIndexArray[4] = index
-            }
-        }
-    }
-
-    private fun checkTopOfSwing(index: Int, jointData: List<KeyPoint>) {
-        // 왼 손목이 어깨보다 높을 때 and
-        // 왼손목과 코의 x 좌표가 가장 가까울 때
-
-        val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
-        val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
-        val leftShoulderY = jointData[LEFT_SHOULDER.position].coordinate.y
-        val noseX = jointData[NOSE.position].coordinate.x
-        val noseY = jointData[NOSE.position].coordinate.y
-
-        if (leftWristY < leftShoulderY && leftWristX < noseX) {
-            val noseWristGap = noseX - leftWristX
-            if (minTopOfSwingGap > noseWristGap) {
-                minTopOfSwingGap = noseWristGap
-                manualPoseIndexArray[3] = index
-            }
-        }
-
-        // 코보다 왼손 높이가 커지는 시점을 갱신
-        if (leftWristX < noseY) {
-            if (!isDownSwingEnd && leftWristY < noseY && leftWristX < noseX) {
-                downswingStartTime = imageDataList[index + 1].timestamp
-                isDownSwingEnd = true
-            }
-            if (isDownSwingEnd && leftWristY >= noseY && leftWristX < noseX) {
-                backswingEndTime = imageDataList[index - 2].timestamp
-                isDownSwingEnd = false
-            }
-        }
-        // 코보다 왼손이 더 높아지는 경우가 없을 경우 왼쪽 어깨를 기준으로 판단
-        else {
-            if (!isDownSwingEnd && leftWristY < leftShoulderY && leftWristX < noseX) {
-                downswingStartTime = imageDataList[index + 1].timestamp
-                isDownSwingEnd = true
-            }
-            if (isDownSwingEnd && leftWristY >= leftShoulderY && leftWristX < noseX) {
-                backswingEndTime = imageDataList[index - 2].timestamp
-                isDownSwingEnd = false
-            }
-        }
-    }
-
-
-    private fun checkMidBackSwing(index: Int, jointData: List<KeyPoint>) {
-
-        val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
-        val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
-        val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
-        val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
-        val leftShoulderY = jointData[LEFT_SHOULDER.position].coordinate.y
-        val leftHipY = jointData[LEFT_HIP.position].coordinate.y
-
-        //손목이 어꺠보다 낮고 골반보다 높을 때 왼팔 손목과 팔꿈치가 +- 10도 내외 일 때 왼손목 x 좌표가 가장 0에 가까운 경우
-        if (leftWristY in leftShoulderY..leftHipY) {
-            //왼 손목을 중심으로 왼 팔꿈치까지의 각도를 계산
-            val deltaX = leftElbowX - leftWristX
-            val deltaY = leftWristY - leftElbowY
-
-            //라디안 값 반환
-            val angleRadians = atan2(deltaY, deltaX)
-
-            //라디안을 degree 단위로 변환
-            val angleDegrees = Math.toDegrees(angleRadians.toDouble())
-
-            if (angleDegrees in -10.0..10.0) {
-                if (minMidBackSwingGap > leftWristX) {
-                    minMidBackSwingGap = leftWristX
-                    manualPoseIndexArray[2] = index
-                }
-            }
-        }
-    }
-
-    private fun checkTakeAway(index: Int, jointData: List<KeyPoint>) {
-        //왼손목이 왼 팔꿈치보다 왼쪽아래 있을 때 왼쪽손목기준 팔꿈치가 45도와 가장 가까운 경우를 선택
-        val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
-        val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
-        val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
-        val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
-
-        if (leftWristX < leftElbowX && leftWristY > leftElbowY) {
-            val deltaX = leftElbowX - leftWristX
-            val deltaY = leftWristY - leftElbowY
-
-            val angleRadians = atan2(deltaY, deltaX)
-
-            val angleDegrees = Math.toDegrees(angleRadians.toDouble())
-            val wristElbowDegreeGap = abs(45.0 - angleDegrees).toFloat()
-            if (minTakeAwayGap > wristElbowDegreeGap) {
-                minTakeAwayGap = wristElbowDegreeGap
-                manualPoseIndexArray[1] = index
-            }
-        }
-    }
-
-    private fun checkAddress(index: Int, jointData: List<KeyPoint>) {
-        // 골반과 거리가 가장 가까운 시점을 검사
-        val rightHipX = jointData[RIGHT_HIP.position].coordinate.x
-        val rightHipY = jointData[RIGHT_HIP.position].coordinate.y
-        val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
-
-        val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
-        val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
-
-        if (leftWristY > leftElbowY && leftWristX > rightHipX) {
-            // 거리 계산을 위해 제곱근을 사용
-            val hipWristDistance = sqrt(
-                (rightHipX - leftWristX).pow(2) +
-                        (rightHipY - leftWristY).pow(2)
-            )
-
-            // minAddressGap이 거리보다 큰 경우에만 업데이트
-            if (minAddressGap > hipWristDistance) {
-                minAddressGap = hipWristDistance
-                if (index + 5 <= imageDataList.size - 1) {
-                    backswingStartTime = imageDataList[index + 5].timestamp // 스윙 시작시간 갱신
-                    manualPoseIndexArray[0] = index + 5
-                } else {
-                    backswingStartTime = imageDataList[index].timestamp // 스윙 시작시간 갱신
-                    manualPoseIndexArray[0] = index
-                }
-            }
-        }
-    }
-
-    private fun checkResultSkipMotion(jointData: List<KeyPoint>): Boolean {
-        // 1. 카메라 안에 있는지 판별
-        if ((jointData[NOSE.position].score) < 0.3 ||
-            (jointData[LEFT_ANKLE.position].score) < 0.3 ||
-            (jointData[RIGHT_ANKLE.position].score < 0.3)
-        ) {
-            return false
-        }
-
-        val leftWristX = jointData[LEFT_WRIST.position].coordinate.x
-        val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
-        val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
-        val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
-        val noseX = jointData[NOSE.position].coordinate.x
-
-        val deltaX = leftWristX - leftElbowX
-        val deltaY = leftElbowY - leftWristY
-
-        val angleRadians = atan2(deltaY, deltaX)
-        val angleDegrees = Math.toDegrees(angleRadians.toDouble())
-
-        val currentTime = System.currentTimeMillis()
-        Log.d("processDetectedInfo", "RESULT 상태일 때 내부 함수, chckskipmotion 함수 내부 접근")
-        if (leftWristX > leftElbowX && leftElbowX > noseX) {
-            val wristElbowDegreeGap = abs(0.0 - angleDegrees).toFloat()
-            if (wristElbowDegreeGap < 20.0) {
-                resultSkipMotionStartTime = currentTime
-                Log.d("processDetectedInfo", "왼쪽 팔뻗음 인식")
-            }
-        } else if (leftWristX < leftElbowX && leftWristX <= noseX) {
-            val wristElbowDegreeGap = abs(180.0 - angleDegrees).toFloat()
-            if (wristElbowDegreeGap < 20.0) {
-                Log.d("processDetectedInfo", "오른쪽 팔뻗음 인식")
-                if (currentTime - resultSkipMotionStartTime < 1000) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
     private fun skipFeedbackDialog() {
-        //sendSkipMotionBroadcast
         val intent = Intent().apply {
             action = "SKIP_MOTION_DETECTED"
             putExtra("skipMotion", "Skip motion detected")
