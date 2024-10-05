@@ -1,5 +1,7 @@
 package com.d201.goodshot.swing.dto;
 
+import com.d201.goodshot.global.s3.dto.ImageResponse;
+import com.d201.goodshot.global.s3.dto.ImageResponse.PresignedUrlResponse;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,6 +35,15 @@ public class SwingResponse {
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime time;
 
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class SwingCodeResponse {
+        private String code;
+        private List<String> presignedUrls;
     }
 
     @Getter
