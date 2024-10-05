@@ -127,7 +127,7 @@ object PostureFeedback {
 
         val headOffset = hipCenterX - noseX
         val leftThreshold = 0.08f  // 코가 골반 중심보다 왼쪽에 있어야 하는 최소 거리
-        val rightThreshold = -0.05f
+        val rightThreshold = 0f
 
         val isProblem =
             headOffset > leftThreshold || headOffset < rightThreshold // 머리가 공보다 너무 앞이나 뒤에 있으면 문제
@@ -209,7 +209,7 @@ object PostureFeedback {
         val initialHipHeight = (initialLeftHipY + initialRightHipY) / 2
 
         var isProblem = false
-        val threshold = 0.1f  // 골반 높이 변화를 문제로 간주할 임계값
+        val threshold = 0.08f  // 골반 높이 변화를 문제로 간주할 임계값
         var deviationDirection: Direction = CENTER
 
         for (frameIndex in frameIndexes[Pose.TOP.ordinal] downTo frameIndexes[IMPACT.ordinal]) {
@@ -240,7 +240,7 @@ object PostureFeedback {
         val initialNoseCoordinate =
             jointList[frameIndexes[Pose.TOP.ordinal]][NOSE.ordinal].coordinate
         var isProblem = false
-        val threshold = 0.1f
+        val threshold = 0.08f
         var deviationDirection: Direction = CENTER
 
         for (frameIndex in frameIndexes[Pose.TOP.ordinal] downTo frameIndexes[IMPACT.ordinal]) {
