@@ -16,6 +16,7 @@ import android.util.Log
 import android.util.Size
 import android.view.SurfaceView
 import android.view.View
+import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraControl
@@ -93,6 +94,8 @@ class CameraFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // 자동 화면 꺼짐 방지
+        requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         navController = Navigation.findNavController(binding.root)
         (fragmentContext as MainActivity).hideAppBar()
         initObservers()
@@ -240,6 +243,7 @@ class CameraFragment :
 
     override fun onDestroyView() {
         (fragmentContext as MainActivity).showBottomNavBar()
+        requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         cameraProvider.unbindAll()
         super.onDestroyView()
     }
