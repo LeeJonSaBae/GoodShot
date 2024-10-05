@@ -18,7 +18,8 @@ public class ImageRequest {
         WEBP("webp"),
         PNG("png"),
         JPG("jpg"),
-        JPEG("jpeg");
+        JPEG("jpeg"),
+        MP4("mp4");
 
         @JsonValue // JSON 직렬화
         private final String uploadExtension;
