@@ -9,14 +9,14 @@ enum class BackSwingProblem(
     RIGHT_HEAD_MOVEMENT("머리 위치가 %s으로 치우쳐 있습니다.", "머리 위치가 잘 고정되어 있습니다.", true),
     RIGHT_HIP_ROTATION("골반이 과도하게 바깥쪽으로 회전합니다.", "골반 회전이 적절합니다.", true),
     RIGHT_ARM_BEND("왼팔이 안쪽으로 구부러져 있습니다.", "왼팔이 잘 펴져 있습니다.", true),
-    RIGHT_KNEE_SWAY("왼쪽 무릎이 과도하게 굽혀져 있습니다.", "무릎 이동이 부드럽게 잘 되고 있습니다.", true),
+    RIGHT_KNEE_SWAY("오른쪽 무릎으로의 체중 이동이 잘되지 않고 있습니다.", "무릎 이동이 부드럽게 잘 되고 있습니다.", true),
     RIGHT_FRONT_FOOT_LIFT("탑 스윙에서 앞발이 들려 있습니다.", "앞발이 지면에 잘 고정되어 있습니다.", true),
 
     // 좌타 기준
     LEFT_HEAD_MOVEMENT("머리 위치가 %s로 치우쳐 있습니다.", "머리 위치가 잘 고정되어 있습니다.", false),
     LEFT_HIP_ROTATION("골반이 과도하게 바깥쪽으로 회전합니다.", "골반 회전이 적절합니다.", false),
     LEFT_ARM_BEND("오른팔이 안쪽으로 구부러져 있습니다.", "오른팔이 잘 펴져 있습니다.", false),
-    LEFT_KNEE_SWAY("오른쪽 무릎이 과도하게 굽혀져 있습니다.", "무릎 이동이 부드럽게 잘 되고 있습니다.", false),
+    LEFT_KNEE_SWAY("왼쪽 무릎으로의 체중 이동이 잘되지 않고 있습니다.", "무릎 이동이 부드럽게 잘 되고 있습니다.", false),
     LEFT_FRONT_FOOT_LIFT("탑 스윙에서 앞발이 들려 있습니다.", "앞발이 지면에 잘 고정되어 있습니다.", false);
 
     fun getBadComment(direction: Direction): String {

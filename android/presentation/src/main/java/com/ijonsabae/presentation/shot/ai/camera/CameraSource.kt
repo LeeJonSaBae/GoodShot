@@ -657,6 +657,15 @@ class CameraSource(
                     )
                     Log.d("분석결과", "$poseAnalysisResults")
 
+                    Log.d("분석결과", "${poseAnalysisResults.solution.name}")
+                    poseAnalysisResults.backSwingProblems.forEach {
+                        Log.d("분석결과", "${it.javaClass.simpleName}")
+                    }
+                    Log.d("분석결과", "-------------------------------------------------")
+                    poseAnalysisResults.downSwingProblems.forEach {
+                        Log.d("분석결과", "${it.javaClass.simpleName}")
+                    }
+
                     // 나의 스윙 이미지와 전문가의 스윙 이미지 결정하기
                     val userSwingImage: Bitmap
                     val answerSwingImageResId: Int

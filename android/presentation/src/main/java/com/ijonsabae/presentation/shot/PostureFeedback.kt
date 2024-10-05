@@ -2,6 +2,7 @@ package com.ijonsabae.presentation.shot
 
 
 import android.graphics.PointF
+import com.ijonsabae.presentation.shot.ai.data.BackSwingProblem
 import com.ijonsabae.presentation.shot.ai.data.BackSwingProblem.*
 import com.ijonsabae.presentation.shot.ai.data.BadComment
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.*
@@ -155,37 +156,26 @@ object PostureFeedback {
         val initialTrailingKneeX =
             jointList[frameIndexes[Pose.TOP.ordinal]][trailingKneeIndex].coordinate.x
 
-        var maxSway = 0f
-        val threshold = 0.07f  // 무릎 이동을 문제로 간주할 임계값
-        var isProblem = false
-        var swayDirection: Direction = CENTER
+        val finalLeadingKneeX =
+            jointList[frameIndexes[IMPACT.ordinal]][leadingKneeIndex].coordinate.x
+        val finalTrailingKneeX =
+            jointList[frameIndexes[IMPACT.ordinal]][trailingKneeIndex].coordinate.x
 
-        for (frameIndex in frameIndexes[Pose.TOP.ordinal] downTo frameIndexes[IMPACT.ordinal]) {
-            val currentLeadingKneeX = jointList[frameIndex][leadingKneeIndex].coordinate.x
-            val currentTrailingKneeX = jointList[frameIndex][trailingKneeIndex].coordinate.x
+        val leadingKneeSway = finalLeadingKneeX - initialLeadingKneeX
+        val trailingKneeSway = finalTrailingKneeX - initialTrailingKneeX
 
-            val leadingKneeSway = initialLeadingKneeX - currentLeadingKneeX
-            val trailingKneeSway = initialTrailingKneeX - currentTrailingKneeX
+        val totalSway = leadingKneeSway + trailingKneeSway
+        val threshold = 0.1f  // 무릎 이동을 문제로 간주할 임계값
 
-            val totalSway = leadingKneeSway + trailingKneeSway
-
-            if (abs(totalSway) > abs(maxSway)) {
-                maxSway = totalSway
-            }
-        }
-
-        // maxSway가 음수면 올바른 방향(우타의 경우 왼쪽, 좌타의 경우 오른쪽)으로 이동한 것
-        isProblem = abs(maxSway) > threshold
-        swayDirection = if (maxSway > 0) RIGHT else LEFT
+        val isProblem = totalSway < threshold
 
         val problem =
             if (isRightHanded) DownSwingProblem.RIGHT_KNEE_SWAY else DownSwingProblem.LEFT_KNEE_SWAY
         val comment = if (isProblem) {
-            BadComment(problem.getBadComment(swayDirection))
+            BadComment(problem.getBadComment(CENTER)) // 방향은 좌타, 우타에 따라 이미 결정되어 있음
         } else {
             NiceComment(problem.getNiceComment())
         }
-
         return comment
     }
 
@@ -296,30 +286,31 @@ object PostureFeedback {
     }
 
     private fun checkBackSwingKneeSway(): Comment {
-        val hipIndex = LEFT_HIP.ordinal
-        val kneeIndex = LEFT_KNEE.ordinal
-        val ankleIndex = LEFT_ANKLE.ordinal
+        val leadingKneeIndex = RIGHT_KNEE.ordinal
+        val trailingKneeIndex = LEFT_KNEE.ordinal
 
-        var isProblem = false
-        val threshold = 20f  // 무릎이 안쪽으로 굽혀진 것으로 간주할 각도 임계값 (예: 15도 이상 굽혀지면 문제로 간주)
+        val initialLeadingKneeX =
+            jointList[frameIndexes[ADDRESS.ordinal]][leadingKneeIndex].coordinate.x
+        val initialTrailingKneeX =
+            jointList[frameIndexes[ADDRESS.ordinal]][trailingKneeIndex].coordinate.x
 
-        for (frameIndex in frameIndexes[ADDRESS.ordinal] downTo frameIndexes[Pose.TOP.ordinal]) {
-            val hip = jointList[frameIndex][hipIndex].coordinate
-            val knee = jointList[frameIndex][kneeIndex].coordinate
-            val ankle = jointList[frameIndex][ankleIndex].coordinate
+        val finalLeadingKneeX =
+            jointList[frameIndexes[Pose.TOP.ordinal]][leadingKneeIndex].coordinate.x
+        val finalTrailingKneeX =
+            jointList[frameIndexes[Pose.TOP.ordinal]][trailingKneeIndex].coordinate.x
 
-            val externalAngle = calculateAngle(hip, knee, ankle)
-            val swayAngle = abs(180f - externalAngle)
+        val leadingKneeSway = initialLeadingKneeX - finalLeadingKneeX
+        val trailingKneeSway = initialTrailingKneeX - finalTrailingKneeX
 
-            if (swayAngle > threshold) {
-                isProblem = true
-                break
-            }
-        }
+        val totalSway = leadingKneeSway + trailingKneeSway
+        val threshold = 0.1f  // 무릎 이동을 문제로 간주할 임계값
 
-        val problem = if (isRightHanded) RIGHT_KNEE_SWAY else LEFT_KNEE_SWAY
+        val isProblem = totalSway < threshold
+
+        val problem =
+            if (isRightHanded) RIGHT_KNEE_SWAY else LEFT_KNEE_SWAY
         val comment = if (isProblem) {
-            BadComment(problem.getBadComment(CENTER))  // 방향은 필요 없으므로 CENTER 사용
+            BadComment(problem.getBadComment(CENTER)) // 방향은 좌타, 우타에 따라 이미 결정되어 있음
         } else {
             NiceComment(problem.getNiceComment())
         }
@@ -424,6 +415,7 @@ object PostureFeedback {
         return kotlin.math.sqrt(dx * dx + dy * dy)
     }
 
+    // p1 -> p2 -> p3가 이루는 각을 반시계 방향으로 측정
     private fun calculateAngle(p1: PointF, p2: PointF, p3: PointF): Float {
         val angle1 = atan2(p1.y - p2.y, p1.x - p2.x)
         val angle2 = atan2(p3.y - p2.y, p3.x - p2.x)
