@@ -18,22 +18,7 @@ public class SwingRequest {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class SwingDataRequest {
-
-        private Long id; // swing id
-        private List<CommentItem> backSwingComments;
-        private List<CommentItem> downSwingComments;
-        private List<Float> poseSimilarity;
-        private String solution;
-        private int score;
-        private double tempo;
-        private boolean likeStatus;
-        private String code;
-        private String title;
-
-        @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        private LocalDateTime time;
-
+        private List<String> codes;
     }
 
 }
