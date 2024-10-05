@@ -39,8 +39,8 @@ public class SwingController {
                             examples = @ExampleObject(value = "")))
     })
     @ResponseStatus(HttpStatus.OK)
-    public BaseResponse<Void> postSwingData(@AuthenticationPrincipal CustomUser customUser, @RequestBody List<SwingDataRequest> swingDataList) throws IOException {
-        swingService.postSwingData(swingDataList, customUser);
+    public BaseResponse<Void> postSwingData(@AuthenticationPrincipal CustomUser customUser) {
+        swingService.postSwingData(customUser);
         return BaseResponse.of(HttpStatus.OK, "스윙 데이터 내보내기에 성공했습니다.", null);
     }
 
