@@ -854,12 +854,15 @@ class CameraSource(
                         }
                     }
 
+                    val solution = poseAnalysisResults.solution
+                    val solutionComment = solution.getSolution(isLeftHanded.not())
                     // 뷰모델에 피드백 담기
                     val feedBack = FeedBack(
                         downswingTime,
                         tempoRatio,
                         backswingTime,
-                        poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
+                        solution == GOOD_SHOT,
+                        solutionComment,
                         feedbackCheckListTitle,
                         feedbackCheckList,
                         userSwingImage,
@@ -888,7 +891,10 @@ class CameraSource(
 //                    }
 
                     // 영상 만들기`
-                    SwingVideoProcessor.convertBitmapsToVideo(context, actualSwingIndices.reversed()) // TODO : userName 넘겨주기
+                    SwingVideoProcessor.convertBitmapsToVideo(
+                        context,
+                        actualSwingIndices.reversed()
+                    ) // TODO : userName 넘겨주기
 
                     // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) + @ 룸에 저장하기
 

@@ -4,6 +4,7 @@ data class FeedBack(
     val down: String,
     val tempo: String,
     val back: String,
+    val goodShot: Boolean,
     val feedBackSolution: String,
     val feedBackCheckListTitle: String,
     val feedBackCheckList: List<String>,

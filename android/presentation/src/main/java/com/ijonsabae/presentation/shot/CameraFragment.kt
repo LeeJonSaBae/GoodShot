@@ -4,6 +4,8 @@ import android.Manifest
 import android.graphics.LinearGradient
 import android.graphics.Shader
 import android.graphics.Typeface
+import android.media.AudioAttributes
+import android.media.SoundPool
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.text.SpannableString
@@ -34,7 +36,6 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentCameraBinding
 import com.ijonsabae.presentation.main.MainActivity
-import com.ijonsabae.presentation.model.FeedBack
 import com.ijonsabae.presentation.shot.CameraState.ADDRESS
 import com.ijonsabae.presentation.shot.CameraState.AGAIN
 import com.ijonsabae.presentation.shot.CameraState.ANALYZING
@@ -64,6 +65,8 @@ class CameraFragment :
     private var camera: Camera? = null
     private var cameraController: CameraControl? = null
     private val lastAnalysisTimestamp = AtomicLong(0L)
+    private lateinit var soundPool: SoundPool
+    private var soundId: Int = 0
     private var tts: TextToSpeech? = null
     private var TTS_ID = "TTS"
 
@@ -88,6 +91,7 @@ class CameraFragment :
         (fragmentContext as MainActivity).hideAppBar()
         initObservers()
         initTts()
+        initSoundPool()
         surfaceView = binding.camera
         permissionChecker = PermissionChecker(this)
         permissionChecker.setOnGrantedListener { //퍼미션 획득 성공일때
@@ -100,6 +104,21 @@ class CameraFragment :
             Log.d(TAG, "onViewCreated: 권한 부족")
             permissionChecker.requestPermissionLauncher.launch(permissionList) // 권한없으면 창 띄움
         }
+    }
+
+    private fun initSoundPool() {
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_MEDIA)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+
+        soundPool = SoundPool.Builder()
+            .setMaxStreams(1)
+            .setAudioAttributes(audioAttributes)
+            .build()
+
+        // 오디오 파일 로드
+        soundId = soundPool.load(fragmentContext, R.raw.applause, 1)
     }
 
     private fun initTts() {
@@ -163,11 +182,6 @@ class CameraFragment :
                             val fps = 1000.0 / deltaTime
                             Log.d("CameraAnalyzer", "Current FPS: ${fps.roundToInt()}")
                         }
-
-                        // TODO: 좌타 우타 여부 동적으로 넣어주기
-//                         isSelf = true
-//                        isLeft = false
-
                         cameraSource.processImage(
                             cameraSource.getRotateBitmap(
                                 image.toBitmap(),
@@ -219,7 +233,6 @@ class CameraFragment :
     }
 
     override fun onDestroyView() {
-        // 여기 작성해줘
         (fragmentContext as MainActivity).showBottomNavBar()
         cameraProvider.unbindAll()
         super.onDestroyView()
@@ -231,6 +244,7 @@ class CameraFragment :
             t.shutdown()
         }
         cameraSource.destroy()
+        soundPool.release()
         super.onDestroy()
     }
 
@@ -449,9 +463,12 @@ class CameraFragment :
                     swingViewModel.getFeedBack()?.let {
                         navController.navigate(
                             CameraFragmentDirections.actionCameraToFeedbackDialog(
-                                it, swingViewModel.getSwingCnt(), shotSettingViewModel.totalSwingCnt.value
+                                it,
+                                swingViewModel.getSwingCnt(),
+                                shotSettingViewModel.totalSwingCnt.value
                             )
                         )
+                        if (it.goodShot) soundPool.play(soundId, 0.8f, 0.8f, 1, 0, 1.0f)
                         tts?.speak(it.feedBackSolution, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
                     }
 
