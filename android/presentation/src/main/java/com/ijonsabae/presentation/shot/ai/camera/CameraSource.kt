@@ -568,15 +568,17 @@ class CameraSource(
                 jointData[RIGHT_WRIST.position].coordinate.x > jointData[RIGHT_SHOULDER.position].coordinate.x &&
                 jointData[RIGHT_WRIST.position].coordinate.y < jointData[RIGHT_SHOULDER.position].coordinate.y
             ) {
+                Log.d("분석결과", "모델 준비 완료!!!")
                 modelChangeReady = true
             }
 
             // 손목이 어깨 위로 올라가면 모델 교체 && bias 추가
             if (modelChangeReady
                 && classifier == classifier8
-                && jointData[LEFT_WRIST.position].coordinate.x < jointData[RIGHT_SHOULDER.position].coordinate.x
-                && jointData[LEFT_WRIST.position].coordinate.y < jointData[RIGHT_SHOULDER.position].coordinate.y
+                && jointData[LEFT_WRIST.position].coordinate.x < jointData[LEFT_SHOULDER.position].coordinate.x
+                && jointData[LEFT_WRIST.position].coordinate.y < jointData[LEFT_SHOULDER.position].coordinate.y
             ) {
+                Log.d("분석결과", "모델 교체!!!")
                 classifier = classifier4
             }
 
