@@ -119,8 +119,8 @@ class FeedbackDialog :
                     .into(ivExpertSwing)
 
                 tvTempo.text = tempo
-                "${back}초".also { tvBack.text = it }
-                "${down}초".also { tvDown.text = it }
+                tvBack.text = back
+                tvDown.text = down
 
                 tvCheckListTitle.text = feedBackCheckListTitle
                 tvFeedbackSolution.text = feedBackSolution
