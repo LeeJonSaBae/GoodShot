@@ -568,7 +568,6 @@ class CameraSource(
                 jointData[RIGHT_WRIST.position].coordinate.x > jointData[RIGHT_SHOULDER.position].coordinate.x &&
                 jointData[RIGHT_WRIST.position].coordinate.y < jointData[RIGHT_SHOULDER.position].coordinate.y
             ) {
-                Log.d("분석결과", "모델 준비 완료!!!")
                 modelChangeReady = true
             }
 
@@ -578,7 +577,6 @@ class CameraSource(
                 && jointData[LEFT_WRIST.position].coordinate.x < jointData[LEFT_SHOULDER.position].coordinate.x
                 && jointData[LEFT_WRIST.position].coordinate.y < jointData[LEFT_SHOULDER.position].coordinate.y
             ) {
-                Log.d("분석결과", "모델 교체!!!")
                 classifier = classifier4
             }
 

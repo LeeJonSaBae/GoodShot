@@ -126,7 +126,7 @@ object PostureFeedback {
         val hipCenterX = (leftHipX + rightHipX) / 2
 
         val headOffset = hipCenterX - noseX
-        val leftThreshold = 0.07f  // 코가 골반 중심보다 왼쪽에 있어야 하는 최소 거리
+        val leftThreshold = 0.08f  // 코가 골반 중심보다 왼쪽에 있어야 하는 최소 거리
         val rightThreshold = -0.05f
 
         val isProblem =
@@ -166,7 +166,7 @@ object PostureFeedback {
         val trailingKneeSway = finalTrailingKneeX - initialTrailingKneeX
 
         val totalSway = leadingKneeSway + trailingKneeSway
-        val threshold = 0.07f  // 무릎 이동을 문제로 간주할 임계값
+        val threshold = 0.04f  // 무릎 이동을 문제로 간주할 임계값
 
         val isProblem = totalSway < threshold
 
@@ -185,7 +185,7 @@ object PostureFeedback {
         val impactHandY = jointList[frameIndexes[IMPACT.ordinal]][LEFT_WRIST.ordinal].coordinate.y
 
         val heightDifference = impactHandY - addressHandY
-        val threshold = 0.25f  // 손 높이 차이를 문제로 간주할 임계값
+        val threshold = 0.2f  // 손 높이 차이를 문제로 간주할 임계값
 
         val isProblem = abs(heightDifference) > threshold
         val deviationDirection = if (heightDifference > 0) BOTTOM else Direction.TOP
@@ -265,12 +265,11 @@ object PostureFeedback {
 
         val initialAnkleY = jointList[frameIndexes[ADDRESS.ordinal]][ankleIndex].coordinate.y
         var isProblem = false
-        val threshold = 0.05f  // 발목이 들렸다고 간주할 높이 차이의 임계값, 필요에 따라 조정 가능
+        val threshold = 0.02f  // 발목이 들렸다고 간주할 높이 차이의 임계값, 필요에 따라 조정 가능
 
         for (frameIndex in frameIndexes[ADDRESS.ordinal] downTo frameIndexes[Pose.TOP.ordinal]) {
             val currentAnkleY = jointList[frameIndex][ankleIndex].coordinate.y
             val liftDistance = initialAnkleY - currentAnkleY  // y 좌표가 작아질수록 높이가 올라감
-
             if (liftDistance > threshold) {
                 isProblem = true
                 break
@@ -304,7 +303,7 @@ object PostureFeedback {
         val trailingKneeSway = initialTrailingKneeX - finalTrailingKneeX
 
         val totalSway = leadingKneeSway + trailingKneeSway
-        val threshold = 0.05f  // 무릎 이동을 문제로 간주할 임계값
+        val threshold = 0.012f  // 무릎 이동을 문제로 간주할 임계값
 
         val isProblem = totalSway < threshold
 
@@ -324,7 +323,7 @@ object PostureFeedback {
         val wristIndex = LEFT_WRIST.ordinal
 
         var isProblem = false
-        val threshold = 15f  // 팔이 구부러진 것으로 간주할 각도 임계값
+        val threshold = 22f  // 팔이 구부러진 것으로 간주할 각도 임계값
 
         for (frameIndex in frameIndexes[ADDRESS.ordinal] downTo frameIndexes[TOE_UP.ordinal]) {
             val shoulder = jointList[frameIndex][shoulderIndex].coordinate
@@ -382,7 +381,7 @@ object PostureFeedback {
         val initialNoseCoordinate =
             jointList[frameIndexes[ADDRESS.ordinal]][NOSE.ordinal].coordinate
         var isProblem = false
-        val threshHold = 0.1f
+        val threshHold = 0.12f
         var deviationDirection: Direction = CENTER
 
         for (frameIndex in frameIndexes[ADDRESS.ordinal] downTo frameIndexes[Pose.TOP.ordinal]) {
