@@ -1,12 +1,19 @@
 package com.d201.goodshot.swing.service;
 
+import com.d201.goodshot.global.s3.dto.ImageRequest;
+import com.d201.goodshot.global.s3.dto.ImageRequest.PresignedUrlRequest;
+import com.d201.goodshot.global.s3.dto.ImageResponse;
+import com.d201.goodshot.global.s3.dto.ImageResponse.PresignedUrlResponse;
+import com.d201.goodshot.global.s3.service.S3Service;
 import com.d201.goodshot.global.security.dto.CustomUser;
 import com.d201.goodshot.swing.domain.Comment;
 import com.d201.goodshot.swing.domain.Swing;
 import com.d201.goodshot.swing.dto.CommentItem;
 import com.d201.goodshot.swing.dto.SwingRequest;
 import com.d201.goodshot.swing.dto.SwingRequest.SwingDataRequest;
+import com.d201.goodshot.swing.dto.SwingResponse;
 import com.d201.goodshot.swing.dto.SwingResponse.ReportResponse;
+import com.d201.goodshot.swing.dto.SwingResponse.SwingCodeResponse;
 import com.d201.goodshot.swing.dto.SwingResponse.SwingDataResponse;
 import com.d201.goodshot.swing.enums.PoseType;
 import com.d201.goodshot.swing.repository.CommentRepository;
@@ -22,10 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +40,7 @@ public class SwingService {
     private final SwingRepository swingRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final S3Service s3Service;
 
     // 종합 리포트 조회
     public ReportResponse getReport(CustomUser customUser) {
@@ -101,12 +106,56 @@ public class SwingService {
         return commentItems;
     }
 
+    // 스윙 비교하기 (Room 에 데이터가 더 많은 상태)
+    public List<SwingCodeResponse> compareSwingData(CustomUser customUser, SwingDataRequest swingDataRequest) {
+        // 사용자 조회
+        User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
 
-    // 스윙 비교하기
+        // 사용자의 기존 Swing 리스트 조회
+        List<Swing> swings = swingRepository.findByUser(user);
+        List<String> codes = swingDataRequest.getCodes();
+
+        // 결과 리스트 생성
+        List<SwingCodeResponse> swingCodeResponses = new ArrayList<>();
+
+        // 각 요청된 코드에 대해 처리
+        for (String code : codes) {
+            // Swing 리스트에서 해당 코드가 있는지 확인
+            boolean exists = swings.stream().anyMatch(swing -> swing.getCode().equals(code));
+
+            // 해당 코드가 없으면 Presigned URL 생성 및 응답에 추가
+            if (!exists) {
+                List<String> presignedUrls = new ArrayList<>();
+
+                // 1. video presigned URL 발급
+                PresignedUrlRequest presignedUrlVideoRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.MP4);
+                presignedUrls.add(s3Service.issuePresignedUrl(presignedUrlVideoRequest, user.getId(), "video", code).getPresignedUrl());
+
+                // 2. thumbnail presigned URL 발급
+                PresignedUrlRequest presignedUrlThumbnailRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.JPG);
+                presignedUrls.add(s3Service.issuePresignedUrl(presignedUrlThumbnailRequest, user.getId(), "thumbnail", code).getPresignedUrl());
+
+                // 3. image presigned URLs 발급 (8개 이미지)
+                for (int i = 0; i < 8; i++) {
+                    PresignedUrlRequest presignedUrlImageRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.JPG);
+                    presignedUrls.add(s3Service.issuePresignedUrl(presignedUrlImageRequest, user.getId(), "image", code + "_" + i).getPresignedUrl());
+                }
+
+                // 응답 객체 생성 후 리스트에 추가
+                swingCodeResponses.add(SwingCodeResponse.builder()
+                        .code(code)
+                        .presignedUrls(presignedUrls)
+                        .build());
+            }
+        }
+
+        return swingCodeResponses;
+    }
 
 
     // 스윙 내보내기
-    public void exportSwingData(CustomUser customUser) {
+    public void exportSwingData(CustomUser customUser, SwingDataRequest swingDataRequest) {
+        // 받아온 데이터 DB 에 저장
 
     }
 
