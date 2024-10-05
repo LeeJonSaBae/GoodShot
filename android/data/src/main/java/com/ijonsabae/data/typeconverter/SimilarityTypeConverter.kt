@@ -1,10 +1,11 @@
-package com.ijonsabae.domain.typeconverter
+package com.ijonsabae.data.typeconverter
 
 import androidx.room.ProvidedTypeConverter
 import androidx.room.TypeConverter
 import com.ijonsabae.domain.model.Similarity
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import javax.inject.Inject
 
 @ProvidedTypeConverter
 class SimilarityTypeConverter {

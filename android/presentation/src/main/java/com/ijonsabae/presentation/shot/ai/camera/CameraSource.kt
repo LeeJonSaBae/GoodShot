@@ -28,6 +28,8 @@ import android.util.Log
 import android.view.PixelCopy
 import android.view.SurfaceView
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.ijonsabae.domain.model.Similarity
+import com.ijonsabae.domain.model.SwingFeedback
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.model.FeedBack
 import com.ijonsabae.presentation.shot.CameraState
@@ -95,8 +97,10 @@ class CameraSource(
     private val getCurrentCameraState: () -> CameraState?,
     private val setCurrentCameraState: (cameraState: CameraState) -> Unit,
     private val setFeedback: (FeedBack) -> Unit,
+    private val getUserId: () -> Long,
+    private val insertLocalSwingFeedback: (SwingFeedback) -> Unit,
     private val initializeSwingCnt: () -> Unit,
-    private val increaseSwingCnt: () -> Unit
+    private val increaseSwingCnt: () -> Unit,
 ) {
     private var lock = Any()
     private var classifier4: PoseClassifier? = null
@@ -117,10 +121,12 @@ class CameraSource(
     private var minMidBackSwingGap = 1f
     private var minTakeAwayGap = 1f
     private var minAddressGap = 1f
+    private lateinit var jointDataList: List<List<KeyPoint>>
     private lateinit var imageDataList: List<TimestampedData<Bitmap>>
     private var manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
 
     private var resultSkipMotionStartTime: Long = 0L //스윙결과 스킵 동작을 인식하기 위한 변수
+    private lateinit var swingSimilarity: Similarity
 
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
     private var frameProcessedInOneSecondInterval = 0
@@ -554,7 +560,7 @@ class CameraSource(
      * 8동작의 비트맵과 관절 좌표를 반환
      */
     private fun extractBestPoseIndices() {
-        val jointDataList = jointQueue.toList().reversed()
+        jointDataList = jointQueue.toList().reversed()
         imageDataList = imageQueue.toList().reversed()
         var classifier = classifier8
         var modelChangeReady = false
@@ -726,19 +732,27 @@ class CameraSource(
                         userSwingImage,
                         answerSwingImageResId
                     )
+                    val swingScore = calculateScore(manualPoseIndexArray)
                     setFeedback(feedBack)
+                    
 
                     // 영상 만들기
-                    SwingVideoProcessor.convertBitmapsToVideo(
-                        context,
-                        actualSwingIndices.reversed()
-                    ) // TODO : userName 넘겨주기
-
-                    // TODO: 스윙 리플레이에서 다시 보여줄 데이터 룸에 저장하기(ex. 영상, 비트맵, 피드백, 썸네일, 날짜, 점수, 템포 + @)
-                    // ++ poseAnalysisResults에 백스윙, 다운스윙 코멘트 각각 담겨 있음, preciseBitmaps에 8개 포즈 담겨 있음, precisePoseScores에 8개 유사도 담겨있음
-
-                    // 스윙 분석 결과 표시
+                    val userId = getUserId()
+                    val fileName = SwingVideoProcessor.saveSwingVideo(context, actualSwingIndices.reversed(), userId)
+                    // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) + @ 룸에 저장하기
+                    insertLocalSwingFeedback(SwingFeedback(
+                        userID = userId,
+                        videoName = fileName,
+                        similarity = swingSimilarity,
+                        solution = poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
+                        score = swingScore, //TODO 문현 : SCORE 기준 회의 후 정하기
+                        tempo = tempoRatio.toDouble(),
+                        title = swingScore.toString() + "점 스윙",
+                        date = System.currentTimeMillis()
+                    ))
+                    // 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
                     increaseSwingCnt()
+
                     setCurrentCameraState(RESULT)
                     resultSkipMotionStartTime = 0L //스킵 동작 탐지를 위한 변수 초기화
                 } else {
@@ -823,6 +837,42 @@ class CameraSource(
                 context.resources.getStringArray(R.array.good_tip_list).toList()
         }
         return Pair(feedbackCheckList, feedbackCheckListTitle)
+    }
+
+    private fun calculateScore(indices: Array<Int>) : Int {
+        /**
+         * 수동 측정된 스윙 자세들에 대해 모델을 통한 유사도 점수를 갱신하고 score 반환
+         * TODO 문현 : 점수가 낮게 나오는 문제 해결방안 생각하고 적용해보기
+         * */
+        val scores = Array (8) { 0.0f }
+
+        indices.forEachIndexed{ poseNumber, frameIndex ->
+            val classifierResultList = classifier4!!.classify(jointDataList[frameIndex])
+            classifierResultList.forEachIndexed { classifiedPoseIndex, classifiedResult ->
+                val classifiedPoseScore = classifiedResult.second
+                if (classifiedPoseIndex < 4 && poseNumber < 4) {
+                    scores[classifiedPoseIndex] = max(scores[classifiedPoseIndex], classifiedPoseScore)
+                }
+                if (classifiedPoseIndex in 4..7 && poseNumber in 4..7) {
+                    scores[classifiedPoseIndex] = max(scores[classifiedPoseIndex], classifiedPoseScore)
+                }
+            }
+        }
+        swingSimilarity = Similarity(
+            scores[0].toDouble(),
+            scores[1].toDouble(),
+            scores[2].toDouble(),
+            scores[3].toDouble(),
+            scores[4].toDouble(),
+            scores[5].toDouble(),
+            scores[6].toDouble(),
+            scores[7].toDouble(),
+        )
+        var scoreResult = 0.0
+        scores.forEachIndexed{ _, score ->
+            scoreResult += (score * 100)
+        }
+        return (scoreResult/8).toInt()
     }
 
     private fun checkFinish(index: Int, jointData: List<KeyPoint>) {
