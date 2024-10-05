@@ -62,6 +62,7 @@ import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
 import com.ijonsabae.presentation.shot.ai.data.Pose.*
+import com.ijonsabae.presentation.shot.ai.data.PoseAnalysisResult
 import com.ijonsabae.presentation.shot.ai.data.Solution.*
 import com.ijonsabae.presentation.shot.ai.ml.ModelType
 import com.ijonsabae.presentation.shot.ai.ml.MoveNet
@@ -74,9 +75,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileOutputStream
-import java.nio.ByteBuffer
 import java.util.Arrays
 import java.util.LinkedList
 import java.util.Locale
@@ -527,7 +525,6 @@ class CameraSource(
     private fun validateSwingPose(poseIndices: Array<Int>): Boolean {
         Log.d("분석결과", "파라미터 : ${Arrays.toString(poseIndices)}")
 
-
         // 중복 검사
         val uniqueIndices = poseIndices.toSet()
         if (uniqueIndices.size != poseIndices.size) {
@@ -545,40 +542,6 @@ class CameraSource(
 
         return true
     }
-
-    private fun saveBitmapToInternalStorage(
-        bitmap: Bitmap,
-        userName: String,
-        ssidName: String,
-        fileSaveTime: Long
-    ) {
-        val thumbnailFileName = "${ssidName}_${fileSaveTime}.jpg"
-        val thumbnailDir = File(context.filesDir, "thumbnails/$userName")
-        if (!thumbnailDir.exists()) {
-            thumbnailDir.mkdirs()
-        }
-
-        val file = File(thumbnailDir, thumbnailFileName)
-        FileOutputStream(file).use { out ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-        }
-        file.absolutePath
-        Log.d("MainActivity_Capture", "썸네일 저장 완료")
-    }
-
-    private fun bitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {
-        val inputWidth = bitmap.width
-        val inputHeight = bitmap.height
-        val yuvImage = ByteArray(inputWidth * inputHeight * 3 / 2)
-        val argb = IntArray(inputWidth * inputHeight)
-
-        bitmap.getPixels(argb, 0, inputWidth, 0, 0, inputWidth, inputHeight)
-
-        encodeYUV420SP(yuvImage, argb, inputWidth, inputHeight)
-
-        return ByteBuffer.wrap(yuvImage)
-    }
-
 
     private fun encodeYUV420SP(yuv420sp: ByteArray, argb: IntArray, width: Int, height: Int) {
         val frameSize = width * height
@@ -639,10 +602,8 @@ class CameraSource(
     private fun extractBestPoseIndices() {
         val jointDataList = jointQueue.toList().reversed()
         imageDataList = imageQueue.toList().reversed()
-        var poseLabelBias = 4
         var classifier = classifier8
         var modelChangeReady = false
-        val poseIndexArray = Array(8) { Pair(0, 0f) } //모델 스코어로 추론한 인덱스
 
         //수동측정을 위한 값들
         minFinishGap = 100f
@@ -684,7 +645,6 @@ class CameraSource(
                 && jointData[LEFT_WRIST.position].coordinate.y < jointData[RIGHT_SHOULDER.position].coordinate.y
             ) {
                 classifier = classifier4
-                poseLabelBias = 0
             }
 
             if (classifier == classifier8) {
@@ -760,23 +720,20 @@ class CameraSource(
                         .take(manualPoseIndexArray[0])
                         .map { it.data }
 
-                    Log.d("MainActivity_Capture", "인덱스들: ${actualSwingIndices}")
-
+                    Log.d("MainActivity_Capture", "인덱스들: $actualSwingIndices")
 
                     // 템포, 백스윙, 다운스윙 시간 분석하기
                     val swingTiming = analyzeSwingTime(swingData)
-                    val backswingTime =
-                        String.format(
-                            Locale.getDefault(),
-                            "%.2f",
-                            swingTiming.backswingTime / 1000.0
-                        )
-                    val downswingTime =
-                        String.format(
-                            Locale.getDefault(),
-                            "%.2f",
-                            swingTiming.downswingTime / 1000.0
-                        )
+                    val backswingTime = String.format(
+                        Locale.getDefault(),
+                        "%.2f",
+                        swingTiming.backswingTime / 1000.0
+                    )
+                    val downswingTime = String.format(
+                        Locale.getDefault(),
+                        "%.2f",
+                        swingTiming.downswingTime / 1000.0
+                    )
                     val tempoRatio =
                         String.format(Locale.getDefault(), "%.2f", swingTiming.tempoRatio)
 
@@ -792,68 +749,19 @@ class CameraSource(
                     )
                     Log.d("분석결과", "$poseAnalysisResults")
 
-                    val feedbackCheckListTitle: String
                     val feedbackCheckList: List<String>
-
-                    if (poseAnalysisResults.solution.toString().startsWith("BACK")) {
-                        feedbackCheckListTitle = context.getString(R.string.back_feedback_title)
-                        feedbackCheckList =
-                            context.resources.getStringArray(R.array.back_tip_list).toList()
-                    } else if (poseAnalysisResults.solution.toString().startsWith("DOWN")) {
-                        feedbackCheckListTitle = context.getString(R.string.down_feedback_title)
-                        feedbackCheckList =
-                            context.resources.getStringArray(R.array.down_tip_list).toList()
-                    } else {
-                        feedbackCheckListTitle = context.getString(R.string.good_feedback_title)
-                        feedbackCheckList =
-                            context.resources.getStringArray(R.array.good_tip_list).toList()
+                    val feedbackCheckListTitle: String
+                    determineFeedBackCheckList(poseAnalysisResults).let {
+                        feedbackCheckList = it.first
+                        feedbackCheckListTitle = it.second
                     }
 
                     val userSwingImage: Bitmap
                     val answerSwingImageResId: Int
-
-                    when (poseAnalysisResults.solution) {
-                        BACK_BODY_LIFT -> {
-                            userSwingImage = preciseBitmaps[TOP.ordinal].data
-                            answerSwingImageResId = R.drawable.back_body_lift
-                        }
-
-                        BACK_ARM_EXTENSION -> {
-                            userSwingImage = preciseBitmaps[MID_BACKSWING.ordinal].data
-                            answerSwingImageResId = R.drawable.back_arm_extension
-                        }
-
-                        BACK_WEIGHT_TRANSFER -> {
-                            userSwingImage = preciseBitmaps[TOP.ordinal].data
-                            answerSwingImageResId = R.drawable.back_weight_transfer
-                        }
-
-                        BACK_BODY_BALANCE -> {
-                            userSwingImage = preciseBitmaps[MID_BACKSWING.ordinal].data
-                            answerSwingImageResId = R.drawable.back_body_balance
-                        }
-
-                        DOWN_BODY_LIFT -> {
-                            userSwingImage = preciseBitmaps[MID_DOWNSWING.ordinal].data
-                            answerSwingImageResId = R.drawable.down_body_lift
-                        }
-
-                        DOWN_WEIGHT_TRANSFER -> {
-                            userSwingImage = preciseBitmaps[IMPACT.ordinal].data
-                            answerSwingImageResId = R.drawable.down_weight_transfer
-                        }
-
-                        DOWN_BODY_BALANCE -> {
-                            userSwingImage = preciseBitmaps[MID_DOWNSWING.ordinal].data
-                            answerSwingImageResId = R.drawable.down_body_balance
-                        }
-
-                        GOOD_SHOT -> {
-                            userSwingImage = preciseBitmaps[FINISH.ordinal].data
-                            answerSwingImageResId = R.drawable.good_shot
-                        }
+                    determineSwingImage(poseAnalysisResults, preciseBitmaps).let {
+                        answerSwingImageResId = it.first
+                        userSwingImage = it.second
                     }
-
                     val solution = poseAnalysisResults.solution
                     val solutionComment = solution.getSolution(isLeftHanded.not())
                     // 뷰모델에 피드백 담기
@@ -890,7 +798,7 @@ class CameraSource(
 //                        }
 //                    }
 
-                    // 영상 만들기`
+                    // 영상 만들기
                     SwingVideoProcessor.convertBitmapsToVideo(
                         context,
                         actualSwingIndices.reversed()
@@ -916,6 +824,77 @@ class CameraSource(
                 swingFrameCount = 0
             }
         }
+    }
+
+    private fun determineSwingImage(
+        poseAnalysisResults: PoseAnalysisResult,
+        preciseBitmaps: List<TimestampedData<Bitmap>>,
+    ): Pair<Int, Bitmap> {
+        val userSwingImage: Bitmap
+        val answerSwingImageResId: Int
+        when (poseAnalysisResults.solution) {
+            BACK_BODY_LIFT -> {
+                userSwingImage = preciseBitmaps[TOP.ordinal].data
+                answerSwingImageResId = R.drawable.back_body_lift
+            }
+
+            BACK_ARM_EXTENSION -> {
+                userSwingImage = preciseBitmaps[MID_BACKSWING.ordinal].data
+                answerSwingImageResId = R.drawable.back_arm_extension
+            }
+
+            BACK_WEIGHT_TRANSFER -> {
+                userSwingImage = preciseBitmaps[TOP.ordinal].data
+                answerSwingImageResId = R.drawable.back_weight_transfer
+            }
+
+            BACK_BODY_BALANCE -> {
+                userSwingImage = preciseBitmaps[MID_BACKSWING.ordinal].data
+                answerSwingImageResId = R.drawable.back_body_balance
+            }
+
+            DOWN_BODY_LIFT -> {
+                userSwingImage = preciseBitmaps[MID_DOWNSWING.ordinal].data
+                answerSwingImageResId = R.drawable.down_body_lift
+            }
+
+            DOWN_WEIGHT_TRANSFER -> {
+                userSwingImage = preciseBitmaps[IMPACT.ordinal].data
+                answerSwingImageResId = R.drawable.down_weight_transfer
+            }
+
+            DOWN_BODY_BALANCE -> {
+                userSwingImage = preciseBitmaps[MID_DOWNSWING.ordinal].data
+                answerSwingImageResId = R.drawable.down_body_balance
+            }
+
+            GOOD_SHOT -> {
+                userSwingImage = preciseBitmaps[FINISH.ordinal].data
+                answerSwingImageResId = R.drawable.good_shot
+            }
+        }
+        return Pair(answerSwingImageResId, userSwingImage)
+    }
+
+    private fun determineFeedBackCheckList(
+        poseAnalysisResults: PoseAnalysisResult,
+    ): Pair<List<String>, String> {
+        val feedbackCheckListTitle: String
+        val feedbackCheckList: List<String>
+        if (poseAnalysisResults.solution.toString().startsWith("BACK")) {
+            feedbackCheckListTitle = context.getString(R.string.back_feedback_title)
+            feedbackCheckList =
+                context.resources.getStringArray(R.array.back_tip_list).toList()
+        } else if (poseAnalysisResults.solution.toString().startsWith("DOWN")) {
+            feedbackCheckListTitle = context.getString(R.string.down_feedback_title)
+            feedbackCheckList =
+                context.resources.getStringArray(R.array.down_tip_list).toList()
+        } else {
+            feedbackCheckListTitle = context.getString(R.string.good_feedback_title)
+            feedbackCheckList =
+                context.resources.getStringArray(R.array.good_tip_list).toList()
+        }
+        return Pair(feedbackCheckList, feedbackCheckListTitle)
     }
 
     private fun checkFinish(index: Int, jointData: List<KeyPoint>) {
