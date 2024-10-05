@@ -738,7 +738,8 @@ class CameraSource(
 
                     // 영상 만들기
                     val userId = getUserId()
-                    val fileName = SwingVideoProcessor.saveSwingVideo(context, actualSwingIndices.reversed(), userId)
+
+                    val fileName = SwingVideoProcessor.saveSwingVideo(context, actualSwingIndices.reversed(), false, userId) //TODO 문현 : 여기 동적으로 전면카메라 처리 필요
                     // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) + @ 룸에 저장하기
                     insertLocalSwingFeedback(SwingFeedback(
                         userID = userId,
