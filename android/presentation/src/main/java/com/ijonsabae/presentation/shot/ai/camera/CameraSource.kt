@@ -102,7 +102,6 @@ class CameraSource(
     private val insertLocalSwingFeedback: (SwingFeedback) -> Unit,
     private val initializeSwingCnt: () -> Unit,
     private val increaseSwingCnt: () -> Unit,
-    // TODO: 여기서 유즈케이스 받아서 사용
 ) {
     private var lock = Any()
     private var classifier4: PoseClassifier? = null
@@ -127,6 +126,7 @@ class CameraSource(
     private var manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
 
     private var resultSkipMotionStartTime: Long = 0L //스윙결과 스킵 동작을 인식하기 위한 변수
+    private lateinit var swingSimilarity: Similarity
 
     /** Frame count that have been processed so far in an one second interval to calculate FPS. */
     private var frameProcessedInOneSecondInterval = 0
@@ -670,6 +670,7 @@ class CameraSource(
                     val actualSwingIndices = imageDataList
                         .take(manualPoseIndexArray[0])
                         .map { it.data }
+                    //TODO 문현 : 여기서 poseFrameGroup이나 actualSwingIndices 또는 manualPoseIndexArray를 통해서 Similarity를 체크해주자
 
                     // 템포, 백스윙, 다운스윙 시간 분석하기
                     val swingTiming = analyzeSwingTime(swingData)
@@ -740,15 +741,16 @@ class CameraSource(
                     val fileName = SwingVideoProcessor.saveSwingVideo(context, actualSwingIndices.reversed())
                     // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) + @ 룸에 저장하기
                     //아래 객체는 임시로 기능 구현이 가능한지 확인하기 위한 객체로 값은 동적으로 할당해주어야 한다.
+
+                    // TODO 문현 : 8개의 자세에 대해 유사도를 구해서 Similarity를 계한새허 넘겨줘야할거같아요
                     val swingFeedback = SwingFeedback(
                         userID = -1L,
                         videoName = fileName,
-                        likeStatus = false,
                         similarity = Similarity(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
                         solution = poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
                         score = 100,
                         tempo = tempoRatio.toDouble(),
-                        title = fileName,
+                        title = fileName, //score로 주기
                         date = System.currentTimeMillis()
                     )
                     //여기서 이제 swingviewmodel에 swingfeedback객체를 던저줘서 viewmodel에서 비동기로 저장 수행하게 하면 되나?

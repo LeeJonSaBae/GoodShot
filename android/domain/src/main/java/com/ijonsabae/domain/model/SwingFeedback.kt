@@ -6,7 +6,7 @@ import androidx.room.Entity
 data class SwingFeedback(
     val userID: Long,
     val videoName: String,
-    val likeStatus: Boolean,
+    val likeStatus: Boolean = false,
     val similarity: Similarity, // 포즈별 유사도를 String으로 저장
     val solution: String,
     val score: Int,
