@@ -29,6 +29,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.Navigation
 import com.google.common.util.concurrent.ListenableFuture
+import com.ijonsabae.domain.usecase.login.GetUserIdUseCase
 import com.ijonsabae.domain.usecase.shot.GetSwingFeedBackUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
@@ -58,8 +59,13 @@ private const val TAG = "CameraFragment_싸피"
 class CameraFragment :
     BaseFragment<FragmentCameraBinding>(FragmentCameraBinding::bind, R.layout.fragment_camera) {
 
+
     @Inject
     lateinit var foldingStateActor: FoldingStateActor
+
+    @Inject
+    lateinit var getUserIdUseCase: GetUserIdUseCase
+    //TODO: Inject 유즈케이스 받아서 lateinitvar로 받아서 camerasource에 던져주면 된다
     private val permissionList = arrayOf(Manifest.permission.CAMERA)
     private var camera: Camera? = null
     private var cameraController: CameraControl? = null
@@ -475,6 +481,7 @@ class CameraFragment :
         }
     }
 
+    //TODO 영민 : 1. userID 넘겨주기, 2. swingfeedbackviewmodel에 SwingFeedback객체 저장하는 함수 넘겨주기
     private fun initAiSetting() {
         if (!::cameraSource.isInitialized) {
             cameraSource = CameraSource(
@@ -484,9 +491,11 @@ class CameraFragment :
                 { cameraState -> swingViewModel.setCurrentState(cameraState) },
                 { feedback -> swingViewModel.setFeedBack(feedback) },
                 swingViewModel::initializeSwingCnt,
-                swingViewModel::increaseSwingCnt
+                swingViewModel::increaseSwingCnt,
+                getUserIdUseCase
             )
             cameraSource.setSurfaceView(binding.camera)
         }
     }
+
 }

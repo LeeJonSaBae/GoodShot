@@ -17,7 +17,7 @@ import java.nio.ByteBuffer
 
 
 object SwingVideoProcessor {
-
+    const val GUEST_ID: Long = -1L
     fun saveBitmapToGallery(context: Context, bitmap: Bitmap, fileName: String): Uri? {
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
@@ -48,11 +48,11 @@ object SwingVideoProcessor {
     }
 
     @SuppressLint("HardwareIds")
-    fun convertBitmapsToVideo(context: Context, bitmapIndices: List<Bitmap>, userName: String = "guest") {
+    fun saveSwingVideo(context: Context, bitmapIndices: List<Bitmap>, userID: Long = GUEST_ID) : String {
         val fileSaveTime = System.currentTimeMillis()
         val ssidName = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
         val videoFileName = "${ssidName}_${fileSaveTime}.mp4"
-        val videoDir = File(context.filesDir, "videos/$userName")
+        val videoDir = File(context.filesDir, "videos/$userID")
         if (!videoDir.exists()) {
             videoDir.mkdirs()
         }
@@ -72,10 +72,13 @@ object SwingVideoProcessor {
         }
 
         videoEncoder.finish()
-        saveBitmapToInternalStorage(context, bitmapIndices[0], userName, ssidName, fileSaveTime)
+        saveBitmapToInternalStorage(context, bitmapIndices[0], userID, ssidName, fileSaveTime)
+
+        return videoFileName
+
     }
 
-    private fun saveBitmapToInternalStorage(context: Context, bitmap: Bitmap, userName: String, ssidName: String, fileSaveTime: Long) {
+    private fun saveBitmapToInternalStorage(context: Context, bitmap: Bitmap, userName: Long, ssidName: String, fileSaveTime: Long) {
         val thumbnailFileName = "${ssidName}_${fileSaveTime}.jpg"
         val thumbnailDir = File(context.filesDir, "thumbnails/$userName")
         if (!thumbnailDir.exists()) {
@@ -125,5 +128,7 @@ object SwingVideoProcessor {
             }
         }
     }
+
+
 
 }

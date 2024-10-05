@@ -15,32 +15,25 @@ limitations under the License.
 */
 
 
-import VideoEncoder
-import android.annotation.SuppressLint
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.PointF
 import android.graphics.Rect
-import android.media.MediaMetadataRetriever
-import android.media.MediaScannerConnection
-import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
-import android.provider.MediaStore
-import android.provider.Settings
-import android.provider.Settings.Secure.getString
 import android.util.Log
-import android.util.Size
 import android.view.PixelCopy
 import android.view.SurfaceView
 import androidx.annotation.RequiresApi
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.ijonsabae.domain.model.Similarity
+import com.ijonsabae.domain.model.SwingFeedback
+import com.ijonsabae.domain.usecase.login.GetUserIdUseCase
+import com.ijonsabae.domain.usecase.replay.InsertLocalSwingFeedbackUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.model.FeedBack
 import com.ijonsabae.presentation.shot.CameraState
@@ -72,9 +65,7 @@ import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_WRIST
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
-import com.ijonsabae.presentation.shot.ai.data.Pose
 import com.ijonsabae.presentation.shot.ai.data.Pose.*
-import com.ijonsabae.presentation.shot.ai.data.Solution
 import com.ijonsabae.presentation.shot.ai.data.Solution.*
 import com.ijonsabae.presentation.shot.ai.ml.ModelType
 import com.ijonsabae.presentation.shot.ai.ml.MoveNet
@@ -87,14 +78,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.OutputStream
-import java.nio.ByteBuffer
-import java.text.SimpleDateFormat
 import java.util.Arrays
-import java.util.Date
 import java.util.LinkedList
 import java.util.Locale
 import java.util.Queue
@@ -119,7 +103,9 @@ class CameraSource(
     private val setCurrentCameraState: (cameraState: CameraState) -> Unit,
     private val setFeedback: (FeedBack) -> Unit,
     private val initializeSwingCnt: () -> Unit,
-    private val increaseSwingCnt: () -> Unit
+    private val increaseSwingCnt: () -> Unit,
+    private val getUserIdUseCase: GetUserIdUseCase
+    // TODO: 여기서 유즈케이스 받아서 사용
 ) {
     private var lock = Any()
     private var classifier4: PoseClassifier? = null
@@ -177,6 +163,9 @@ class CameraSource(
         setClassifier(classifier4, classifier8)
 
         initializeSwingCnt.invoke()
+        CoroutineScope(Dispatchers.IO).launch {
+            Log.d("getUserIDUseCase", "${getUserIdUseCase()}: ")
+        }
     }
 
     companion object {
@@ -824,30 +813,25 @@ class CameraSource(
                     )
                     setFeedback(feedBack)
 
-                    // 8개의 베스트 포즈에 대한 비트맵을 갤러리에 저장
-//                    poseAnalysisResults.forEachIndexed { idx, result ->
-//                        val fileName =
-//                            "swing_pose_group${idx + 1}_frame.jpg"
-//                        val uri = saveBitmapToGallery(context, result.bitmap, fileName)
-//                        uri?.let {
-//                            Log.d("싸피", "Saved image $fileName at $it")
-//                        }
-//                    }
-
-//                    Log.d("수동측정", "수동측정이미지 inx : ${Arrays.toString(manualPoseIndexArray)}")
-//                    // 8개의 수동 측정 포즈에 대한 비트맵을 갤러리에 저장
-//                    manualPoseIndexArray.forEachIndexed { idx, poseImageIndex ->
-//                        val fileName = "swing_pose_group${idx + 1}_frame.jpg"
-//                        val uri = saveBitmapToGallery(context, imageDataList[poseImageIndex].data, fileName)
-//                        uri?.let {
-////                            Log.d("수동측정", "수동측정이미지 저장 ${idx + 1} frameidx_${poseImageIndex}_frame.jpg")
-//                        }
-//                    }
-
-                    // 영상 만들기`
-                    SwingVideoProcessor.convertBitmapsToVideo(context, actualSwingIndices.reversed()) // TODO : userName 넘겨주기
-
+                    // 영상 만들기
+                    // TODO: 저장하는 시점과 SSID 이름을 받아서 GETUERIDUSECASE로 회원아이디 받아오고 feedback 객체만들어서 InsertLocalSwingFeedbackUseCase에 던져주면 저장됨
+                    // -> 그렇게 하면 suspend 함수를 써야하니까 그냥 local에 저장 또는 login시 받아와서 camerafragment에 전달해줄 수 없나?
+                    val fileName = SwingVideoProcessor.saveSwingVideo(context, actualSwingIndices.reversed())
                     // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) + @ 룸에 저장하기
+                    //아래 객체는 임시로 기능 구현이 가능한지 확인하기 위한 객체로 값은 동적으로 할당해주어야 한다.
+                    val swingFeedback = SwingFeedback(
+                        userID = -1L,
+                        videoName = fileName,
+                        likeStatus = false,
+                        similarity = Similarity(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+                        solution = poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
+                        score = 100,
+                        tempo = tempoRatio.toDouble(),
+                        title = fileName,
+                        date = System.currentTimeMillis()
+                    )
+                    //여기서 이제 swingviewmodel에 swingfeedback객체를 던저줘서 viewmodel에서 비동기로 저장 수행하게 하면 되나?
+
 
                     // TODO: 영상 + 8개 비트맵 + 8개 유사도 + 피드백 + @ 서버로 보내기
 
