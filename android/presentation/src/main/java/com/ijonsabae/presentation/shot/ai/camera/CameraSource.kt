@@ -192,7 +192,6 @@ class CameraSource(
             rotateMatrix.postRotate(90.0f)
         }
 
-        // 비트맵 회전
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, rotateMatrix, false)
     }
 
@@ -242,7 +241,6 @@ class CameraSource(
         classifier8 = null
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     fun processImage(bitmap: Bitmap, isSelfCamera: Boolean) {
         frameCount++
 
@@ -382,7 +380,6 @@ class CameraSource(
     }
 
     /** !!!!!!!!!!!! 포즈 추론은 우타, 후면 카메라로 좔영했을 때 기준 !!!!!!!!!!!! **/
-    @RequiresApi(Build.VERSION_CODES.Q)
     private fun processDetectedInfo(
         person: Person
     ) {
@@ -491,19 +488,6 @@ class CameraSource(
         return poses
     }
 
-    private fun indicesToPosesGroup(poseFrameGroupIndices: Array<IntArray>): List<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>> {
-        val poses = mutableListOf<List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>>()
-        val jointList = jointQueue.toList().reversed()
-        val imageList = imageQueue.toList().reversed()
-        for (group in poseFrameGroupIndices) {
-            val groupPoses = group.map { index ->
-                Triple(imageList[index], jointList[index], QUEUE_SIZE - 1 - index)
-            }
-            poses.add(groupPoses)
-        }
-        return poses
-    }
-
     private fun analyzeSwingTime(poses: List<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>): SwingTiming {
         //이상적인 템포 비율은 약 3:1(백스윙:다운스윙)로 알려져 있지만, 개인의 스타일과 체형에 따라 다를 수 있다.
         val finishTime = poses[7].first.timestamp
@@ -523,8 +507,6 @@ class CameraSource(
     }
 
     private fun validateSwingPose(poseIndices: Array<Int>): Boolean {
-        Log.d("분석결과", "파라미터 : ${Arrays.toString(poseIndices)}")
-
         // 중복 검사
         val uniqueIndices = poseIndices.toSet()
         if (uniqueIndices.size != poseIndices.size) {
@@ -541,30 +523,6 @@ class CameraSource(
         }
 
         return true
-    }
-
-    private fun encodeYUV420SP(yuv420sp: ByteArray, argb: IntArray, width: Int, height: Int) {
-        val frameSize = width * height
-        var yIndex = 0
-        var uvIndex = frameSize
-
-        for (j in 0 until height) {
-            for (i in 0 until width) {
-                val rgb = argb[j * width + i]
-                val r = rgb shr 16 and 0xFF
-                val g = rgb shr 8 and 0xFF
-                val b = rgb and 0xFF
-                val y = (66 * r + 129 * g + 25 * b + 128 shr 8) + 16
-                yuv420sp[yIndex++] = y.toByte()
-
-                if (j % 2 == 0 && i % 2 == 0) {
-                    val u = (-38 * r - 74 * g + 112 * b + 128 shr 8) + 128
-                    val v = (112 * r - 94 * g - 18 * b + 128 shr 8) + 128
-                    yuv420sp[uvIndex++] = u.toByte()
-                    yuv420sp[uvIndex++] = v.toByte()
-                }
-            }
-        }
     }
 
     private fun mirrorKeyPoints(keyPoints: List<KeyPoint>): List<KeyPoint> {
@@ -707,20 +665,9 @@ class CameraSource(
 
                     //swingData -> 수동으로 뽑은 8개의 프레임
                     val swingData = indicesToPoses(manualPoseIndexArray)
-                    //swingGroupData -> 전후 프레임까지 포함한 묶음
-                    val swingGroupData = indicesToPosesGroup(poseFrameGroupIndices)
-
-
-                    //수동으로 뽑은 이미지 포즈들을 기반으로 첫 시작 시간 추정 후 영상 제작
-//                    val actualSwingIndices = imageQueue
-//                        .toList()
-//                        .takeLast(imageQueue.size - manualPoseIndexArray[0])
-//                        .map { it.data }
                     val actualSwingIndices = imageDataList
                         .take(manualPoseIndexArray[0])
                         .map { it.data }
-
-                    Log.d("MainActivity_Capture", "인덱스들: $actualSwingIndices")
 
                     // 템포, 백스윙, 다운스윙 시간 분석하기
                     val swingTiming = analyzeSwingTime(swingData)
@@ -737,11 +684,12 @@ class CameraSource(
                     val tempoRatio =
                         String.format(Locale.getDefault(), "%.2f", swingTiming.tempoRatio)
 
-                    // 백스윙, 탑스윙 피드백 체크하기
+                    // 8개 자세에 대한 이미지 인덱스, 비트맵, 유사도
                     val preciseIndices = swingData.map { it.third }
                     val preciseBitmaps = swingData.map { it.first }
                     val precisePoseScores = classifyPoseScores(swingData.map { it.second })
 
+                    // 백스윙, 탑스윙 피드백 체크하기
                     val poseAnalysisResults = PostureFeedback.checkPosture(
                         preciseIndices,
                         jointQueue.toList().reversed(),
@@ -749,6 +697,19 @@ class CameraSource(
                     )
                     Log.d("분석결과", "$poseAnalysisResults")
 
+                    // 나의 스윙 이미지와 전문가의 스윙 이미지 결정하기
+                    val userSwingImage: Bitmap
+                    val answerSwingImageResId: Int
+                    determineSwingImage(poseAnalysisResults, preciseBitmaps).let {
+                        answerSwingImageResId = it.first
+                        userSwingImage = it.second
+                    }
+
+                    // 피드백 다이얼로그 사진 바로 아래에 뜨는 종합 솔루션 결정하기
+                    val solution = poseAnalysisResults.solution
+                    val solutionComment = solution.getSolution(isLeftHanded.not())
+
+                    // 피드백 다이얼로그 맨 아래에 뜨는 체크리스트 제목과 항목들 결정하기
                     val feedbackCheckList: List<String>
                     val feedbackCheckListTitle: String
                     determineFeedBackCheckList(poseAnalysisResults).let {
@@ -756,15 +717,6 @@ class CameraSource(
                         feedbackCheckListTitle = it.second
                     }
 
-                    val userSwingImage: Bitmap
-                    val answerSwingImageResId: Int
-                    determineSwingImage(poseAnalysisResults, preciseBitmaps).let {
-                        answerSwingImageResId = it.first
-                        userSwingImage = it.second
-                    }
-                    val solution = poseAnalysisResults.solution
-                    val solutionComment = solution.getSolution(isLeftHanded.not())
-                    // 뷰모델에 피드백 담기
                     val feedBack = FeedBack(
                         downswingTime,
                         tempoRatio,
@@ -778,40 +730,18 @@ class CameraSource(
                     )
                     setFeedback(feedBack)
 
-                    // 8개의 베스트 포즈에 대한 비트맵을 갤러리에 저장
-//                    poseAnalysisResults.forEachIndexed { idx, result ->
-//                        val fileName =
-//                            "swing_pose_group${idx + 1}_frame.jpg"
-//                        val uri = saveBitmapToGallery(context, result.bitmap, fileName)
-//                        uri?.let {
-//                            Log.d("싸피", "Saved image $fileName at $it")
-//                        }
-//                    }
-
-//                    Log.d("수동측정", "수동측정이미지 inx : ${Arrays.toString(manualPoseIndexArray)}")
-//                    // 8개의 수동 측정 포즈에 대한 비트맵을 갤러리에 저장
-//                    manualPoseIndexArray.forEachIndexed { idx, poseImageIndex ->
-//                        val fileName = "swing_pose_group${idx + 1}_frame.jpg"
-//                        val uri = saveBitmapToGallery(context, imageDataList[poseImageIndex].data, fileName)
-//                        uri?.let {
-////                            Log.d("수동측정", "수동측정이미지 저장 ${idx + 1} frameidx_${poseImageIndex}_frame.jpg")
-//                        }
-//                    }
-
                     // 영상 만들기
                     SwingVideoProcessor.convertBitmapsToVideo(
                         context,
                         actualSwingIndices.reversed()
                     ) // TODO : userName 넘겨주기
 
-                    // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) + @ 룸에 저장하기
+                    // TODO: 스윙 리플레이에서 다시 보여줄 데이터 룸에 저장하기(ex. 영상, 비트맵, 피드백, 썸네일, 날짜, 점수, 템포 + @)
+                    // ++ poseAnalysisResults에 백스윙, 다운스윙 코멘트 각각 담겨 있음, preciseBitmaps에 8개 포즈 담겨 있음, precisePoseScores에 8개 유사도 담겨있음
 
-                    // TODO: 영상 + 8개 비트맵 + 8개 유사도 + 피드백 + @ 서버로 보내기
-
-                    // 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
+                    // 스윙 분석 결과 표시
                     increaseSwingCnt()
                     setCurrentCameraState(RESULT)
-                    Log.d("processDetectedInfo", "상태 Result로 변경됨")
                     resultSkipMotionStartTime = 0L //스킵 동작 탐지를 위한 변수 초기화
                 } else {
                     setCurrentCameraState(AGAIN)
