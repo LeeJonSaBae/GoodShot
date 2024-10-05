@@ -1086,6 +1086,7 @@ class CameraSource(
         val leftWristY = jointData[LEFT_WRIST.position].coordinate.y
         val leftElbowX = jointData[LEFT_ELBOW.position].coordinate.x
         val leftElbowY = jointData[LEFT_ELBOW.position].coordinate.y
+        val noseX = jointData[NOSE.position].coordinate.x
 
         val deltaX = leftWristX - leftElbowX
         val deltaY = leftElbowY - leftWristY
@@ -1095,13 +1096,13 @@ class CameraSource(
 
         val currentTime = System.currentTimeMillis()
         Log.d("processDetectedInfo", "RESULT 상태일 때 내부 함수, chckskipmotion 함수 내부 접근")
-        if (leftWristX > leftElbowX) {
+        if (leftWristX > leftElbowX && leftElbowX > noseX) {
             val wristElbowDegreeGap = abs(0.0 - angleDegrees).toFloat()
             if (wristElbowDegreeGap < 20.0) {
                 resultSkipMotionStartTime = currentTime
                 Log.d("processDetectedInfo", "왼쪽 팔뻗음 인식")
             }
-        } else if (leftWristX < leftElbowX) {
+        } else if (leftWristX < leftElbowX && leftWristX <= noseX) {
             val wristElbowDegreeGap = abs(180.0 - angleDegrees).toFloat()
             if (wristElbowDegreeGap < 20.0) {
                 Log.d("processDetectedInfo", "오른쪽 팔뻗음 인식")
