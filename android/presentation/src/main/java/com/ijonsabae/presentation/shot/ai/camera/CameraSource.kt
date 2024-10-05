@@ -471,7 +471,7 @@ class CameraSource(
         val poses = mutableListOf<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>()
         val jointList = jointQueue.toList().reversed()
         for (index in indices) {
-            poses.add(Triple(imageDataList[index], jointList[index], QUEUE_SIZE - 1 - index))
+            poses.add(Triple(imageDataList[index], jointList[index], index))
         }
         return poses
     }
@@ -690,22 +690,28 @@ class CameraSource(
                     )
                     val swingScore = calculateScore(PostureExtractor.manualPoseIndexArray)
                     setFeedback(feedBack)
-                    
+
 
                     // 영상 만들기
                     val userId = getUserId()
-                    val fileName = SwingVideoProcessor.saveSwingVideo(context, actualSwingIndices.reversed(), userId)
+                    val fileName = SwingVideoProcessor.saveSwingVideo(
+                        context,
+                        actualSwingIndices.reversed(),
+                        userId
+                    )
                     // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) + @ 룸에 저장하기
-                    insertLocalSwingFeedback(SwingFeedback(
-                        userID = userId,
-                        videoName = fileName,
-                        similarity = swingSimilarity,
-                        solution = poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
-                        score = swingScore, //TODO 문현 : SCORE 기준 회의 후 정하기
-                        tempo = tempoRatio.toDouble(),
-                        title = swingScore.toString() + "점 스윙",
-                        date = System.currentTimeMillis()
-                    ))
+                    insertLocalSwingFeedback(
+                        SwingFeedback(
+                            userID = userId,
+                            videoName = fileName,
+                            similarity = swingSimilarity,
+                            solution = poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
+                            score = swingScore, //TODO 문현 : SCORE 기준 회의 후 정하기
+                            tempo = tempoRatio.toDouble(),
+                            title = swingScore.toString() + "점 스윙",
+                            date = System.currentTimeMillis()
+                        )
+                    )
                     // 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
                     increaseSwingCnt()
 
@@ -795,22 +801,24 @@ class CameraSource(
         return Pair(feedbackCheckList, feedbackCheckListTitle)
     }
 
-    private fun calculateScore(indices: Array<Int>) : Int {
+    private fun calculateScore(indices: Array<Int>): Int {
         /**
          * 수동 측정된 스윙 자세들에 대해 모델을 통한 유사도 점수를 갱신하고 score 반환
          * TODO 문현 : 점수가 낮게 나오는 문제 해결방안 생각하고 적용해보기
          * */
-        val scores = Array (8) { 0.0f }
+        val scores = Array(8) { 0.0f }
 
-        indices.forEachIndexed{ poseNumber, frameIndex ->
+        indices.forEachIndexed { poseNumber, frameIndex ->
             val classifierResultList = classifier4!!.classify(jointDataList[frameIndex])
             classifierResultList.forEachIndexed { classifiedPoseIndex, classifiedResult ->
                 val classifiedPoseScore = classifiedResult.second
                 if (classifiedPoseIndex < 4 && poseNumber < 4) {
-                    scores[classifiedPoseIndex] = max(scores[classifiedPoseIndex], classifiedPoseScore)
+                    scores[classifiedPoseIndex] =
+                        max(scores[classifiedPoseIndex], classifiedPoseScore)
                 }
                 if (classifiedPoseIndex in 4..7 && poseNumber in 4..7) {
-                    scores[classifiedPoseIndex] = max(scores[classifiedPoseIndex], classifiedPoseScore)
+                    scores[classifiedPoseIndex] =
+                        max(scores[classifiedPoseIndex], classifiedPoseScore)
                 }
             }
         }
@@ -825,10 +833,10 @@ class CameraSource(
             scores[7].toDouble(),
         )
         var scoreResult = 0.0
-        scores.forEachIndexed{ _, score ->
+        scores.forEachIndexed { _, score ->
             scoreResult += (score * 100)
         }
-        return (scoreResult/8).toInt()
+        return (scoreResult / 8).toInt()
     }
 
     private fun skipFeedbackDialog() {
