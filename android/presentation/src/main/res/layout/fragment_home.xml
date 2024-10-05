@@ -50,6 +50,7 @@
                 android:text="밍깅이님,"
                 android:textColor="@color/white"
                 android:textSize="22sp"
+                android:textStyle="bold"
                 app:layout_constraintBottom_toTopOf="@id/tv_banner_title_greeting"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintVertical_chainStyle="packed" />
@@ -65,6 +66,7 @@
                 android:text="오늘도 굿 샷~"
                 android:textColor="@color/white"
                 android:textSize="22sp"
+                android:textStyle="bold"
                 app:layout_constraintBottom_toTopOf="@id/btn_consult"
                 app:layout_constraintTop_toBottomOf="@id/tv_banner_nickname" />
 
@@ -74,10 +76,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="30dp"
+                android:alpha="0.8"
                 android:background="@drawable/radius_round_15_button"
+                android:elevation="10dp"
                 android:letterSpacing="0.06"
+                android:paddingVertical="15dp"
                 android:text="@string/home_need_consultant_question"
                 android:textSize="13sp"
+                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tv_banner_title_greeting" />
         </androidx.constraintlayout.motion.widget.MotionLayout>

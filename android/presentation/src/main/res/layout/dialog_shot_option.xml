@@ -126,7 +126,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/dialog_shot_margin_top_between_options"
-        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/layout_shot_cnt"
         app:layout_constraintTop_toBottomOf="@id/layout_swing_pose">
 
