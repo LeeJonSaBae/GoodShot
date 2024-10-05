@@ -2,19 +2,15 @@ package com.d201.goodshot.swing.service;
 
 import com.d201.goodshot.global.s3.dto.ImageRequest;
 import com.d201.goodshot.global.s3.dto.ImageRequest.PresignedUrlRequest;
-import com.d201.goodshot.global.s3.dto.ImageResponse;
-import com.d201.goodshot.global.s3.dto.ImageResponse.PresignedUrlResponse;
 import com.d201.goodshot.global.s3.service.S3Service;
 import com.d201.goodshot.global.security.dto.CustomUser;
 import com.d201.goodshot.swing.domain.Comment;
 import com.d201.goodshot.swing.domain.Swing;
 import com.d201.goodshot.swing.dto.CommentItem;
-import com.d201.goodshot.swing.dto.SwingRequest;
+import com.d201.goodshot.swing.dto.SwingData;
 import com.d201.goodshot.swing.dto.SwingRequest.SwingDataRequest;
-import com.d201.goodshot.swing.dto.SwingResponse;
 import com.d201.goodshot.swing.dto.SwingResponse.ReportResponse;
 import com.d201.goodshot.swing.dto.SwingResponse.SwingCodeResponse;
-import com.d201.goodshot.swing.dto.SwingResponse.SwingDataResponse;
 import com.d201.goodshot.swing.enums.PoseType;
 import com.d201.goodshot.swing.repository.CommentRepository;
 import com.d201.goodshot.swing.repository.SwingRepository;
@@ -22,8 +18,8 @@ import com.d201.goodshot.user.domain.User;
 import com.d201.goodshot.user.exception.NotFoundUserException;
 import com.d201.goodshot.user.repository.UserRepository;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.persistence.*;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,7 +55,7 @@ public class SwingService {
     }
 
     // 스윙 가져오기
-    public List<SwingDataResponse> importSwingData(CustomUser customUser, SwingDataRequest swingDataRequest) {
+    public List<SwingData> importSwingData(CustomUser customUser, SwingDataRequest swingDataRequest) {
         User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
         List<Swing> swings = swingRepository.findByUser(user); // 해당 사용자에 대한 swing 전부 찾아오기
         Set<String> codesSet = new HashSet<>(swingDataRequest.getCodes());
@@ -71,7 +67,7 @@ public class SwingService {
         // 서버에만 있는 스윙 데이터를 필터링
         return swings.stream()
                 .filter(swing -> !codesSet.contains(swing.getCode())) // 서버에만 있는 데이터를 필터링
-                .map(swing -> SwingDataResponse.builder()
+                .map(swing -> SwingData.builder()
                         .id(swing.getId())
                         .similarity(swing.getSimilarity())
                         .solution(swing.getSolution())
@@ -152,12 +148,65 @@ public class SwingService {
         return swingCodeResponses;
     }
 
-
     // 스윙 내보내기
-    public void exportSwingData(CustomUser customUser, SwingDataRequest swingDataRequest) {
+    public void exportSwingData(CustomUser customUser, List<SwingData> swingDataList) {
+
+        User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
+
         // 받아온 데이터 DB 에 저장
+        for(SwingData swingData : swingDataList) {
+
+            // swing 저장
+            Swing swing = Swing.builder()
+                    .code(swingData.getCode())
+                    .user(user)
+                    .likeStatus(swingData.getLikeStatus())
+                    .similarity(swingData.getSimilarity())
+                    .solution(swingData.getSolution())
+                    .score(swingData.getScore())
+                    .tempo(swingData.getTempo())
+                    .title(swingData.getTitle())
+                    .time(swingData.getTime())
+                    .build();
+
+            swingRepository.save(swing);
+
+            // comment 저장 (convertCommentItemsToComments 메서드 활용)
+            List<Comment> comments = convertCommentItemsToComments(swingData.getBackSwingComments(), swingData.getDownSwingComments(), swing);
+            commentRepository.saveAll(comments); // 모든 코멘트를 한 번에 저장
+
+        }
 
     }
+
+    private List<Comment> convertCommentItemsToComments(List<CommentItem> backSwingComments, List<CommentItem> downSwingComments, Swing swing) {
+        List<Comment> comments = new ArrayList<>();
+
+        // 백 스윙 코멘트 변환
+        for (CommentItem commentItem : backSwingComments) {
+            Comment comment = Comment.builder()
+                    .swing(swing)
+                    .poseType(PoseType.BACK)
+                    .commentType(commentItem.getCommentType())
+                    .content(commentItem.getContent())
+                    .build();
+            comments.add(comment);
+        }
+
+        // 다운 스윙 코멘트 변환
+        for (CommentItem commentItem : downSwingComments) {
+            Comment comment = Comment.builder()
+                    .swing(swing)
+                    .poseType(PoseType.DOWN)
+                    .commentType(commentItem.getCommentType())
+                    .content(commentItem.getContent())
+                    .build();
+            comments.add(comment);
+        }
+
+        return comments;
+    }
+
 
 
 }

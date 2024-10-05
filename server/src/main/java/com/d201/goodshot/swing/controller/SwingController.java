@@ -2,11 +2,10 @@ package com.d201.goodshot.swing.controller;
 
 import com.d201.goodshot.global.base.BaseResponse;
 import com.d201.goodshot.global.security.dto.CustomUser;
-import com.d201.goodshot.swing.dto.SwingRequest;
+import com.d201.goodshot.swing.domain.Swing;
+import com.d201.goodshot.swing.dto.SwingData;
 import com.d201.goodshot.swing.dto.SwingRequest.SwingDataRequest;
-import com.d201.goodshot.swing.dto.SwingResponse;
 import com.d201.goodshot.swing.dto.SwingResponse.SwingCodeResponse;
-import com.d201.goodshot.swing.dto.SwingResponse.SwingDataResponse;
 import com.d201.goodshot.swing.service.SwingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,8 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -56,8 +53,9 @@ public class SwingController {
                             examples = @ExampleObject(value = "")))
     })
     @ResponseStatus(HttpStatus.OK)
-    public BaseResponse<Void> exportSwingData(@AuthenticationPrincipal CustomUser customUser) {
-        return null;
+    public BaseResponse<Void> exportSwingData(@AuthenticationPrincipal CustomUser customUser, @RequestBody List<SwingData> swingDataList) {
+        swingService.exportSwingData(customUser, swingDataList);
+        return BaseResponse.of(HttpStatus.OK, "스윙 데이터 내보내기에 성공했습니다.", null);
     }
 
     @GetMapping("/import")
@@ -70,8 +68,8 @@ public class SwingController {
                             examples = @ExampleObject(value = "")))
     })
     @ResponseStatus(HttpStatus.OK)
-    public BaseResponse<List<SwingDataResponse>> importSwingData(@AuthenticationPrincipal CustomUser customUser, @RequestBody SwingDataRequest swingDataRequest) {
-        List<SwingDataResponse> response = swingService.importSwingData(customUser, swingDataRequest);
+    public BaseResponse<List<SwingData>> importSwingData(@AuthenticationPrincipal CustomUser customUser, @RequestBody SwingDataRequest swingDataRequest) {
+        List<SwingData> response = swingService.importSwingData(customUser, swingDataRequest);
         return BaseResponse.of(HttpStatus.OK, "스윙 데이터 가져오기에 성공했습니다.", response);
     }
 
