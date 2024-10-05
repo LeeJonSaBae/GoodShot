@@ -89,7 +89,6 @@ dependencies {
     implementation(libs.logging.interceptor)
 
 
-
     // 코루틴
     implementation(libs.kotlinx.coroutines.android)
 
@@ -140,4 +139,7 @@ dependencies {
 
     // tooltip
     implementation(libs.balloon)
+
+    // viewpager indicator
+    implementation(libs.dotsindicator)
 }
