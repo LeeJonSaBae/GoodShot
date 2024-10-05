@@ -20,8 +20,6 @@ public class SwingRequest {
     public static class SwingDataRequest {
 
         private Long id; // swing id
-        private MultipartFile swingVideo;
-        private List<MultipartFile> swingImages;
         private List<CommentItem> backSwingComments;
         private List<CommentItem> downSwingComments;
         private List<Float> poseSimilarity;
@@ -29,6 +27,7 @@ public class SwingRequest {
         private int score;
         private double tempo;
         private boolean likeStatus;
+        private String code;
         private String title;
 
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
