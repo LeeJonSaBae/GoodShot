@@ -30,7 +30,6 @@ import android.view.SurfaceView
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.ijonsabae.domain.model.Similarity
 import com.ijonsabae.domain.model.SwingFeedback
-import com.ijonsabae.domain.usecase.login.GetUserIdUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.model.FeedBack
 import com.ijonsabae.presentation.shot.CameraState
@@ -76,6 +75,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.ArrayList
 import java.util.LinkedList
 import java.util.Locale
 import java.util.Queue
@@ -122,6 +122,7 @@ class CameraSource(
     private var minMidBackSwingGap = 1f
     private var minTakeAwayGap = 1f
     private var minAddressGap = 1f
+    private lateinit var jointDataList: List<List<KeyPoint>>
     private lateinit var imageDataList: List<TimestampedData<Bitmap>>
     private var manualPoseIndexArray = Array(8) { 0 } //수동으로 수치계산하여 선택한 인덱스
 
@@ -560,7 +561,7 @@ class CameraSource(
      * 8동작의 비트맵과 관절 좌표를 반환
      */
     private fun extractBestPoseIndices() {
-        val jointDataList = jointQueue.toList().reversed()
+        jointDataList = jointQueue.toList().reversed()
         imageDataList = imageQueue.toList().reversed()
         var classifier = classifier8
         var modelChangeReady = false
@@ -671,6 +672,7 @@ class CameraSource(
                         .take(manualPoseIndexArray[0])
                         .map { it.data }
                     //TODO 문현 : 여기서 poseFrameGroup이나 actualSwingIndices 또는 manualPoseIndexArray를 통해서 Similarity를 체크해주자
+                    updateSimilarity(manualPoseIndexArray)
 
                     // 템포, 백스윙, 다운스윙 시간 분석하기
                     val swingTiming = analyzeSwingTime(swingData)
@@ -736,28 +738,19 @@ class CameraSource(
                     setFeedback(feedBack)
 
                     // 영상 만들기
-                    // TODO: 저장하는 시점과 SSID 이름을 받아서 GETUERIDUSECASE로 회원아이디 받아오고 feedback 객체만들어서 InsertLocalSwingFeedbackUseCase에 던져주면 저장됨
-                    // -> 그렇게 하면 suspend 함수를 써야하니까 그냥 local에 저장 또는 login시 받아와서 camerafragment에 전달해줄 수 없나?
-                    val fileName = SwingVideoProcessor.saveSwingVideo(context, actualSwingIndices.reversed())
+                    val userId = getUserId()
+                    val fileName = SwingVideoProcessor.saveSwingVideo(context, actualSwingIndices.reversed(), userId)
                     // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) + @ 룸에 저장하기
-                    //아래 객체는 임시로 기능 구현이 가능한지 확인하기 위한 객체로 값은 동적으로 할당해주어야 한다.
-
-                    // TODO 문현 : 8개의 자세에 대해 유사도를 구해서 Similarity를 계한새허 넘겨줘야할거같아요
-                    val swingFeedback = SwingFeedback(
-                        userID = -1L,
+                    insertLocalSwingFeedback(SwingFeedback(
+                        userID = userId,
                         videoName = fileName,
-                        similarity = Similarity(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+                        similarity = swingSimilarity,
                         solution = poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
-                        score = 100,
+                        score = 100, //TODO 문현 : SCORE 기준 알아보기
                         tempo = tempoRatio.toDouble(),
-                        title = fileName, //score로 주기
+                        title = fileName, // TODO 문현 : score로 주기
                         date = System.currentTimeMillis()
-                    )
-                    //여기서 이제 swingviewmodel에 swingfeedback객체를 던저줘서 viewmodel에서 비동기로 저장 수행하게 하면 되나?
-
-
-                    // TODO: 영상 + 8개 비트맵 + 8개 유사도 + 피드백 + @ 서버로 보내기
-
+                    ))
                     // 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
                     increaseSwingCnt()
 
@@ -845,6 +838,36 @@ class CameraSource(
                 context.resources.getStringArray(R.array.good_tip_list).toList()
         }
         return Pair(feedbackCheckList, feedbackCheckListTitle)
+    }
+
+    private fun updateSimilarity(indices: Array<Int>) {
+        /**
+         * 수동 측정된 스윙 자세들에 대해 모델을 통한 유사도 점수 측정 및 갱신
+         * */
+        val scores = Array (5) { 0.0f }
+
+        indices.forEachIndexed{ poseNumber, frameIndex ->
+            val classifierResultList = classifier4!!.classify(jointDataList[frameIndex])
+            classifierResultList.forEachIndexed { classifiedPoseIndex, classifiedResult ->
+                val classifiedPoseScore = classifiedResult.second
+                if (classifiedPoseIndex < 4 && poseNumber < 4) {
+                    scores[classifiedPoseIndex] = max(scores[classifiedPoseIndex], classifiedPoseScore)
+                }
+                if (classifiedPoseIndex in 4..7 && poseNumber in 4..7) {
+                    scores[classifiedPoseIndex] = max(scores[classifiedPoseIndex], classifiedPoseScore)
+                }
+            }
+        }
+        swingSimilarity = Similarity(
+            scores[0].toDouble(),
+            scores[1].toDouble(),
+            scores[2].toDouble(),
+            scores[3].toDouble(),
+            scores[4].toDouble(),
+            scores[5].toDouble(),
+            scores[6].toDouble(),
+            scores[7].toDouble(),
+        )
     }
 
     private fun checkFinish(index: Int, jointData: List<KeyPoint>) {

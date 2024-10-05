@@ -48,11 +48,11 @@ object SwingVideoProcessor {
     }
 
     @SuppressLint("HardwareIds")
-    fun saveSwingVideo(context: Context, bitmapIndices: List<Bitmap>, userID: Long = GUEST_ID) : String {
+    fun saveSwingVideo(context: Context, bitmapIndices: List<Bitmap>, userId: Long = GUEST_ID) : String {
         val fileSaveTime = System.currentTimeMillis()
         val ssidName = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
         val videoFileName = "${ssidName}_${fileSaveTime}.mp4"
-        val videoDir = File(context.filesDir, "videos/$userID")
+        val videoDir = File(context.filesDir, "videos/$userId")
         if (!videoDir.exists()) {
             videoDir.mkdirs()
         }
@@ -72,7 +72,7 @@ object SwingVideoProcessor {
         }
 
         videoEncoder.finish()
-        saveBitmapToInternalStorage(context, bitmapIndices[0], userID, ssidName, fileSaveTime)
+        saveBitmapToInternalStorage(context, bitmapIndices[0], userId, ssidName, fileSaveTime)
 
         return videoFileName
 
