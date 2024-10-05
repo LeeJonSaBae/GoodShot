@@ -16,8 +16,8 @@ class SwingFeedbackRepositoryImpl @Inject constructor(
         return swingFeedbackLocalDataSource.insertSwingFeedback(swingFeedback)
     }
 
-    override fun getSwingFeedback(userID: Long, videoName: String): SwingFeedback {
-        return swingFeedbackLocalDataSource.getSwingFeedback(userID, videoName)
+    override fun getSwingFeedback(userID: Long, swingCode: String): SwingFeedback {
+        return swingFeedbackLocalDataSource.getSwingFeedback(userID, swingCode)
     }
 
     override fun getAllSwingFeedback(userID: Long): Flow<PagingData<SwingFeedback>> {
@@ -40,8 +40,8 @@ class SwingFeedbackRepositoryImpl @Inject constructor(
         ).flow
     }
 
-    override fun deleteFeedback(userId: Long, videoName: String): Int {
-        return swingFeedbackLocalDataSource.deleteFeedback(userId, videoName)
+    override fun deleteFeedback(userId: Long, swingCode: String): Int {
+        return swingFeedbackLocalDataSource.deleteFeedback(userId, swingCode)
     }
 
     override fun insertSwingFeedbackComment(swingFeedbackCommentEntity: SwingFeedbackComment) {
@@ -50,13 +50,13 @@ class SwingFeedbackRepositoryImpl @Inject constructor(
 
     override fun getSwingFeedbackComment(
         userId: Long,
-        videoName: String
+        swingCode: String
     ): SwingFeedbackComment {
-        return swingFeedbackLocalDataSource.getSwingFeedbackComment(userId, videoName)
+        return swingFeedbackLocalDataSource.getSwingFeedbackComment(userId, swingCode)
     }
 
-    override fun deleteFeedbackComment(userID: Long, videoName: String): Int {
-        return swingFeedbackLocalDataSource.deleteVideoComment(userID, videoName)
+    override fun deleteFeedbackComment(userID: Long, swingCode: String): Int {
+        return swingFeedbackLocalDataSource.deleteVideoComment(userID, swingCode)
     }
 
     override fun updateUserId(oldUserId: Long, newUserId: Long): Int {

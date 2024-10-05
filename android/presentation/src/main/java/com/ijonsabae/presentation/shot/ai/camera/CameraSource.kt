@@ -742,7 +742,7 @@ class CameraSource(
                     // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) + @ 룸에 저장하기
                     insertLocalSwingFeedback(SwingFeedback(
                         userID = userId,
-                        videoName = fileName,
+                        swingCode = fileName,
                         similarity = swingSimilarity,
                         solution = poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
                         score = swingScore, //TODO 문현 : SCORE 기준 회의 후 정하기
