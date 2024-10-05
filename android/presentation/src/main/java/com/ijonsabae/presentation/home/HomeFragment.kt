@@ -30,7 +30,7 @@ private const val TAG = "굿샷_HomeFragment"
 
 @AndroidEntryPoint
 class HomeFragment :
-    BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::bind, R.layout.fragment_home){
+    BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::bind, R.layout.fragment_home) {
     private val homeViewModel: HomeViewModel by viewModels()
     private var newsList = mutableListOf<NewsDTO>()
     private val NEWS_MARGIN_PX by lazy { resources.getDimension(R.dimen.home_news_margin_dp_between_items) }
@@ -48,10 +48,10 @@ class HomeFragment :
         sendLoadingCompleteMessage()
     }
 
-    private fun initFlow(){
+    private fun initFlow() {
         lifecycleScope.launch(coroutineExceptionHandler) {
-            repeatOnLifecycle(Lifecycle.State.STARTED){
-                homeViewModel.youtubeList.collectLatest{
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                homeViewModel.youtubeList.collectLatest {
                     val list = it.getOrThrow().items.map { videoItem ->
                         convertVideoItemToYoutubeDTO(videoItem)
                     }
@@ -61,15 +61,15 @@ class HomeFragment :
         }
     }
 
-    private fun sendLoadingCompleteMessage(){
+    private fun sendLoadingCompleteMessage() {
         LocalBroadcastManager.getInstance(fragmentContext).sendBroadcast(Intent().apply {
             action = "loading"
             putExtra("complete", false)
         })
     }
 
-    private fun initClickListener(){
-        binding.btnConsult.setOnClickListener{
+    private fun initClickListener() {
+        binding.btnConsult.setOnClickListener {
             navController.navigate(R.id.action_home_to_consult)
         }
     }
@@ -114,7 +114,8 @@ class HomeFragment :
     private fun initYoutubeRecyclerView(recyclerView: RecyclerView) {
         youtubeRecyclerViewAdapter =
             YoutubeRecyclerViewAdapter(fragmentContext).apply {
-                setOnYoutubeClickListener(object: YoutubeRecyclerViewAdapter.OnYoutubeItemClickListener{
+                setOnYoutubeClickListener(object :
+                    YoutubeRecyclerViewAdapter.OnYoutubeItemClickListener {
                     override fun onYoutubeItemClick(item: YoutubeDTO) {
                         toggleYoutubeItems(item)
                     }
@@ -154,53 +155,55 @@ class HomeFragment :
                 title = "골프 구질도 알고 골프 실력도 쌓고",
                 "https://www.golfjournal.co.kr/news/articleView.html?idxno=4455",
                 description = "골프를 처음 시작하는 당신을 위한 실속 정보! 이번에는 골프 구질에 대해 알아보자.",
-                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article1)!!
+                thumbnail = ContextCompat.getDrawable(fragmentContext, R.drawable.article1)!!
             ),
             NewsDTO(
                 title = "골프 스윙에 도움되는 균형을 찾아가는 호흡법",
                 "https://www.golfmagazinekorea.com/news/articleView.html?idxno=271",
                 description = "완벽한 골프 스윙은 셋업에서 시작된다.",
-                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article2)!!
-            ),NewsDTO(
+                thumbnail = ContextCompat.getDrawable(fragmentContext, R.drawable.article2)!!
+            ),
+            NewsDTO(
                 title = "골프 임팩트 다섯 선수로 살펴본 그 순간의 찰라",
                 "https://blog.naver.com/PostView.naver?blogId=beheaded&logNo=223454216551&categoryNo=9&parentCategoryNo=0&viewDate=&currentPage=5&postListTopCurrentPage=1&from=thumbnailList&userTopListOpen=true&userTopListCount=5&userTopListManageOpen=false&userTopListCurrentPage=5",
                 description = "골프 스윙 어떤 것이 정답인지는 모르지만 PGA 투어 선수들을 살펴보면 다들 개성 있는 임팩트 동작을 하는 것을 알 수 있습니다.",
-                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article3)!!
-            ),NewsDTO(
+                thumbnail = ContextCompat.getDrawable(fragmentContext, R.drawable.article3)!!
+            ),
+            NewsDTO(
                 title = "골프 자세를 교정하는 방법",
                 "https://www.golfmagazinekorea.com/news/articleView.html?idxno=8766",
                 description = "골프에서 자세가 좋을수록 좋은 스윙을 할 수 있기 때문이다.",
-                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article4)!!
-            ),NewsDTO(
+                thumbnail = ContextCompat.getDrawable(fragmentContext, R.drawable.article4)!!
+            ),
+            NewsDTO(
                 title = "골퍼님들의 오버스윙 교정을 위한 모든 것",
                 "https://kimcaddie.com/post/2024-golf-over-swing",
                 description = "오버스윙은 샷의 정확성을 떨어뜨리기 때문에 교정이 필요합니다.",
-                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article5)!!
-            ),NewsDTO(
-                title = "정교하고 부드러운 스윙을 위한 꿀팁",
-                "https://www.golfjournal.co.kr/news/articleView.html?idxno=5012",
-                description = "스윙은 골프에서 가장 중요한 요소 중 하나다.",
-                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article6)!!
-            ),NewsDTO(
+                thumbnail = ContextCompat.getDrawable(fragmentContext, R.drawable.article5)!!
+            ),
+            NewsDTO(
                 title = "중급자를 위한 골프레슨",
-                "https://blog.naver.com/PostView.naver?blogId=beheaded&logNo=223343746913&categoryNo=9&parentCategoryNo=0&viewDate=&currentPage=10&postListTopCurrentPage=1&from=thumbnailList&userTopListOpen=true&userTopListCount=5&userTopListManageOpen=false&userTopListCurrentPage=10",
+                "https://www.golfjournal.co.kr/news/articleView.html?idxno=5012",
                 description = "그립의 재발견 #JNGK",
-                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article7)!!
-            ),NewsDTO(
+                thumbnail = ContextCompat.getDrawable(fragmentContext, R.drawable.article7)!!
+            ),
+            NewsDTO(
                 title = "골프 백스윙 고민 많은 분을 위한 해결책",
-                "http://jtbcgolf.joins.com/academy/column/column_view.asp?page=3&column_type=10&ac1=165",
+                "https://blog.naver.com/PostView.naver?blogId=beheaded&logNo=223343746913&categoryNo=9&parentCategoryNo=0&viewDate=&currentPage=10&postListTopCurrentPage=1&from=thumbnailList&userTopListOpen=true&userTopListCount=5&userTopListManageOpen=false&userTopListCurrentPage=10",
                 description = "일관된 백스윙 하는 것이 골프 스윙에서 가장 중요한 포인트",
-                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article8)!!
-            ),NewsDTO(
+                thumbnail = ContextCompat.getDrawable(fragmentContext, R.drawable.article8)!!
+            ),
+            NewsDTO(
                 title = "팔만 쓰는 스윙이 훅을 낳는다",
-                "https://www.golfjournal.co.kr/news/articleView.html?idxno=4455",
+                "http://jtbcgolf.joins.com/academy/column/column_view.asp?page=3&column_type=10&ac1=165",
                 description = "힘에 의존하는 스윙 습관은 잘못… 자연스런 스윙 익혀야",
-                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article9)!!
-            ),NewsDTO(
-                title = "슬라이스를 방지하려면 어드레스시 어떤 자세가 유리한가요?",
+                thumbnail = ContextCompat.getDrawable(fragmentContext, R.drawable.article9)!!
+            ),
+            NewsDTO(
+                title = "골프 구질 알아보기",
                 "https://kimcaddie.com/post/golf_shot_pitch_%EA%B5%AC%EC%A7%88_%EA%B5%90%EC%A0%95_1",
-                description = "골프 구질 알아보기",
-                thumbnail = ContextCompat.getDrawable(fragmentContext,R.drawable.article10)!!
+                description = "훅, 페이드, 슬라이스 등 뜻과 이유, 교정 꿀팁 1편",
+                thumbnail = ContextCompat.getDrawable(fragmentContext, R.drawable.article10)!!
             ),
         )
     }
