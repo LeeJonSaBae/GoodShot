@@ -16,8 +16,8 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     getSearchVideosUseCase: GetSearchVideosUseCase
 ): ViewModel(){
-    private val _youtubeList: MutableSharedFlow<Result<YouTubeResponse>> = MutableSharedFlow() //= MutableStateFlow(Result.success(YouTubeResponse.EMPTY))
-    val youtubeList: SharedFlow<Result<YouTubeResponse>> = _youtubeList
+    private val _youtubeList: MutableStateFlow<Result<YouTubeResponse>> = MutableStateFlow(Result.success(YouTubeResponse.EMPTY))
+    val youtubeList: StateFlow<Result<YouTubeResponse>> = _youtubeList
     suspend fun setYoutubeList(youTubeResponse: Result<YouTubeResponse>){
         _youtubeList.emit(youTubeResponse)
     }

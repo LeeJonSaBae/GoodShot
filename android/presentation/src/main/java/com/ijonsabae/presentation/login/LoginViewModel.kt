@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.ijonsabae.domain.model.Token
 import com.ijonsabae.domain.usecase.login.GetLocalAccessTokenUseCase
 import com.ijonsabae.domain.usecase.login.GetLocalRefreshTokenUseCase
+import com.ijonsabae.domain.usecase.login.GetUserIdUseCase
 import com.ijonsabae.domain.usecase.login.SetLocalTokenUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -17,6 +18,7 @@ class LoginViewModel @Inject constructor(
     private val getLocalAccessTokenUseCase: GetLocalAccessTokenUseCase,
     private val getLocalRefreshTokenUseCase: GetLocalRefreshTokenUseCase,
     private val setLocalTokenUseCase: SetLocalTokenUseCase,
+    private val getUserIdUseCase: GetUserIdUseCase,
 ) : ViewModel() {
     private val _token: MutableSharedFlow<Token> = MutableSharedFlow()
     val token: SharedFlow<Token>
@@ -27,7 +29,11 @@ class LoginViewModel @Inject constructor(
             val accessToken = getLocalAccessTokenUseCase()
             val refreshToken = getLocalRefreshTokenUseCase()
             if (accessToken != null && refreshToken != null) {
+<<<<<<< HEAD
                 setToken(Token(accessToken, refreshToken, 1))
+=======
+                setToken(Token(accessToken, refreshToken, getUserIdUseCase()))
+>>>>>>> develop
             } else {
                 setToken(Token.EMPTY)
             }
