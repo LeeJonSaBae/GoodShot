@@ -32,6 +32,8 @@ import com.ijonsabae.domain.model.Similarity
 import com.ijonsabae.domain.model.SwingFeedback
 import com.ijonsabae.domain.model.SwingFeedbackComment
 import com.ijonsabae.presentation.R
+import com.ijonsabae.presentation.config.Const.Companion.BACKSWING
+import com.ijonsabae.presentation.config.Const.Companion.DOWNSWING
 import com.ijonsabae.presentation.model.FeedBack
 import com.ijonsabae.presentation.shot.CameraState
 import com.ijonsabae.presentation.shot.CameraState.ADDRESS
@@ -879,11 +881,12 @@ class CameraSource(
         ))
 
         val swingCommentList: MutableList<SwingFeedbackComment> = mutableListOf()
+        // down swing이 1 backswing이 0
         poseAnalysisResults.backSwingProblems.forEachIndexed { index, comment ->
             swingCommentList.add(SwingFeedbackComment(
                 userID = userId,
                 swingCode = swingSaveResult.first,
-                poseType = 0, //TODO : backswing downswing 매크로 상수로 지정하기
+                poseType = BACKSWING, //TODO : backswing downswing 매크로 상수로 지정하기
                 content = comment.content,
                 commentType = if (comment.type == "BAD") 0 else 1 //TODO : BAD GOOD 매크로 상수로 지정하기
             ))
@@ -892,7 +895,7 @@ class CameraSource(
             swingCommentList.add(SwingFeedbackComment(
                 userID = userId,
                 swingCode = swingSaveResult.first,
-                poseType = 1,
+                poseType = DOWNSWING,
                 content = comment.content,
                 commentType = if (comment.type == "BAD") 0 else 1
             ))

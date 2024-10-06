@@ -21,5 +21,8 @@ class Const {
             }
         }
 
+        const val BACKSWING = 0
+        const val DOWNSWING = 1
+
     }
 }

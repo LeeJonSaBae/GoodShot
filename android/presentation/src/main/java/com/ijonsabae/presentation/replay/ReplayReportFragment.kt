@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
+import com.ijonsabae.presentation.config.Const.Companion.BACKSWING
+import com.ijonsabae.presentation.config.Const.Companion.DOWNSWING
 import com.ijonsabae.presentation.databinding.FragmentReplayReportBinding
 import com.ijonsabae.presentation.shot.SwingVideoProcessor
 import kotlin.math.abs
@@ -101,12 +103,12 @@ class ReplayReportFragment :
 
         val downSwingCommentList = args.SwingFeedbackCommentList.filter{
             // poseType이 downSwing인 것만
-            it.poseType == 1
+            it.poseType == DOWNSWING
         }.toMutableList()
 
         val backSwingCommentList = args.SwingFeedbackCommentList.filter{
             // poseType이 backSwing인 것만
-            it.poseType == 2
+            it.poseType == BACKSWING
         }.toMutableList()
 
         backSwingFlowAnalysisAdapter.submitList(downSwingCommentList)
