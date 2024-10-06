@@ -125,6 +125,7 @@ object SwingVideoProcessor {
             }
         }
     }
+    // TODO 문현 : 영상 삭제 로직 만들기(룸에서는 지우는거 구현 완료, 로컬 기기 삭제 필요)
 
     // TODO 영민 : File객체로 경로를 반환하는 함수입니다.
     fun getSwingVideoFile(context: Context, swingCode: String, userId: Long = GUEST_ID): File {
@@ -186,6 +187,10 @@ object SwingVideoProcessor {
         }
     }
 
+    fun flipBitmapHorizontally(bitmap: Bitmap): Bitmap {
+        val matrix = Matrix().apply { postScale(-1f, 1f, bitmap.width / 2f, bitmap.height / 2f) }
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+    }
     fun flipBitmapsHorizontally(bitmaps: List<Bitmap>): List<Bitmap> {
         return bitmaps.map { bitmap ->
             val matrix = Matrix().apply { postScale(-1f, 1f, bitmap.width / 2f, bitmap.height / 2f) }

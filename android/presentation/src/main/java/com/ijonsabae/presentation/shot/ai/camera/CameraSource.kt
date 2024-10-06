@@ -693,7 +693,11 @@ class CameraSource(
                     val answerSwingImageResId: Int
                     determineSwingImage(poseAnalysisResults, preciseBitmaps).let {
                         answerSwingImageResId = it.first
-                        userSwingImage = it.second
+                        if (selfCameraOptionEnable) { // 전면 카메라 스윙 시 결과 사진 반전 처리
+                            userSwingImage = SwingVideoProcessor.flipBitmapHorizontally(it.second)
+                        } else {
+                            userSwingImage = it.second
+                        }
                     }
 
                     // 피드백 다이얼로그 사진 바로 아래에 뜨는 종합 솔루션 결정하기
