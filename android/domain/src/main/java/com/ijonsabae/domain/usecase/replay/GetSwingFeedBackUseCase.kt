@@ -1,4 +1,4 @@
-package com.ijonsabae.domain.usecase.shot
+package com.ijonsabae.domain.usecase.replay
 
 import com.ijonsabae.domain.model.FeedBack
 

@@ -3,6 +3,7 @@ package com.ijonsabae.presentation.replay
 import android.app.AlertDialog
 import android.content.Context
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +14,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.DiffUtil.DiffResult.NO_POSITION
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.ijonsabae.domain.model.Replay
@@ -20,6 +22,7 @@ import com.ijonsabae.domain.model.SwingFeedback
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.databinding.ItemReplayBinding
 import com.ijonsabae.presentation.util.formatDateFromLongKorea
+import kotlinx.coroutines.runBlocking
 
 private const val TAG = "SearchResultOfMountainListAdapter_싸피"
 
@@ -52,7 +55,7 @@ class ReplayAdapter(private val context: Context) :
         fun onLikeClick(item: SwingFeedback)
         fun onItemDelete(item: SwingFeedback)
         fun onTitleChange(item: SwingFeedback, title: String)
-        fun changeClampStatus(clampStatus: Boolean)
+        fun changeClampStatus(item: SwingFeedback, clampStatus: Boolean)
     }
 
     fun setItemClickListener(onItemClickListener: OnItemClickListener) {
@@ -73,18 +76,25 @@ class ReplayAdapter(private val context: Context) :
                 binding.tvTag1.text = "점수 ${replayItem.score}점"
                 binding.tvTag2.text = "템포 ${replayItem.tempo}"
                 binding.root.setOnClickListener { itemClickListener.onItemClick(replayItem) }
-                binding.ivLike.setOnClickListener {
-                    if (!replayItem.likeStatus) {
+
+                binding.ivLike.apply {
+                    if (replayItem.likeStatus) {
                         binding.ivLike.setImageResource(R.drawable.ic_like2)
                     } else {
                         binding.ivLike.setImageResource(R.drawable.ic_unlike2)
                     }
-                    itemClickListener.onLikeClick(replayItem)
+                    setOnClickListener {
+                        if (!replayItem.likeStatus) {
+                            binding.ivLike.setImageResource(R.drawable.ic_like2)
+                        } else {
+                            binding.ivLike.setImageResource(R.drawable.ic_unlike2)
+                        }
+                        itemClickListener.onLikeClick(replayItem)
+                    }
                 }
                 binding.ivEditTitle.setOnClickListener {
                     showEditCustomDialog(replayItem)
                 }
-
                 if (replayItem.isClamped) binding.cvReplayItem.translationX =
                     binding.root.width * -1f / 10 * 3
                 else binding.cvReplayItem.translationX = 0f
@@ -99,11 +109,18 @@ class ReplayAdapter(private val context: Context) :
         }
 
         fun setClamped(isClamped: Boolean) {
-            itemClickListener.changeClampStatus(isClamped)
+            val item = getItem(this.bindingAdapterPosition)
+            item?.let {
+                itemClickListener.changeClampStatus(item, isClamped)
+            }
         }
 
         fun getClamped(): Boolean {
-            return getItem(adapterPosition)?.isClamped ?: false
+            Log.d(TAG, "getClamped: $bindingAdapterPosition")
+            if(this.bindingAdapterPosition != NO_POSITION){
+                return getItem(this.bindingAdapterPosition)!!.isClamped
+            }
+            return false
         }
     }
 

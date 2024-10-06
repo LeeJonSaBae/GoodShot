@@ -63,6 +63,16 @@ class ShotOptionDialog : BaseDialog<DialogShotOptionBinding>(
                     shotDialogViewModel.setIsLeftStatus(false)
                 }
             }
+            btnGolfClubIron.setOnClickListener {
+                lifecycleScope.launch {
+                    shotDialogViewModel.setSelectedGolfClub("아이언")
+                }
+            }
+            btnGolfClubDriver.setOnClickListener {
+                lifecycleScope.launch {
+                    shotDialogViewModel.setSelectedGolfClub("드라이버")
+                }
+            }
             btnSwingPoseFront.setOnClickListener {
                 selectButton(btnSwingPoseFront)
                 deselectButton(btnSwingPoseSide)
@@ -154,6 +164,17 @@ class ShotOptionDialog : BaseDialog<DialogShotOptionBinding>(
                         } else {
                             selectButton(binding.btnDirectionRight)
                             deselectButton(binding.btnDirectionLeft)
+                        }
+                    }
+                }
+                launch {
+                    shotDialogViewModel.selectedGolfClub.collect() {
+                        if (it == "아이언") {
+                            selectButton(binding.btnGolfClubIron)
+                            deselectButton(binding.btnGolfClubDriver)
+                        } else if (it == "드라이버") {
+                            selectButton(binding.btnGolfClubDriver)
+                            deselectButton(binding.btnGolfClubIron)
                         }
                     }
                 }

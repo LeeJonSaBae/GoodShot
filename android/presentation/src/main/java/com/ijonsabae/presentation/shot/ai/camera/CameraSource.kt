@@ -30,6 +30,7 @@ import android.view.SurfaceView
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.ijonsabae.domain.model.Similarity
 import com.ijonsabae.domain.model.SwingFeedback
+import com.ijonsabae.domain.model.SwingFeedbackComment
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.model.FeedBack
 import com.ijonsabae.presentation.shot.CameraState
@@ -76,6 +77,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Arrays
 import java.util.LinkedList
 import java.util.Locale
 import java.util.Queue
@@ -100,6 +102,22 @@ class CameraSource(
     private val setFeedback: (FeedBack) -> Unit,
     private val getUserId: () -> Long,
     private val insertLocalSwingFeedback: (SwingFeedback) -> Unit,
+    private val insertLocalSwingFeedbackComment: (SwingFeedbackComment) -> Unit,
+    // TODO (
+    //  문현
+    //  insertLocalSwingFeedBackComment를 이용해서 스윙에 대한 코멘트를 아래에 해당하는 SwingFeedbackComment 객체를 만들어서 넣어줘야 함!
+    //  SwingFeedback Table의 키를 외래키로 참조하니까 안전빵으로 SwingFeedBack을 저장한 후 호출할 것!
+    //  사용법 : insertLocalSwingFeedback(SwingFeedbackComment 객체)
+    //  )
+    /*
+        data class SwingFeedbackComment(
+            val userID: Long,
+            val swingCode: String,
+            val poseType: Int,
+            val content: String,
+            val commentType: Int
+        )
+     */
     private val initializeSwingCnt: () -> Unit,
     private val increaseSwingCnt: () -> Unit,
 ) {
@@ -475,7 +493,7 @@ class CameraSource(
         val poses = mutableListOf<Triple<TimestampedData<Bitmap>, List<KeyPoint>, Int>>()
         val jointList = jointQueue.toList().reversed()
         for (index in indices) {
-            poses.add(Triple(imageDataList[index], jointList[index], QUEUE_SIZE - 1 - index))
+            poses.add(Triple(imageDataList[index], jointList[index], index))
         }
         return poses
     }
@@ -502,14 +520,14 @@ class CameraSource(
         // 중복 검사
         val uniqueIndices = poseIndices.toSet()
         if (uniqueIndices.size != poseIndices.size) {
-            Log.d("분석결과", "중복 발생")
+            Log.d("분석결과", "중복 발생 ${Arrays.toString(poseIndices)}")
             return false
         }
 
         // 지속적으로 감소하는지 검사 -> 순서 보장
         for (i in 0 until poseIndices.size - 1) {
             if (poseIndices[i] <= poseIndices[i + 1]) {
-                Log.d("분석결과", "순서 오류")
+                Log.d("분석결과", "순서 오류 ${Arrays.toString(poseIndices)}")
                 return false
             }
         }
@@ -577,8 +595,8 @@ class CameraSource(
             // 손목이 어깨 위로 올라가면 모델 교체 && bias 추가
             if (modelChangeReady
                 && classifier == classifier8
-                && jointData[LEFT_WRIST.position].coordinate.x < jointData[RIGHT_SHOULDER.position].coordinate.x
-                && jointData[LEFT_WRIST.position].coordinate.y < jointData[RIGHT_SHOULDER.position].coordinate.y
+                && jointData[LEFT_WRIST.position].coordinate.x < jointData[LEFT_SHOULDER.position].coordinate.x
+                && jointData[LEFT_WRIST.position].coordinate.y < jointData[LEFT_SHOULDER.position].coordinate.y
             ) {
                 classifier = classifier4
             }
@@ -661,6 +679,15 @@ class CameraSource(
                     )
                     Log.d("분석결과", "$poseAnalysisResults")
 
+                    Log.d("분석결과", "${poseAnalysisResults.solution.name}")
+                    poseAnalysisResults.backSwingProblems.forEach {
+                        Log.d("분석결과", "${it.javaClass.simpleName}")
+                    }
+                    Log.d("분석결과", "-------------------------------------------------")
+                    poseAnalysisResults.downSwingProblems.forEach {
+                        Log.d("분석결과", "${it.javaClass.simpleName}")
+                    }
+
                     // 나의 스윙 이미지와 전문가의 스윙 이미지 결정하기
                     val userSwingImage: Bitmap
                     val answerSwingImageResId: Int
@@ -694,11 +721,9 @@ class CameraSource(
                     )
                     val swingScore = calculateScore(PostureExtractor.manualPoseIndexArray)
                     setFeedback(feedBack)
-                    
 
                     // 영상 만들기
                     val userId = getUserId()
-
 
                     val swingPoseBitmaps = preciseBitmaps.map {it.data}
                     val swingSaveResult = SwingVideoProcessor.saveSwingDataToInternalStorage(context, swingPoseBitmaps, actualSwingIndices.reversed(), selfCameraOptionEnable, userId)
@@ -716,7 +741,6 @@ class CameraSource(
                     ))
                     // 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
                     increaseSwingCnt()
-
                     setCurrentCameraState(RESULT)
 
                 } else {
@@ -803,22 +827,24 @@ class CameraSource(
         return Pair(feedbackCheckList, feedbackCheckListTitle)
     }
 
-    private fun calculateScore(indices: Array<Int>) : Int {
+    private fun calculateScore(indices: Array<Int>): Int {
         /**
          * 수동 측정된 스윙 자세들에 대해 모델을 통한 유사도 점수를 갱신하고 score 반환
          * TODO 문현 : 점수가 낮게 나오는 문제 해결방안 생각하고 적용해보기
          * */
-        val scores = Array (8) { 0.0f }
+        val scores = Array(8) { 0.0f }
 
-        indices.forEachIndexed{ poseNumber, frameIndex ->
+        indices.forEachIndexed { poseNumber, frameIndex ->
             val classifierResultList = classifier4!!.classify(jointDataList[frameIndex])
             classifierResultList.forEachIndexed { classifiedPoseIndex, classifiedResult ->
                 val classifiedPoseScore = classifiedResult.second
                 if (classifiedPoseIndex < 4 && poseNumber < 4) {
-                    scores[classifiedPoseIndex] = max(scores[classifiedPoseIndex], classifiedPoseScore)
+                    scores[classifiedPoseIndex] =
+                        max(scores[classifiedPoseIndex], classifiedPoseScore)
                 }
                 if (classifiedPoseIndex in 4..7 && poseNumber in 4..7) {
-                    scores[classifiedPoseIndex] = max(scores[classifiedPoseIndex], classifiedPoseScore)
+                    scores[classifiedPoseIndex] =
+                        max(scores[classifiedPoseIndex], classifiedPoseScore)
                 }
             }
         }
@@ -833,10 +859,10 @@ class CameraSource(
             scores[7].toDouble(),
         )
         var scoreResult = 0.0
-        scores.forEachIndexed{ _, score ->
+        scores.forEachIndexed { _, score ->
             scoreResult += (score * 100)
         }
-        return (scoreResult/8).toInt()
+        return (scoreResult / 8).toInt()
     }
 
     private fun skipFeedbackDialog() {

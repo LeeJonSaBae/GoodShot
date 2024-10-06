@@ -6,6 +6,7 @@ cameraCore = "1.4.0-rc01"
 converterGson = "2.9.0"
 coreSplashscreen = "1.0.1"
 datastorePreferencesCore = "1.1.1"
+dotsindicator = "4.2"
 exoplayerCore = "2.19.1"
 glide = "4.16.0"
 glideTransformations = "4.3.0"
@@ -69,6 +70,7 @@ androidx-window = { module = "androidx.window:window", version.ref = "window" }
 balloon = { module = "com.github.skydoves:balloon", version.ref = "balloon" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "converterGson" }
+dotsindicator = { module = "com.tbuonomo:dotsindicator", version.ref = "dotsindicator" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 glide-transformations = { module = "jp.wasabeef:glide-transformations", version.ref = "glideTransformations" }
 gravitysnaphelper = { module = "com.github.rubensousa:gravitysnaphelper", version.ref = "gravitysnaphelper" }

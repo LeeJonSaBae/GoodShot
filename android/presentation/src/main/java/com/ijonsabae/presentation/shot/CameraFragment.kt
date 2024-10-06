@@ -33,7 +33,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.Navigation
 import com.google.common.util.concurrent.ListenableFuture
 import com.ijonsabae.domain.usecase.login.GetUserIdUseCase
-import com.ijonsabae.domain.usecase.shot.GetSwingFeedBackUseCase
+import com.ijonsabae.domain.usecase.replay.GetSwingFeedBackUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentCameraBinding
@@ -67,6 +67,7 @@ class CameraFragment :
 
     @Inject
     lateinit var getUserIdUseCase: GetUserIdUseCase
+
     //TODO: Inject 유즈케이스 받아서 lateinitvar로 받아서 camerasource에 던져주면 된다
     private val permissionList = arrayOf(Manifest.permission.CAMERA)
     private var camera: Camera? = null
@@ -142,6 +143,12 @@ class CameraFragment :
             } else {
                 Log.e(TAG, "TTS Initialization failed!")
             }
+        }
+    }
+
+    private fun stopTts() {
+        if (tts?.isSpeaking == true) {
+            tts?.stop()
         }
     }
 
@@ -237,6 +244,7 @@ class CameraFragment :
     }
 
     override fun onPause() {
+        stopTts()
         cameraSource.pause()
         super.onPause()
     }
@@ -455,29 +463,29 @@ class CameraFragment :
                     binding.tvAlert.visibility = View.GONE
                     binding.ivAlert.visibility = View.GONE
 
-                    binding.ivBar.visibility = View.VISIBLE
-                    binding.tvCircleTempo.visibility = View.VISIBLE
-                    binding.tvTitleTempo.visibility = View.VISIBLE
-                    binding.tvCircleBackswing.visibility = View.VISIBLE
-                    binding.tvTitleBackswing.visibility = View.VISIBLE
-                    binding.tvCircleDownswing.visibility = View.VISIBLE
-                    binding.tvTitleDownswing.visibility = View.VISIBLE
-                    binding.tvResultHeader.visibility = View.VISIBLE
-                    binding.tvResultSubHeader.visibility = View.VISIBLE
+                    binding.ivBar.visibility = View.GONE
+                    binding.tvCircleTempo.visibility = View.GONE
+                    binding.tvTitleTempo.visibility = View.GONE
+                    binding.tvCircleBackswing.visibility = View.GONE
+                    binding.tvTitleBackswing.visibility = View.GONE
+                    binding.tvCircleDownswing.visibility = View.GONE
+                    binding.tvTitleDownswing.visibility = View.GONE
+                    binding.tvResultHeader.visibility = View.GONE
+                    binding.tvResultSubHeader.visibility = View.GONE
 
                     binding.indicatorProgress.hide()
                     binding.tvAnalyzing.visibility = View.GONE
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
 
-                    swingViewModel.getFeedBack()?.let {
-                        navController.navigate(
-                            CameraFragmentDirections.actionCameraToFeedbackDialog(
-                                it,
-                                swingViewModel.getSwingCnt(),
-                                shotSettingViewModel.totalSwingCnt.value
-                            )
+                    navController.navigate(
+                        CameraFragmentDirections.actionCameraToFeedbackDialog(
+                            swingViewModel.getSwingCnt(),
+                            shotSettingViewModel.totalSwingCnt.value
                         )
+                    )
+                    val feedback = swingViewModel.getFeedBack()
+                    feedback?.let {
                         if (it.goodShot) soundPool.play(soundId, 0.8f, 0.8f, 1, 0, 1.0f)
                         tts?.speak(it.feedBackSolution, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
                     }
@@ -513,6 +521,7 @@ class CameraFragment :
                 { feedback -> swingViewModel.setFeedBack(feedback) },
                 { swingViewModel.getUserId() },
                 { swingFeedback -> swingViewModel.insertSwingFeedback(swingFeedback) },
+                { swingFeedbackComment -> swingViewModel.insertSwingFeedbackComment(swingFeedbackComment) },
                 swingViewModel::initializeSwingCnt,
                 swingViewModel::increaseSwingCnt,
             )
