@@ -60,6 +60,7 @@ import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_HIP
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_KNEE
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_SHOULDER
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_WRIST
+import com.ijonsabae.presentation.shot.ai.data.Comment
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
@@ -77,6 +78,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.Arrays
 import java.util.LinkedList
 import java.util.Locale
@@ -155,6 +157,7 @@ class CameraSource(
     private var downswingEndTime: Long = 0
     private var isDownSwingEnd: Boolean = false
 
+    private var userId = getUserId()
     private var selfCameraOptionEnable: Boolean = false
 
     private lateinit var surfaceView: SurfaceView
@@ -677,6 +680,8 @@ class CameraSource(
                         jointQueue.toList().reversed(),
                         isLeftHanded.not()
                     )
+                    //TODO 문현 : List<Comment> 처리
+
                     Log.d("분석결과", "$poseAnalysisResults")
 
                     Log.d("분석결과", "${poseAnalysisResults.solution.name}")
@@ -723,26 +728,17 @@ class CameraSource(
                         userSwingImage,
                         answerSwingImageResId
                     )
-                    val swingScore = calculateScore(PostureExtractor.manualPoseIndexArray)
+
                     setFeedback(feedBack)
 
                     // 영상 만들기
-                    val userId = getUserId()
-
                     val swingPoseBitmaps = preciseBitmaps.map {it.data}
                     val swingSaveResult = SwingVideoProcessor.saveSwingDataToInternalStorage(context, swingPoseBitmaps, actualSwingIndices.reversed(), selfCameraOptionEnable, userId)
 
-                    // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) + @ 룸에 저장하기
-                    insertLocalSwingFeedback(SwingFeedback(
-                        userID = userId,
-                        swingCode = swingSaveResult.first,
-                        similarity = swingSimilarity,
-                        solution = poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
-                        score = swingScore, //TODO 문현 : SCORE 기준 회의 후 정하기
-                        tempo = tempoRatio.toDouble(),
-                        title = swingScore.toString() + "점 스윙",
-                        date = swingSaveResult.second
-                    ))
+                    // 영상 + PoseAnalysisResult(솔루션 + 피드백 + 코멘트) + @ 룸에 저장
+                    saveSwingFeedbackAndComment(swingSaveResult, tempoRatio, poseAnalysisResults)
+
+
                     // 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
                     increaseSwingCnt()
                     setCurrentCameraState(RESULT)
@@ -867,6 +863,44 @@ class CameraSource(
             scoreResult += (score * 100)
         }
         return (scoreResult / 8).toInt()
+    }
+
+    private fun saveSwingFeedbackAndComment(swingSaveResult: Pair<String, Long>, tempoRatio: String, poseAnalysisResults: PoseAnalysisResult) {
+        val swingScore = calculateScore(PostureExtractor.manualPoseIndexArray)
+        insertLocalSwingFeedback(SwingFeedback(
+            userID = userId,
+            swingCode = swingSaveResult.first,
+            similarity = swingSimilarity,
+            solution = poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
+            score = swingScore, //TODO 문현 : SCORE 기준 회의 후 정하기
+            tempo = tempoRatio.toDouble(),
+            title = swingScore.toString() + "점 스윙",
+            date = swingSaveResult.second
+        ))
+
+        val swingCommentList: MutableList<SwingFeedbackComment> = mutableListOf()
+        poseAnalysisResults.backSwingProblems.forEachIndexed { index, comment ->
+            swingCommentList.add(SwingFeedbackComment(
+                userID = userId,
+                swingCode = swingSaveResult.first,
+                poseType = 0, //TODO : backswing downswing 매크로 상수로 지정하기
+                content = comment.content,
+                commentType = if (comment.type == "BAD") 0 else 1 //TODO : BAD GOOD 매크로 상수로 지정하기
+            ))
+        }
+        poseAnalysisResults.downSwingProblems.forEachIndexed { index, comment ->
+            swingCommentList.add(SwingFeedbackComment(
+                userID = userId,
+                swingCode = swingSaveResult.first,
+                poseType = 1,
+                content = comment.content,
+                commentType = if (comment.type == "BAD") 0 else 1
+            ))
+        }
+        swingCommentList.forEach { swingFeedbackComment ->
+            insertLocalSwingFeedbackComment(swingFeedbackComment)
+        }
+
     }
 
     private fun skipFeedbackDialog() {
