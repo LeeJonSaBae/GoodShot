@@ -49,14 +49,32 @@ object SwingVideoProcessor {
     }
 
     @SuppressLint("HardwareIds")
-    fun saveSwingVideo(context: Context, bitmapIndices: List<Bitmap>, isSelf: Boolean, userId: Long = GUEST_ID) : String {
-        var bitmaps = bitmapIndices
+    fun saveSwingDataToInternalStorage(context: Context, swingPoseBitmap: List<Bitmap>, swingImages: List<Bitmap>, isSelf: Boolean, userId: Long = GUEST_ID) : Pair<String, Long> {
+        var bitmaps = swingImages
+        var swingPoses = swingPoseBitmap
         if (isSelf) {
-            bitmaps = flipBitmapsHorizontally(bitmapIndices)
+            bitmaps = flipBitmapsHorizontally(swingImages)
+            swingPoses = flipBitmapsHorizontally(swingPoseBitmap)
         }
         val fileSaveTime = System.currentTimeMillis()
         val ssidName = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
-        val videoFileName = "${ssidName}_${fileSaveTime}.mp4"
+        val swingCode = "${ssidName}_${fileSaveTime}"
+
+        //스윙 영상 저장
+        saveSwingVideo(context, bitmaps, swingCode, userId)
+
+        //썸네일 저장
+        saveThumbnailToInternalStorage(context, bitmaps[0], swingCode, userId)
+
+        //각 스윙별 이미지 저장
+        saveSwingPoseImagesToInternalStorage(context, swingPoses , swingCode, userId)
+
+        return Pair(swingCode, fileSaveTime)
+    }
+
+    @SuppressLint("HardwareIds")
+    private fun saveSwingVideo(context: Context, bitmaps: List<Bitmap>, swingCode: String, userId: Long) {
+        val videoFileName = "$swingCode.mp4"
         val videoDir = File(context.filesDir, "videos/$userId")
         if (!videoDir.exists()) {
             videoDir.mkdirs()
@@ -69,23 +87,17 @@ object SwingVideoProcessor {
             videoFile.absolutePath
         )
         videoEncoder.start()
-        Log.d("MainActivity_Capture", "인덱스들: ${bitmaps.size}")
         bitmaps.forEachIndexed { index, bitmap ->
             val byteBuffer = bitmapToByteBuffer(bitmap)
-            Log.d("MainActivity_Capture", "프레임 인덱스: $index")
             videoEncoder.encodeFrame(byteBuffer)
         }
 
         videoEncoder.finish()
-        saveBitmapToInternalStorage(context, bitmaps[0], userId, ssidName, fileSaveTime)
-
-        return videoFileName
-
     }
 
-    private fun saveBitmapToInternalStorage(context: Context, bitmap: Bitmap, userName: Long, ssidName: String, fileSaveTime: Long) {
-        val thumbnailFileName = "${ssidName}_${fileSaveTime}.jpg"
-        val thumbnailDir = File(context.filesDir, "thumbnails/$userName")
+    private fun saveThumbnailToInternalStorage(context: Context, bitmap: Bitmap, swingCode: String, userId: Long) {
+        val thumbnailFileName = "${swingCode}.jpg"
+        val thumbnailDir = File(context.filesDir, "thumbnails/$userId")
         if (!thumbnailDir.exists()) {
             thumbnailDir.mkdirs()
         }
@@ -95,6 +107,21 @@ object SwingVideoProcessor {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
         }
         Log.d("MainActivity_Capture", "썸네일 저장 완료")
+    }
+
+    private fun saveSwingPoseImagesToInternalStorage(context: Context, bitmaps: List<Bitmap>, swingCode: String, userId: Long) {
+        val swingPoseDir = File(context.filesDir, "swingPose/$userId")
+        if (!swingPoseDir.exists()) {
+            swingPoseDir.mkdirs()
+        }
+        bitmaps.forEachIndexed { poseIndex, bitmap ->
+
+            val swingPoseFileName = "${swingCode}_${poseIndex}.jpg"
+            val file = File(swingPoseDir, swingPoseFileName)
+            FileOutputStream(file).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+            }
+        }
     }
 
     private fun bitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {

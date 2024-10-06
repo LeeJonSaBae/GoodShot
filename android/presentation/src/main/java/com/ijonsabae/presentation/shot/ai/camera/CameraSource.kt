@@ -699,17 +699,20 @@ class CameraSource(
                     // 영상 만들기
                     val userId = getUserId()
 
-                    val fileName = SwingVideoProcessor.saveSwingVideo(context, actualSwingIndices.reversed(), selfCameraOptionEnable, userId) //TODO 문현 : 여기 동적으로 전면카메라 처리 필요
+
+                    val swingPoseBitmaps = preciseBitmaps.map {it.data}
+                    val swingSaveResult = SwingVideoProcessor.saveSwingDataToInternalStorage(context, swingPoseBitmaps, actualSwingIndices.reversed(), selfCameraOptionEnable, userId)
+
                     // TODO: 영상 + PoseAnalysisResult(솔루션 + 피드백) + @ 룸에 저장하기
                     insertLocalSwingFeedback(SwingFeedback(
                         userID = userId,
-                        swingCode = fileName,
+                        swingCode = swingSaveResult.first,
                         similarity = swingSimilarity,
                         solution = poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
                         score = swingScore, //TODO 문현 : SCORE 기준 회의 후 정하기
                         tempo = tempoRatio.toDouble(),
                         title = swingScore.toString() + "점 스윙",
-                        date = System.currentTimeMillis()
+                        date = swingSaveResult.second
                     ))
                     // 스윙 분석 결과 표시 + 결과 표시되는 동안은 카메라 분석 막기
                     increaseSwingCnt()
