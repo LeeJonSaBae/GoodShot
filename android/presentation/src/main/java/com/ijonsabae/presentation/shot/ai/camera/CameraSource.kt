@@ -30,6 +30,7 @@ import android.view.SurfaceView
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.ijonsabae.domain.model.Similarity
 import com.ijonsabae.domain.model.SwingFeedback
+import com.ijonsabae.domain.model.SwingFeedbackComment
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.model.FeedBack
 import com.ijonsabae.presentation.shot.CameraState
@@ -101,6 +102,22 @@ class CameraSource(
     private val setFeedback: (FeedBack) -> Unit,
     private val getUserId: () -> Long,
     private val insertLocalSwingFeedback: (SwingFeedback) -> Unit,
+    private val insertLocalSwingFeedbackComment: (SwingFeedbackComment) -> Unit,
+    // TODO (
+    //  문현
+    //  insertLocalSwingFeedBackComment를 이용해서 스윙에 대한 코멘트를 아래에 해당하는 SwingFeedbackComment 객체를 만들어서 넣어줘야 함!
+    //  SwingFeedback Table의 키를 외래키로 참조하니까 안전빵으로 SwingFeedBack을 저장한 후 호출할 것!
+    //  사용법 : insertLocalSwingFeedback(SwingFeedbackComment 객체)
+    //  )
+    /*
+        data class SwingFeedbackComment(
+            val userID: Long,
+            val swingCode: String,
+            val poseType: Int,
+            val content: String,
+            val commentType: Int
+        )
+     */
     private val initializeSwingCnt: () -> Unit,
     private val increaseSwingCnt: () -> Unit,
 ) {

@@ -62,4 +62,16 @@ class SwingFeedbackRepositoryImpl @Inject constructor(
     override fun updateUserId(oldUserId: Long, newUserId: Long): Int {
         return swingFeedbackLocalDataSource.updateUserId(oldUserId, newUserId)
     }
+
+    override fun updateLikeStatus(userID: Long, swingCode: String, likeStatus: Boolean): Int {
+        return swingFeedbackLocalDataSource.updateLikeStatus(userID, swingCode, likeStatus)
+    }
+
+    override fun updateClampStatus(userID: Long, swingCode: String, clampStatus: Boolean): Int {
+        return swingFeedbackLocalDataSource.updateClampStatus(userID, swingCode, clampStatus)
+    }
+
+    override fun updateTitle(userID: Long, swingCode: String, title: String): Int {
+        return swingFeedbackLocalDataSource.updateTitle(userID, swingCode, title)
+    }
 }

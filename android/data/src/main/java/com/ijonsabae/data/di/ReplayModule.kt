@@ -9,7 +9,7 @@ import com.ijonsabae.data.usecase.replay.GetLocalSwingFeedbackLikeListUseCaseImp
 import com.ijonsabae.data.usecase.replay.GetLocalSwingFeedbackListUseCaseImpl
 import com.ijonsabae.data.usecase.replay.GetLocalSwingFeedbackUseCaseImpl
 import com.ijonsabae.data.usecase.replay.GetReplayUseCaseImpl
-import com.ijonsabae.data.usecase.replay.InsertLocalSwingFeedbackCommentUseCaseImpl
+import com.ijonsabae.data.usecase.shot.InsertLocalSwingFeedbackCommentUseCaseImpl
 import com.ijonsabae.data.usecase.replay.InsertLocalSwingFeedbackUseCaseImpl
 import com.ijonsabae.data.usecase.replay.UpdateUserIdUseCaseImpl
 import com.ijonsabae.domain.usecase.replay.DeleteLocalSwingFeedbackCommentUseCase
@@ -19,8 +19,8 @@ import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackLikeListUseCase
 import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackListUseCase
 import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackUseCase
 import com.ijonsabae.domain.usecase.replay.GetReplayUseCase
-import com.ijonsabae.domain.usecase.replay.InsertLocalSwingFeedbackCommentUseCase
-import com.ijonsabae.domain.usecase.replay.InsertLocalSwingFeedbackUseCase
+import com.ijonsabae.domain.usecase.shot.InsertLocalSwingFeedbackCommentUseCase
+import com.ijonsabae.domain.usecase.shot.InsertLocalSwingFeedbackUseCase
 import com.ijonsabae.domain.usecase.replay.UpdateUserIdUseCase
 import dagger.Binds
 import dagger.Module

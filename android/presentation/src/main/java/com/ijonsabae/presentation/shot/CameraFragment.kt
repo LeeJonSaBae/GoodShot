@@ -33,7 +33,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.Navigation
 import com.google.common.util.concurrent.ListenableFuture
 import com.ijonsabae.domain.usecase.login.GetUserIdUseCase
-import com.ijonsabae.domain.usecase.shot.GetSwingFeedBackUseCase
+import com.ijonsabae.domain.usecase.replay.GetSwingFeedBackUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentCameraBinding
@@ -521,6 +521,7 @@ class CameraFragment :
                 { feedback -> swingViewModel.setFeedBack(feedback) },
                 { swingViewModel.getUserId() },
                 { swingFeedback -> swingViewModel.insertSwingFeedback(swingFeedback) },
+                { swingFeedbackComment -> swingViewModel.insertSwingFeedbackComment(swingFeedbackComment) },
                 swingViewModel::initializeSwingCnt,
                 swingViewModel::increaseSwingCnt,
             )

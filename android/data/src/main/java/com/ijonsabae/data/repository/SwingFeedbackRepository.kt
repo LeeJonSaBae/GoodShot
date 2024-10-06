@@ -15,4 +15,7 @@ interface SwingFeedbackRepository {
     fun getSwingFeedbackComment(userId: Long, swingCode: String): SwingFeedbackComment
     fun deleteFeedbackComment(userID: Long, swingCode: String): Int
     fun updateUserId(oldUserId: Long, newUserId: Long): Int
+    fun updateLikeStatus(userID: Long, swingCode: String, likeStatus: Boolean): Int
+    fun updateClampStatus(userID: Long, swingCode: String, clampStatus: Boolean): Int
+    fun updateTitle(userID: Long, swingCode: String, title: String): Int
 }
