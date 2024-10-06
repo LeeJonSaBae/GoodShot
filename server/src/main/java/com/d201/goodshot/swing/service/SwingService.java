@@ -43,7 +43,7 @@ public class SwingService {
 
         User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
 
-        // 1. 해당 user 에 대한 Comment 전부 가져와서
+        // 1. 해당 user 에 대한 Comment 전부 가져와서 (swing 정보 다 가져와서)
 
         // 2. 데이터 전처리 (반복적으로 문제가 있었던 Comment 3개만 뽑기)
 
@@ -68,7 +68,6 @@ public class SwingService {
         return swings.stream()
                 .filter(swing -> !codesSet.contains(swing.getCode())) // 서버에만 있는 데이터를 필터링
                 .map(swing -> SwingData.builder()
-                        .id(swing.getId())
                         .similarity(swing.getSimilarity())
                         .solution(swing.getSolution())
                         .score(swing.getScore())
