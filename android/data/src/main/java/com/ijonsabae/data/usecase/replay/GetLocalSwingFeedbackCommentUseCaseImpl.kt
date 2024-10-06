@@ -9,7 +9,7 @@ class GetLocalSwingFeedbackCommentUseCaseImpl @Inject constructor(
     private val swingFeedbackRepository: SwingFeedbackRepository
 ) :
     GetLocalSwingFeedbackCommentUseCase {
-    override operator fun invoke(userID: Long, videoName: String): SwingFeedbackComment{
+    override operator fun invoke(userID: Long, videoName: String): List<SwingFeedbackComment>{
         return swingFeedbackRepository.getSwingFeedbackComment(userID, videoName)
     }
 }

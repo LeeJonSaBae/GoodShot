@@ -5,8 +5,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.ijonsabae.domain.model.SwingFeedback
+import com.ijonsabae.domain.model.SwingFeedbackComment
 import com.ijonsabae.domain.usecase.login.GetUserIdUseCase
-import com.ijonsabae.domain.usecase.replay.InsertLocalSwingFeedbackUseCase
+import com.ijonsabae.domain.usecase.shot.InsertLocalSwingFeedbackCommentUseCase
+import com.ijonsabae.domain.usecase.shot.InsertLocalSwingFeedbackUseCase
 import com.ijonsabae.presentation.model.FeedBack
 import com.ijonsabae.presentation.shot.CameraState.POSITIONING
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SwingViewModel @Inject constructor(
     private val getUserIdUseCase: GetUserIdUseCase,
-    private val insertLocalSwingFeedbackUseCase: InsertLocalSwingFeedbackUseCase
+    private val insertLocalSwingFeedbackUseCase: InsertLocalSwingFeedbackUseCase,
+    private val insertLocalSwingFeedbackCommentUseCase: InsertLocalSwingFeedbackCommentUseCase
 ) : ViewModel() {
     private val _id : Long = runBlocking { getUserIdUseCase() }
 
@@ -30,6 +33,10 @@ class SwingViewModel @Inject constructor(
 
     fun getUserId(): Long{
         return _id
+    }
+
+    fun insertSwingFeedbackComment(swingFeedbackComment: SwingFeedbackComment){
+        insertLocalSwingFeedbackCommentUseCase(swingFeedbackComment)
     }
 
     fun insertSwingFeedback(swingFeedback: SwingFeedback){

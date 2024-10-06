@@ -25,4 +25,13 @@ interface SwingFeedbackDao {
 
     @Query("UPDATE swing_feedback SET userID = :newUserId WHERE userID = :oldUserId")
     fun updateUserId(oldUserId: Long, newUserId: Long): Int
+
+    @Query("UPDATE swing_feedback SET likeStatus = :likeStatus WHERE userID = :userID and swingCode = :swingCode")
+    fun updateLikeStatus(userID: Long, swingCode: String, likeStatus: Boolean): Int
+
+    @Query("UPDATE swing_feedback SET isClamped = :clampStatus WHERE userID = :userID and swingCode = :swingCode")
+    fun updateClampStatus(userID: Long, swingCode: String, clampStatus: Boolean): Int
+
+    @Query("UPDATE swing_feedback SET title = :title WHERE userID = :userID and swingCode = :swingCode")
+    fun updateTitle(userID: Long, swingCode: String, title: String): Int
 }

@@ -1,7 +1,7 @@
-package com.ijonsabae.data.usecase.shot
+package com.ijonsabae.data.usecase.replay
 
 import com.ijonsabae.domain.model.FeedBack
-import com.ijonsabae.domain.usecase.shot.GetSwingFeedBackUseCase
+import com.ijonsabae.domain.usecase.replay.GetSwingFeedBackUseCase
 import javax.inject.Inject
 
 class GetSwingFeedBackUseCaseImpl @Inject constructor() : GetSwingFeedBackUseCase {

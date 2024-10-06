@@ -139,7 +139,14 @@
             android:id="@+id/replay_report"
             android:name="com.ijonsabae.presentation.replay.ReplayReportFragment"
             tools:label="replay report"
-            tools:layout="@layout/fragment_replay_report" />
+            tools:layout="@layout/fragment_replay_report" >
+            <argument
+                android:name="Swing_Feedback_Comment_List"
+                app:argType="com.ijonsabae.presentation.model.SwingFeedbackCommentParcelable[]" />
+            <argument
+                android:name="Swing_Feedback"
+                app:argType="com.ijonsabae.presentation.model.SwingFeedbackSerializable" />
+        </fragment>
     </navigation>
     <navigation
         android:id="@+id/profile_tab"

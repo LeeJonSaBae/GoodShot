@@ -33,7 +33,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.Navigation
 import com.google.common.util.concurrent.ListenableFuture
 import com.ijonsabae.domain.usecase.login.GetUserIdUseCase
-import com.ijonsabae.domain.usecase.shot.GetSwingFeedBackUseCase
+import com.ijonsabae.domain.usecase.replay.GetSwingFeedBackUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentCameraBinding
@@ -510,7 +510,6 @@ class CameraFragment :
         }
     }
 
-    //TODO 영민 : 1. userID 넘겨주기, 2. swingfeedbackviewmodel에 SwingFeedback객체 저장하는 함수 넘겨주기
     private fun initAiSetting() {
         if (!::cameraSource.isInitialized) {
             cameraSource = CameraSource(
@@ -521,6 +520,7 @@ class CameraFragment :
                 { feedback -> swingViewModel.setFeedBack(feedback) },
                 { swingViewModel.getUserId() },
                 { swingFeedback -> swingViewModel.insertSwingFeedback(swingFeedback) },
+                { swingFeedbackComment -> swingViewModel.insertSwingFeedbackComment(swingFeedbackComment) },
                 swingViewModel::initializeSwingCnt,
                 swingViewModel::increaseSwingCnt,
             )

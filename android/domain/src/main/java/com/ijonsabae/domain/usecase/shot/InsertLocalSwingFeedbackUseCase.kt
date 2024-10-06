@@ -1,4 +1,4 @@
-package com.ijonsabae.domain.usecase.replay
+package com.ijonsabae.domain.usecase.shot
 
 import com.ijonsabae.domain.model.SwingFeedback
 
