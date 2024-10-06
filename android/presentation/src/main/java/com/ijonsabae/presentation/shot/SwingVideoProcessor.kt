@@ -109,6 +109,8 @@ object SwingVideoProcessor {
         Log.d("MainActivity_Capture", "썸네일 저장 완료")
     }
 
+
+
     private fun saveSwingPoseImagesToInternalStorage(context: Context, bitmaps: List<Bitmap>, swingCode: String, userId: Long) {
         val swingPoseDir = File(context.filesDir, "swingPose/$userId")
         if (!swingPoseDir.exists()) {
@@ -122,6 +124,29 @@ object SwingVideoProcessor {
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
             }
         }
+    }
+
+    // TODO 영민 : File객체로 경로를 반환하는 함수입니다.
+    fun getSwingVideoFile(context: Context, swingCode: String, userId: Long = GUEST_ID): File {
+        val videoFileName = "$swingCode.mp4"
+        val videoDir = File(context.filesDir, "videos/$userId")
+        return File(videoDir, videoFileName)
+    }
+
+    fun getSwingThumbnailFile(context: Context, swingCode: String, userId: Long = GUEST_ID): File {
+        val thumbnailFileName = "$swingCode.jpg"
+        val thumbnailDir = File(context.filesDir, "thumbnails/$userId")
+        return File(thumbnailDir, thumbnailFileName)
+    }
+
+    fun getSwingPoseFiles(context: Context, swingCode: String, userId: Long = GUEST_ID): List<File> {
+        val swingPoseFiles: MutableList<File> = mutableListOf()
+        val swingPoseDir = File(context.filesDir, "swingPose/$userId")
+        for (poseIndex in 0..7) {
+            val swingPoseFileName = "${swingCode}_${poseIndex}.jpg"
+            swingPoseFiles.add(File(swingPoseDir, swingPoseFileName))
+        }
+        return swingPoseFiles
     }
 
     private fun bitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {
@@ -167,6 +192,7 @@ object SwingVideoProcessor {
             Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
         }
     }
+
 
 
 
