@@ -33,7 +33,9 @@ import com.ijonsabae.domain.model.SwingFeedback
 import com.ijonsabae.domain.model.SwingFeedbackComment
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.Const.Companion.BACKSWING
+import com.ijonsabae.presentation.config.Const.Companion.BAD
 import com.ijonsabae.presentation.config.Const.Companion.DOWNSWING
+import com.ijonsabae.presentation.config.Const.Companion.GOOD
 import com.ijonsabae.presentation.model.FeedBack
 import com.ijonsabae.presentation.shot.CameraState
 import com.ijonsabae.presentation.shot.CameraState.ADDRESS
@@ -897,7 +899,7 @@ class CameraSource(
                 swingCode = swingSaveResult.first,
                 poseType = DOWNSWING,
                 content = comment.content,
-                commentType = if (comment.type == "BAD") 0 else 1
+                commentType = if (comment.type == "BAD") BAD else GOOD
             ))
         }
         swingCommentList.forEach { swingFeedbackComment ->
