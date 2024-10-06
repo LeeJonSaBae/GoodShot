@@ -27,6 +27,7 @@ import com.ijonsabae.presentation.databinding.FragmentReplayBinding
 import com.ijonsabae.presentation.main.MainActivity
 import com.ijonsabae.presentation.mapper.SwingFeedbackCommentMapper
 import com.ijonsabae.presentation.mapper.SwingFeedbackMapper
+import com.ijonsabae.presentation.shot.SwingVideoProcessor
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -76,15 +77,12 @@ class ReplayFragment :
                         lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
                             updateLikeStatusUseCase(item.userID, item.swingCode, !item.likeStatus)
                         }
-                        Toast.makeText(context, "즐겨찾기 클릭~!", Toast.LENGTH_SHORT).show()
+                        showToastShort("즐겨찾기 클릭~!")
                     }
 
                     override fun onItemDelete(item: SwingFeedback) {
                         lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
-                            TODO(
-                                "문현" +
-                                        "여기에 진짜 파일을 지우는 코드도 작성해야 함"
-                            )
+                            SwingVideoProcessor.deleteLocalSwingData(fragmentContext, item.swingCode, item.userID)
                             // 이건 Room에서 지우는 것
                             deleteLocalSwingFeedbackUseCase(item.userID, item.swingCode)
                         }
