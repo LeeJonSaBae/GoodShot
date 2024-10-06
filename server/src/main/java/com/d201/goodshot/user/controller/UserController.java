@@ -202,8 +202,8 @@ public class UserController {
     })
     @ResponseStatus(HttpStatus.OK)
     public BaseResponse<ProfileResponse> getProfile(@AuthenticationPrincipal CustomUser customUser) {
-        ProfileResponse profileResponse = userService.getProfile(customUser.getEmail());
-        return BaseResponse.of(HttpStatus.OK, "프로필 조회에 성공했습니다.", profileResponse);
+        ProfileResponse response = userService.getProfile(customUser.getEmail());
+        return BaseResponse.of(HttpStatus.OK, "프로필 조회에 성공했습니다.", response);
     }
 
     @PutMapping("/profile")

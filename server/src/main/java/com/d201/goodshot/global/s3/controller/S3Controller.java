@@ -33,7 +33,7 @@ public class S3Controller {
            })
     @ResponseStatus(HttpStatus.CREATED)
     public BaseResponse<PresignedUrlResponse> uploadImage(@RequestBody PresignedUrlRequest presignedUrlReq) {
-        PresignedUrlResponse response = s3Service.issuePresignedUrl(presignedUrlReq);
+        PresignedUrlResponse response = s3Service.issuePresignedUrl(presignedUrlReq, null, null, null);
         return BaseResponse.created(response);
     }
 

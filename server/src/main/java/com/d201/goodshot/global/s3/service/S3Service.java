@@ -34,9 +34,13 @@ public class S3Service {
 
     // 발급
     @Transactional(readOnly = true)
-    public PresignedUrlResponse issuePresignedUrl(PresignedUrlRequest presignedUrlReq){
+    public PresignedUrlResponse issuePresignedUrl(PresignedUrlRequest presignedUrlReq, Long userId, String type, String code){
 
         String imageName = folder + UUID.randomUUID() + "." + presignedUrlReq.getImageExtension().getUploadExtension();
+
+        if(userId!=null && type!=null && code!=null){
+            imageName = folder + userId + "/" + type + "/" + code + "." + presignedUrlReq.getImageExtension().getUploadExtension();
+        }
 
         GeneratePresignedUrlRequest request = generatePresignedUrlRequest(bucket, imageName);
         return PresignedUrlResponse.builder()
