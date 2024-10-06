@@ -66,17 +66,17 @@
             <!-- 제목 -->
             <TextView
                 android:id="@+id/tv_title"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
                 android:textSize="18sp"
                 android:textStyle="bold"
+                android:singleLine="true"
+                android:ellipsize="end"
                 app:layout_constraintBottom_toTopOf="@id/layout_tag1"
-                app:layout_constraintEnd_toStartOf="@id/tv_date"
-                app:layout_constraintHorizontal_chainStyle="spread_inside"
+                app:layout_constraintEnd_toStartOf="@id/iv_edit_title"
                 app:layout_constraintStart_toEndOf="@id/cv_thumbnail"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_chainStyle="packed"
                 tools:text="첫 스윙 영상" />
 
             <!-- 제목 수정 버튼 -->
@@ -88,7 +88,9 @@
                 android:src="@drawable/ic_edit"
                 app:layout_constraintBottom_toBottomOf="@id/tv_title"
                 app:layout_constraintStart_toEndOf="@id/tv_title"
-                app:layout_constraintTop_toTopOf="@id/tv_title" />
+                app:layout_constraintTop_toTopOf="@id/tv_title"
+                app:layout_constraintHorizontal_bias="1"
+                />
 
             <!-- 날짜 -->
             <TextView
@@ -100,7 +102,7 @@
                 android:textSize="12sp"
                 app:layout_constraintBottom_toBottomOf="@id/tv_title"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/tv_title"
+                app:layout_constraintStart_toEndOf="@id/iv_edit_title"
                 app:layout_constraintTop_toTopOf="@id/tv_title"
                 tools:text="2024년 09월 11일" />
 

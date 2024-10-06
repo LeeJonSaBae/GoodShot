@@ -11,6 +11,9 @@ import com.ijonsabae.data.usecase.replay.GetLocalSwingFeedbackUseCaseImpl
 import com.ijonsabae.data.usecase.replay.GetReplayUseCaseImpl
 import com.ijonsabae.data.usecase.shot.InsertLocalSwingFeedbackCommentUseCaseImpl
 import com.ijonsabae.data.usecase.replay.InsertLocalSwingFeedbackUseCaseImpl
+import com.ijonsabae.data.usecase.replay.UpdateClampStatusUseCaseImpl
+import com.ijonsabae.data.usecase.replay.UpdateLikeStatusUseCaseImpl
+import com.ijonsabae.data.usecase.replay.UpdateTitleUseCaseImpl
 import com.ijonsabae.data.usecase.replay.UpdateUserIdUseCaseImpl
 import com.ijonsabae.domain.usecase.replay.DeleteLocalSwingFeedbackCommentUseCase
 import com.ijonsabae.domain.usecase.replay.DeleteLocalSwingFeedbackUseCase
@@ -19,6 +22,9 @@ import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackLikeListUseCase
 import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackListUseCase
 import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackUseCase
 import com.ijonsabae.domain.usecase.replay.GetReplayUseCase
+import com.ijonsabae.domain.usecase.replay.UpdateClampStatusUseCase
+import com.ijonsabae.domain.usecase.replay.UpdateLikeStatusUseCase
+import com.ijonsabae.domain.usecase.replay.UpdateTitleUseCase
 import com.ijonsabae.domain.usecase.shot.InsertLocalSwingFeedbackCommentUseCase
 import com.ijonsabae.domain.usecase.shot.InsertLocalSwingFeedbackUseCase
 import com.ijonsabae.domain.usecase.replay.UpdateUserIdUseCase
@@ -58,7 +64,16 @@ abstract class ReplayModule {
     abstract fun bindInsertLocalSwingFeedbackCommentUseCase(uc: InsertLocalSwingFeedbackCommentUseCaseImpl): InsertLocalSwingFeedbackCommentUseCase
 
     @Binds
-    abstract fun bindUpdateUserIdUseCaseUseCase(uc: UpdateUserIdUseCaseImpl): UpdateUserIdUseCase
+    abstract fun bindUpdateUserIdUseCase(uc: UpdateUserIdUseCaseImpl): UpdateUserIdUseCase
+
+    @Binds
+    abstract fun bindUpdateLikeStatusUseCase(uc: UpdateLikeStatusUseCaseImpl): UpdateLikeStatusUseCase
+
+    @Binds
+    abstract fun bindUpdateClampStatusUseCase(uc: UpdateClampStatusUseCaseImpl): UpdateClampStatusUseCase
+
+    @Binds
+    abstract fun bindUpdateTitleUseCase(uc: UpdateTitleUseCaseImpl): UpdateTitleUseCase
 
     @Binds
     abstract fun bindSwingFeedbackRepository(rp: SwingFeedbackRepositoryImpl): SwingFeedbackRepository

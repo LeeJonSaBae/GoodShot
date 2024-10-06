@@ -51,7 +51,7 @@ class SwingFeedbackRepositoryImpl @Inject constructor(
     override fun getSwingFeedbackComment(
         userId: Long,
         swingCode: String
-    ): SwingFeedbackComment {
+    ): List<SwingFeedbackComment> {
         return swingFeedbackLocalDataSource.getSwingFeedbackComment(userId, swingCode)
     }
 

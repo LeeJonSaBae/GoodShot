@@ -12,7 +12,7 @@ interface SwingFeedbackRepository {
     fun getLikeSwingFeedbackList(userID: Long): Flow<PagingData<SwingFeedback>>
     fun deleteFeedback(userId: Long, swingCode: String): Int
     fun insertSwingFeedbackComment(swingFeedbackCommentEntity: SwingFeedbackComment)
-    fun getSwingFeedbackComment(userId: Long, swingCode: String): SwingFeedbackComment
+    fun getSwingFeedbackComment(userId: Long, swingCode: String): List<SwingFeedbackComment>
     fun deleteFeedbackComment(userID: Long, swingCode: String): Int
     fun updateUserId(oldUserId: Long, newUserId: Long): Int
     fun updateLikeStatus(userID: Long, swingCode: String, likeStatus: Boolean): Int

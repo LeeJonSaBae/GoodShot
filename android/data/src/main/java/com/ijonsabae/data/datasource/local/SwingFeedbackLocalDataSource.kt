@@ -29,7 +29,7 @@ class SwingFeedbackLocalDataSource @Inject constructor(
     fun insertSwingFeedbackComment(swingFeedbackCommentEntity: SwingFeedbackComment){
         return swingFeedbackCommentDao.insertSwingFeedbackComment(swingFeedbackCommentEntity)
     }
-    fun getSwingFeedbackComment(userId: Long, swingCode: String): SwingFeedbackComment{
+    fun getSwingFeedbackComment(userId: Long, swingCode: String): List<SwingFeedbackComment>{
         return swingFeedbackCommentDao.getSwingFeedbackComment(userId, swingCode)
     }
     fun deleteVideoComment(userID: Long, swingCode: String): Int {
