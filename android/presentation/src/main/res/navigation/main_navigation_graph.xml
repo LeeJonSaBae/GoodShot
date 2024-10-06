@@ -143,6 +143,9 @@
             <argument
                 android:name="Swing_Feedback_Comment_List"
                 app:argType="com.ijonsabae.presentation.model.SwingFeedbackCommentParcelable[]" />
+            <argument
+                android:name="Swing_Feedback"
+                app:argType="com.ijonsabae.presentation.model.SwingFeedbackSerializable" />
         </fragment>
     </navigation>
     <navigation

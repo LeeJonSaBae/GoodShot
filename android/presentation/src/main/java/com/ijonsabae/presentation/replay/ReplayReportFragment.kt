@@ -2,6 +2,7 @@ package com.ijonsabae.presentation.replay
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
@@ -87,8 +88,8 @@ class ReplayReportFragment :
     }
 
     private fun initSummary() {
-        args
-        binding.tvSummary.text = "탑스윙까지 팔꿈치를 쭉 펴고 올려보세요.\n더 높은 파워로 일정한 스윙을 할 수 있을 거에요."
+        Log.d(TAG, "initSummary: ${args.SwingFeedback}")
+        binding.tvSummary.text = args.SwingFeedback.solution
     }
 
 

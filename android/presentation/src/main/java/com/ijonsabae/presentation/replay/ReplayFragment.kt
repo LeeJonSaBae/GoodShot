@@ -26,6 +26,7 @@ import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentReplayBinding
 import com.ijonsabae.presentation.main.MainActivity
 import com.ijonsabae.presentation.mapper.SwingFeedbackCommentMapper
+import com.ijonsabae.presentation.mapper.SwingFeedbackMapper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -67,7 +68,7 @@ class ReplayFragment :
                             }
                         }
                         navController.navigate(ReplayFragmentDirections.actionReplayToReplayReport(
-                            swingFeedbackCommentParcelable.toTypedArray()
+                            swingFeedbackCommentParcelable.toTypedArray(), SwingFeedbackMapper.mapperToSwingFeedbackSerializable(item)
                         ))
                     }
 
