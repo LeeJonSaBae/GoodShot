@@ -510,7 +510,6 @@ class CameraFragment :
         }
     }
 
-    //TODO 영민 : 1. userID 넘겨주기, 2. swingfeedbackviewmodel에 SwingFeedback객체 저장하는 함수 넘겨주기
     private fun initAiSetting() {
         if (!::cameraSource.isInitialized) {
             cameraSource = CameraSource(

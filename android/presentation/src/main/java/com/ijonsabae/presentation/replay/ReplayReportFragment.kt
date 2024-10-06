@@ -18,6 +18,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentReplayReportBinding
+import com.ijonsabae.presentation.shot.SwingVideoProcessor
 import kotlin.math.abs
 
 private const val TAG = "굿샷_ReplayReportFragment"
@@ -47,7 +48,7 @@ class ReplayReportFragment :
         playerView = binding.pvReplayVideo
         player = ExoPlayer.Builder(requireContext()).build()
         playerView.player = player
-        val videoUri = Uri.parse("android.resource://${activity?.packageName}/${R.raw.test_video}")
+        val videoUri = Uri.parse(SwingVideoProcessor.getSwingVideoFile(fragmentContext, swingCode = args.SwingFeedback.swingCode, userId = args.SwingFeedback.userID).toString())
         val mediaItem = MediaItem.fromUri(videoUri)
         player.setMediaItem(mediaItem)
         player.prepare()
