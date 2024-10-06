@@ -23,10 +23,11 @@ public class SwingResponse {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class ReportResponse {
-        private String similarity; // 유사도
+        private List<Double> similarity; // 유사도
         private String content; // 내용
         private double score; // 점수
         private String name; // 이름
+        private List<String> problems; // 문제되는 3가지 comment
     }
 
 }
