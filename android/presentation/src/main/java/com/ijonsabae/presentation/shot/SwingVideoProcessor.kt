@@ -125,7 +125,19 @@ object SwingVideoProcessor {
             }
         }
     }
-    // TODO 문현 : 영상 삭제 로직 만들기(룸에서는 지우는거 구현 완료, 로컬 기기 삭제 필요)
+
+    // TODO 영민 : 로컬에서 영상 삭제하는 기능 -> SwingVideoProcessor.deleteLocalSwingData(context, "04385360c7d8d191_1728212595135", 1) 이런식으로 삭제. 작동확인
+    fun deleteLocalSwingData(context: Context, swingCode: String, userId: Long) {
+        val swingVideoFile = getSwingVideoFile(context, swingCode, userId)
+        val swingThumbnailFile = getSwingThumbnailFile(context, swingCode, userId)
+        val swingPoseImages = getSwingPoseFiles(context, swingCode, userId)
+
+        if (swingVideoFile.exists()) swingVideoFile.delete()
+        if (swingThumbnailFile.exists()) swingThumbnailFile.delete()
+        swingPoseImages.forEachIndexed { index, file ->
+            if (file.exists()) file.delete()
+        }
+    }
 
     // TODO 영민 : File객체로 경로를 반환하는 함수입니다.
     fun getSwingVideoFile(context: Context, swingCode: String, userId: Long = GUEST_ID): File {
@@ -149,6 +161,7 @@ object SwingVideoProcessor {
         }
         return swingPoseFiles
     }
+
 
     private fun bitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {
         val inputWidth = bitmap.width
