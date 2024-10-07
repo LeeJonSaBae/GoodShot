@@ -2,7 +2,6 @@ package com.ijonsabae.presentation.profile
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.Profile
@@ -11,7 +10,7 @@ import com.ijonsabae.domain.usecase.profile.GetPresignedURLUseCase
 import com.ijonsabae.domain.usecase.profile.GetProfileInfoUseCase
 import com.ijonsabae.domain.usecase.profile.LogoutUseCase
 import com.ijonsabae.domain.usecase.profile.UpdateProfileUseCase
-import com.ijonsabae.domain.usecase.profile.UploadProfileImageUseCase
+import com.ijonsabae.domain.usecase.profile.UploadPresignedDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +27,7 @@ class ProfileViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val getProfileInfoUseCase: GetProfileInfoUseCase,
     private val getPresignedURLUseCase: GetPresignedURLUseCase,
-    private val uploadProfileImageUseCase: UploadProfileImageUseCase,
+    private val uploadProfileImageUseCase: UploadPresignedDataUseCase,
     private val logoutUseCase: LogoutUseCase,
     private val updateProfileUseCase: UpdateProfileUseCase,
     private val getLocalAccessTokenUseCase: GetLocalAccessTokenUseCase

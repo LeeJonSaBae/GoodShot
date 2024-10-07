@@ -2,7 +2,6 @@ package com.ijonsabae.presentation.config
 
 import android.Manifest
 import android.os.Build
-import androidx.core.content.ContextCompat
 
 class Const {
     companion object{
@@ -24,7 +23,7 @@ class Const {
         const val BACKSWING = 0
         const val BAD = 0
         const val DOWNSWING = 1
-        const val GOOD = 1
+        const val NICE = 1
 
     }
 }

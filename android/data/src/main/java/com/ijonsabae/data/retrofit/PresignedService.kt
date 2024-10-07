@@ -5,9 +5,9 @@ import retrofit2.http.Body
 import retrofit2.http.PUT
 import retrofit2.http.Url
 
-interface UploadImageService {
+interface PresignedService {
     @PUT
-    suspend fun uploadProfileImage(
+    suspend fun uploadImage(
         @Url presignedURL: String,
         @Body image: RequestBody
     ): Result<Unit>

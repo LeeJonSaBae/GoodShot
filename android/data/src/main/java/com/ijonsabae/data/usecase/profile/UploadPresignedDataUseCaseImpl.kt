@@ -2,8 +2,8 @@ package com.ijonsabae.data.usecase.profile
 
 import android.content.Context
 import android.net.Uri
-import com.ijonsabae.data.retrofit.UploadImageService
-import com.ijonsabae.domain.usecase.profile.UploadProfileImageUseCase
+import com.ijonsabae.data.retrofit.PresignedService
+import com.ijonsabae.domain.usecase.profile.UploadPresignedDataUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
@@ -14,17 +14,17 @@ import javax.inject.Inject
 
 private const val TAG = "굿샷_UploadProfileImageUseCa"
 
-class UploadProfileImageUseCaseImpl @Inject constructor(
-    private val uploadImageService: UploadImageService,
+class UploadPresignedDataUseCaseImpl @Inject constructor(
+    private val uploadImageService: PresignedService,
     @ApplicationContext private val context: Context
-) : UploadProfileImageUseCase {
+) : UploadPresignedDataUseCase {
 
     override suspend fun invoke(
         presignedUrl: String,
         imageURI: URI
     ): Result<Unit> {
         val requestBody = createRequestBodyFromUri(imageURI)
-        return uploadImageService.uploadProfileImage(presignedUrl, requestBody)
+        return uploadImageService.uploadImage(presignedUrl, requestBody)
     }
 
     private fun createRequestBodyFromUri(uri: URI): RequestBody {

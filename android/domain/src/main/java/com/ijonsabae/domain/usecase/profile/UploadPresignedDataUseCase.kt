@@ -2,7 +2,7 @@ package com.ijonsabae.domain.usecase.profile
 
 import java.net.URI
 
-interface UploadProfileImageUseCase {
+interface UploadPresignedDataUseCase {
 
     suspend operator fun invoke(
         presignedUrl: String,

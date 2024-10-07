@@ -66,6 +66,7 @@ class ReplayAdapter(private val context: Context) :
 
         fun bindInfo(position: Int) {
             val replayItem = getItem(position)
+            Log.d(TAG, "bindInfo: $replayItem")
             replayItem?.let {
                 Glide.with(binding.root)
                     .load(SwingLocalDataProcessor.getSwingThumbnailFile(context, replayItem.swingCode, replayItem.userID))

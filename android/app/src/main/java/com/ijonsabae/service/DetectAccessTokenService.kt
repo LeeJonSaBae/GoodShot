@@ -14,9 +14,11 @@ import com.ijonsabae.presentation.shot.SwingLocalDataProcessor
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 private const val TAG = "DetectAccessTokenServic 싸피"
@@ -40,10 +42,12 @@ class DetectAccessTokenService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        runBlocking {
-            accessLoginTokenFlow = getLocalAccessTokenFlowUseCase()
+        CoroutineScope(Dispatchers.IO).launch{
+            coroutineScope {
+                accessLoginTokenFlow = getLocalAccessTokenFlowUseCase()
+            }
+            initFlow()
         }
-        initFlow()
     }
 
     override fun onBind(intent: Intent): IBinder {

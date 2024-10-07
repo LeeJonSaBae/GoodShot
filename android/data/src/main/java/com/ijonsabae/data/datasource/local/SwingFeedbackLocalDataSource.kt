@@ -21,6 +21,9 @@ class SwingFeedbackLocalDataSource @Inject constructor(
     fun getAllSwingFeedback(userID: Long): PagingSource<Int, SwingFeedback> {
         return swingFeedbackDao.getAllSwingFeedback(userID)
     }
+    fun getSwingFeedbackListNeedToUpload(userID:Long): List<SwingFeedback>{
+        return swingFeedbackDao.getAllSwingFeedbackNeedToUpload(userID)
+    }
     fun getLikeSwingFeedbackList(userID: Long): PagingSource<Int, SwingFeedback> {
         return swingFeedbackDao.getLikeSwingFeedback(userID)
     }
@@ -48,6 +51,9 @@ class SwingFeedbackLocalDataSource @Inject constructor(
     }
     fun updateTitle(userID: Long, swingCode: String, title: String, currentTime: Long): Int{
         return swingFeedbackDao.updateTitle(userID, swingCode, title, currentTime)
+    }
+    fun syncUpdateStatus(userID: Long): Int{
+        return swingFeedbackDao.syncUpdateStatus(userID)
     }
     fun hideSwingFeedback(userID: Long, swingCode: String, currentTime: Long): Int{
         return swingFeedbackDao.hideSwingFeedback(userID,swingCode, currentTime)

@@ -18,6 +18,9 @@ interface SwingFeedbackDao {
     @Query("SELECT * FROM swing_feedback WHERE userID = :userID and isUpdated != 2")
     fun getAllSwingFeedback(userID: Long): PagingSource<Int,SwingFeedback>
 
+    @Query("SELECT * FROM swing_feedback WHERE isUpdated == 0 and userID = :userID")
+    fun getAllSwingFeedbackNeedToUpload(userID:Long): List<SwingFeedback>
+
     @Query("SELECT likeStatus, title, swingCode, date, isUpdated FROM swing_feedback WHERE userID = :userID and isUpdated != 0")
     fun getChangedSwingFeedback(userID: Long): List<SwingFeedbackSyncRoomData>
 
@@ -38,6 +41,9 @@ interface SwingFeedbackDao {
 
     @Query("UPDATE swing_feedback SET title = :title, isUpdated = 1, date = :currentTime WHERE userID = :userID and swingCode = :swingCode")
     fun updateTitle(userID: Long, swingCode: String, title: String, currentTime: Long): Int
+
+    @Query("UPDATE swing_feedback SET isUpdated = 0 WHERE userID = :userID and isUpdated != 2")
+    fun syncUpdateStatus(userID: Long): Int
 
     @Query("UPDATE swing_feedback SET isUpdated = 2, date = :currentTime WHERE userID = :userID and swingCode = :swingCode")
     fun hideSwingFeedback(userID: Long, swingCode: String, currentTime: Long): Int

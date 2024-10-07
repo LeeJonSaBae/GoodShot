@@ -1,7 +1,5 @@
 package com.ijonsabae.presentation.replay
 
-import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -10,7 +8,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.ijonsabae.presentation.R
-import com.ijonsabae.presentation.config.Const.Companion.GOOD
+import com.ijonsabae.presentation.config.Const.Companion.NICE
 import com.ijonsabae.presentation.databinding.ItemSwingFlowAnalysisBinding
 import com.ijonsabae.presentation.model.SwingFeedbackCommentParcelable
 
@@ -43,7 +41,7 @@ class BackSwingFlowAnalysisAdapter() :
 
             Glide.with(binding.root)
                 .load(
-                    if (item.commentType == GOOD) ContextCompat.getDrawable(binding.root.context, R.drawable.ic_swing_report_checked)
+                    if (item.commentType == NICE) ContextCompat.getDrawable(binding.root.context, R.drawable.ic_swing_report_checked)
                     else ContextCompat.getDrawable(binding.root.context, R.drawable.ic_swing_report_unchecked)
                 )
                 .into(binding.ivSwingFlowAnalysis)
