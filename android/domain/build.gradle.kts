@@ -15,4 +15,6 @@ dependencies {
     implementation (libs.kotlinx.coroutines.core)
     // Without Android Dependency Paging 3
     implementation(libs.androidx.paging.common)
+    // Room without Android Dependency
+    implementation(libs.androidx.room.common)
 }

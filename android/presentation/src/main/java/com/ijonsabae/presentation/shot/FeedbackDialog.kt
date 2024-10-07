@@ -63,7 +63,7 @@ class FeedbackDialog :
         initBackPress()
         initButtons()
         initRecyclerView()
-        setArgs()
+        setFeedback()
     }
 
     override fun onStart() {
@@ -95,18 +95,22 @@ class FeedbackDialog :
 
     private fun checkSwingCompletionAndNavigate() {
         if (args.swingCnt == args.totalSwingCnt) {
-            navController.navigate(R.id.action_feedback_dialog_to_shot)
-            showToastLong("스윙 촬영 횟수를 모두 채워 분석이 종료되었습니다.")
+            if (navController.currentDestination?.id == R.id.feedback_dialog) {
+                navController.navigate(R.id.action_feedback_dialog_to_shot)
+                showToastLong("스윙 촬영 횟수를 모두 채워 분석이 종료되었습니다.")
+            }
         }
     }
 
     private fun initRecyclerView() {
         binding.rvCheckList.adapter = checkListAdapter
-        checkListAdapter.submitList(args.feedback.feedBackCheckList)
+        swingViewModel.getFeedBack()?.let {
+            checkListAdapter.submitList(it.feedBackCheckList)
+        }
     }
 
-    private fun setArgs() {
-        args.feedback.apply {
+    private fun setFeedback() {
+        swingViewModel.getFeedBack()?.apply {
             binding.apply {
                 Glide.with(root)
                     .load(userSwingImage)
@@ -116,9 +120,9 @@ class FeedbackDialog :
                     .load(expertSwingImageResId)
                     .into(ivExpertSwing)
 
-                tvTempo.text = tempo.toString()
-                tvBack.text = back.toString()
-                tvDown.text = down.toString()
+                tvTempo.text = tempo
+                tvBack.text = back
+                tvDown.text = down
 
                 tvCheckListTitle.text = feedBackCheckListTitle
                 tvFeedbackSolution.text = feedBackSolution

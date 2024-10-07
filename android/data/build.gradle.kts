@@ -56,7 +56,13 @@ android {
 dependencies {
     implementation(project(":domain"))
 
+    // Room
+    implementation(libs.androidx.room.ktx)
+    kapt(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.paging)
+
     // paging3
+    implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.runtime)
 
     //serialization

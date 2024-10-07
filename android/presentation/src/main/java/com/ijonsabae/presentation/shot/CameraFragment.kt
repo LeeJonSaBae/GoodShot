@@ -4,6 +4,8 @@ import android.Manifest
 import android.graphics.LinearGradient
 import android.graphics.Shader
 import android.graphics.Typeface
+import android.media.AudioAttributes
+import android.media.SoundPool
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.text.SpannableString
@@ -14,6 +16,7 @@ import android.util.Log
 import android.util.Size
 import android.view.SurfaceView
 import android.view.View
+import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraControl
@@ -29,12 +32,12 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.Navigation
 import com.google.common.util.concurrent.ListenableFuture
-import com.ijonsabae.domain.usecase.shot.GetSwingFeedBackUseCase
+import com.ijonsabae.domain.usecase.login.GetUserIdUseCase
+import com.ijonsabae.domain.usecase.replay.GetSwingFeedBackUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentCameraBinding
 import com.ijonsabae.presentation.main.MainActivity
-import com.ijonsabae.presentation.model.FeedBack
 import com.ijonsabae.presentation.shot.CameraState.ADDRESS
 import com.ijonsabae.presentation.shot.CameraState.AGAIN
 import com.ijonsabae.presentation.shot.CameraState.ANALYZING
@@ -58,12 +61,20 @@ private const val TAG = "CameraFragment_싸피"
 class CameraFragment :
     BaseFragment<FragmentCameraBinding>(FragmentCameraBinding::bind, R.layout.fragment_camera) {
 
+
     @Inject
     lateinit var foldingStateActor: FoldingStateActor
+
+    @Inject
+    lateinit var getUserIdUseCase: GetUserIdUseCase
+
+    //TODO: Inject 유즈케이스 받아서 lateinitvar로 받아서 camerasource에 던져주면 된다
     private val permissionList = arrayOf(Manifest.permission.CAMERA)
     private var camera: Camera? = null
     private var cameraController: CameraControl? = null
     private val lastAnalysisTimestamp = AtomicLong(0L)
+    private lateinit var soundPool: SoundPool
+    private var soundId: Int = 0
     private var tts: TextToSpeech? = null
     private var TTS_ID = "TTS"
 
@@ -84,10 +95,13 @@ class CameraFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // 자동 화면 꺼짐 방지
+        requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         navController = Navigation.findNavController(binding.root)
         (fragmentContext as MainActivity).hideAppBar()
         initObservers()
         initTts()
+        initSoundPool()
         surfaceView = binding.camera
         permissionChecker = PermissionChecker(this)
         permissionChecker.setOnGrantedListener { //퍼미션 획득 성공일때
@@ -102,6 +116,21 @@ class CameraFragment :
         }
     }
 
+    private fun initSoundPool() {
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_MEDIA)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+
+        soundPool = SoundPool.Builder()
+            .setMaxStreams(1)
+            .setAudioAttributes(audioAttributes)
+            .build()
+
+        // 오디오 파일 로드
+        soundId = soundPool.load(fragmentContext, R.raw.applause, 1)
+    }
+
     private fun initTts() {
         tts = TextToSpeech(requireContext()) { status ->
             if (status == TextToSpeech.SUCCESS) {
@@ -114,6 +143,12 @@ class CameraFragment :
             } else {
                 Log.e(TAG, "TTS Initialization failed!")
             }
+        }
+    }
+
+    private fun stopTts() {
+        if (tts?.isSpeaking == true) {
+            tts?.stop()
         }
     }
 
@@ -163,11 +198,6 @@ class CameraFragment :
                             val fps = 1000.0 / deltaTime
                             Log.d("CameraAnalyzer", "Current FPS: ${fps.roundToInt()}")
                         }
-
-                        // TODO: 좌타 우타 여부 동적으로 넣어주기
-//                         isSelf = true
-//                        isLeft = false
-
                         cameraSource.processImage(
                             cameraSource.getRotateBitmap(
                                 image.toBitmap(),
@@ -214,13 +244,14 @@ class CameraFragment :
     }
 
     override fun onPause() {
+        stopTts()
         cameraSource.pause()
         super.onPause()
     }
 
     override fun onDestroyView() {
-        // 여기 작성해줘
         (fragmentContext as MainActivity).showBottomNavBar()
+        requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         cameraProvider.unbindAll()
         super.onDestroyView()
     }
@@ -231,6 +262,7 @@ class CameraFragment :
             t.shutdown()
         }
         cameraSource.destroy()
+        soundPool.release()
         super.onDestroy()
     }
 
@@ -431,27 +463,30 @@ class CameraFragment :
                     binding.tvAlert.visibility = View.GONE
                     binding.ivAlert.visibility = View.GONE
 
-                    binding.ivBar.visibility = View.VISIBLE
-                    binding.tvCircleTempo.visibility = View.VISIBLE
-                    binding.tvTitleTempo.visibility = View.VISIBLE
-                    binding.tvCircleBackswing.visibility = View.VISIBLE
-                    binding.tvTitleBackswing.visibility = View.VISIBLE
-                    binding.tvCircleDownswing.visibility = View.VISIBLE
-                    binding.tvTitleDownswing.visibility = View.VISIBLE
-                    binding.tvResultHeader.visibility = View.VISIBLE
-                    binding.tvResultSubHeader.visibility = View.VISIBLE
+                    binding.ivBar.visibility = View.GONE
+                    binding.tvCircleTempo.visibility = View.GONE
+                    binding.tvTitleTempo.visibility = View.GONE
+                    binding.tvCircleBackswing.visibility = View.GONE
+                    binding.tvTitleBackswing.visibility = View.GONE
+                    binding.tvCircleDownswing.visibility = View.GONE
+                    binding.tvTitleDownswing.visibility = View.GONE
+                    binding.tvResultHeader.visibility = View.GONE
+                    binding.tvResultSubHeader.visibility = View.GONE
 
                     binding.indicatorProgress.hide()
                     binding.tvAnalyzing.visibility = View.GONE
                     binding.progressTitle.visibility = View.GONE
                     binding.indicatorProgress.visibility = View.GONE
 
-                    swingViewModel.getFeedBack()?.let {
-                        navController.navigate(
-                            CameraFragmentDirections.actionCameraToFeedbackDialog(
-                                it, swingViewModel.getSwingCnt(), shotSettingViewModel.totalSwingCnt.value
-                            )
+                    navController.navigate(
+                        CameraFragmentDirections.actionCameraToFeedbackDialog(
+                            swingViewModel.getSwingCnt(),
+                            shotSettingViewModel.totalSwingCnt.value
                         )
+                    )
+                    val feedback = swingViewModel.getFeedBack()
+                    feedback?.let {
+                        if (it.goodShot) soundPool.play(soundId, 0.8f, 0.8f, 1, 0, 1.0f)
                         tts?.speak(it.feedBackSolution, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
                     }
 
@@ -483,10 +518,14 @@ class CameraFragment :
                 { swingViewModel.currentState.value },
                 { cameraState -> swingViewModel.setCurrentState(cameraState) },
                 { feedback -> swingViewModel.setFeedBack(feedback) },
+                { swingViewModel.getUserId() },
+                { swingFeedback -> swingViewModel.insertSwingFeedback(swingFeedback) },
+                { swingFeedbackComment -> swingViewModel.insertSwingFeedbackComment(swingFeedbackComment) },
                 swingViewModel::initializeSwingCnt,
-                swingViewModel::increaseSwingCnt
+                swingViewModel::increaseSwingCnt,
             )
             cameraSource.setSurfaceView(binding.camera)
         }
     }
+
 }

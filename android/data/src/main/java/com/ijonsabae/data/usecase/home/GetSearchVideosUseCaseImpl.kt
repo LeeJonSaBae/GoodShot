@@ -6,7 +6,7 @@ import com.ijonsabae.domain.usecase.home.GetSearchVideosUseCase
 import javax.inject.Inject
 
 class GetSearchVideosUseCaseImpl @Inject constructor(private val youtubeRepository: YoutubeRepository): GetSearchVideosUseCase {
-    override suspend operator fun invoke(part: String, query: String, maxResults: Int): YouTubeResponse{
+    override suspend operator fun invoke(part: String, query: String, maxResults: Int): Result<YouTubeResponse>{
         return youtubeRepository.getSearchVideos(
             part = part,
             query = query,

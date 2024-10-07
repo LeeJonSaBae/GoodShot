@@ -6,12 +6,13 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class FeedBack(
-    val down: Float,
-    val tempo: Float,
-    val back: Float,
+    val down: String,
+    val tempo: String,
+    val back: String,
+    val goodShot: Boolean,
     val feedBackSolution: String,
     val feedBackCheckListTitle: String,
     val feedBackCheckList: List<String>,
-    val userSwingImage : Bitmap,
-    val expertSwingImageResId : Int
+    val userSwingImage: Bitmap,
+    val expertSwingImageResId: Int
 ) : Parcelable

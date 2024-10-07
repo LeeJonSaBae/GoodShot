@@ -2,7 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:layout_marginHorizontal="20dp"
     android:backgroundTint="@color/white">
 
@@ -14,7 +14,6 @@
         android:text="사용법을 알아볼까요?"
         android:textSize="16sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@id/view_divider"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -26,6 +25,29 @@
         android:layout_marginTop="20dp"
         android:background="#E8E8E8"
         app:layout_constraintTop_toBottomOf="@id/tv_title" />
+    
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/vp_tutorial"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:elevation="10dp"
+        app:layout_constraintBottom_toTopOf="@id/vp_indicator"
+        app:layout_constraintTop_toBottomOf="@id/view_divider" />
 
+    <com.tbuonomo.viewpagerdotsindicator.SpringDotsIndicator
+        android:id="@+id/vp_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="15dp"
+        app:dotsColor="@color/dark_green"
+        app:dotsSize="8dp"
+        app:dotsSpacing="3dp"
+        app:dotsWidthFactor="2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/vp_tutorial" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

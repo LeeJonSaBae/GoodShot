@@ -5,6 +5,7 @@ import com.d201.goodshot.global.security.dto.Token;
 import com.d201.goodshot.user.domain.User;
 import com.d201.goodshot.user.dto.Auth;
 import com.d201.goodshot.user.repository.RefreshTokenRepository;
+import com.d201.goodshot.user.repository.UserRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
@@ -77,6 +78,7 @@ public class TokenUtil {
         String refreshToken = Jwts.builder().
                 subject(user.getEmail())
                 .issuedAt(Timestamp.valueOf(LocalDateTime.now()))
+                .claim("id", user.getId())
                 .expiration(Date
                         .from(Instant.now().plus(refreshTokenExpireTime, ChronoUnit.SECONDS)))
                 .signWith(secretKey).compact();
@@ -87,6 +89,7 @@ public class TokenUtil {
         return Token.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .userId(user.getId())
                 .build();
     }
 

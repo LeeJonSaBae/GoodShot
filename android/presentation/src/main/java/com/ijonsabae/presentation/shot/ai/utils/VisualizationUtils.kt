@@ -24,7 +24,7 @@ import com.ijonsabae.presentation.shot.ai.data.Person
 
 object VisualizationUtils {
     /** Radius of circle used to draw keypoints.  */
-    private const val CIRCLE_RADIUS = 6f
+    private const val CIRCLE_RADIUS = 5f
 
     /** Width of line used to connected two keypoints.  */
     private const val LINE_WIDTH = 4f
@@ -34,6 +34,8 @@ object VisualizationUtils {
 
     /** Distance from person id to the nose keypoint.  */
     private const val PERSON_ID_MARGIN = 6f
+
+    private val COLOR_MAGENTA = Color.rgb(199, 101, 100)
 
     /** Pair of keypoints to draw lines between.  */
     private val bodyJoints = listOf(
@@ -65,17 +67,17 @@ object VisualizationUtils {
         val height = input.height
         val paintCircle = Paint().apply {
             strokeWidth = CIRCLE_RADIUS
-            color = Color.RED
+            color = COLOR_MAGENTA
             style = Paint.Style.FILL
         }
         val paintLine = Paint().apply {
             strokeWidth = LINE_WIDTH
-            color = Color.RED
+            color = COLOR_MAGENTA
             style = Paint.Style.STROKE
         }
         val paintCircleOutline = Paint().apply {
             strokeWidth = LINE_WIDTH
-            color = Color.GREEN
+            color = COLOR_MAGENTA
             style = Paint.Style.STROKE
         }
 

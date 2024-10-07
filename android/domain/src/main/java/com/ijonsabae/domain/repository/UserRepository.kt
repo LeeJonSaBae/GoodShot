@@ -15,4 +15,6 @@ interface UserRepository {
     suspend fun checkEmailDuplicated(email: String): Result<CommonResponse<Boolean>>
     suspend fun generateTemporaryPassWord(name: String, email: String): Result<CommonResponse<Unit>>
     suspend fun changePassword(oldPassword: String, newPassword: String): Result<CommonResponse<Unit>>
+    suspend fun getAutoLoginStatus(): Boolean
+    suspend fun setAutoLoginStatus(autoLogin: Boolean)
 }

@@ -63,6 +63,16 @@ class ShotOptionDialog : BaseDialog<DialogShotOptionBinding>(
                     shotDialogViewModel.setIsLeftStatus(false)
                 }
             }
+            btnGolfClubIron.setOnClickListener {
+                lifecycleScope.launch {
+                    shotDialogViewModel.setSelectedGolfClub("아이언")
+                }
+            }
+            btnGolfClubDriver.setOnClickListener {
+                lifecycleScope.launch {
+                    shotDialogViewModel.setSelectedGolfClub("드라이버")
+                }
+            }
             btnSwingPoseFront.setOnClickListener {
                 selectButton(btnSwingPoseFront)
                 deselectButton(btnSwingPoseSide)
@@ -79,11 +89,11 @@ class ShotOptionDialog : BaseDialog<DialogShotOptionBinding>(
                 selectButton(btnGolfClubDriver)
                 deselectButton(btnGolfClubIron)
             }
-            tbPoseReport.setOnClickListener {
-                lifecycleScope.launch {
-                    setShowPoseReportStatus(tbPoseReport.isChecked)
-                }
-            }
+//            tbPoseReport.setOnClickListener {
+//                lifecycleScope.launch {
+//                    setShowPoseReportStatus(tbPoseReport.isChecked)
+//                }
+//            }
         }
     }
 
@@ -131,9 +141,9 @@ class ShotOptionDialog : BaseDialog<DialogShotOptionBinding>(
             .build()
 
 
-        binding.ivHelp.setOnClickListener {
-            balloon1.showAlignTop(it)
-        }
+//        binding.ivHelp.setOnClickListener {
+//            balloon1.showAlignTop(it)
+//        }
         binding.ivHelp2.setOnClickListener {
             balloon2.showAlignTop(it)
         }
@@ -154,6 +164,17 @@ class ShotOptionDialog : BaseDialog<DialogShotOptionBinding>(
                         } else {
                             selectButton(binding.btnDirectionRight)
                             deselectButton(binding.btnDirectionLeft)
+                        }
+                    }
+                }
+                launch {
+                    shotDialogViewModel.selectedGolfClub.collect() {
+                        if (it == "아이언") {
+                            selectButton(binding.btnGolfClubIron)
+                            deselectButton(binding.btnGolfClubDriver)
+                        } else if (it == "드라이버") {
+                            selectButton(binding.btnGolfClubDriver)
+                            deselectButton(binding.btnGolfClubIron)
                         }
                     }
                 }

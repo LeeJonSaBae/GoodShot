@@ -126,7 +126,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/dialog_shot_margin_top_between_options"
-        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/layout_shot_cnt"
         app:layout_constraintTop_toBottomOf="@id/layout_swing_pose">
 
@@ -186,7 +185,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/dialog_shot_margin_top_between_options"
-        app:layout_constraintBottom_toTopOf="@id/layout_pose_report"
+        app:layout_constraintBottom_toTopOf="@id/layout_golf_club"
         app:layout_constraintTop_toBottomOf="@id/layout_golf_club">
 
         <TextView
@@ -226,9 +225,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:stepSize="1"
+            android:value="1"
             android:valueFrom="1"
             android:valueTo="30"
-            android:value="1"
             app:labelStyle="@style/tooltip"
             app:layout_constraintTop_toBottomOf="@id/tv_shot_cnt_description"
             app:thumbColor="@color/white"
@@ -242,47 +241,47 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- 자세 분석 중간에 받아보기 -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layout_pose_report"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dialog_shot_margin_top_between_options"
-        app:layout_constraintBottom_toTopOf="@id/layout_show_answer"
-        app:layout_constraintTop_toBottomOf="@id/layout_shot_cnt">
+    <!--    <androidx.constraintlayout.widget.ConstraintLayout-->
+    <!--        android:id="@+id/layout_pose_report"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_marginTop="@dimen/dialog_shot_margin_top_between_options"-->
+    <!--        app:layout_constraintBottom_toTopOf="@id/layout_show_answer"-->
+    <!--        app:layout_constraintTop_toBottomOf="@id/layout_shot_cnt">-->
 
-        <TextView
-            android:id="@+id/tv_pose_report"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="자세 분석 중간에 받아보기"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <!--        <TextView-->
+    <!--            android:id="@+id/tv_pose_report"-->
+    <!--            android:layout_width="wrap_content"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:text="자세 분석 중간에 받아보기"-->
+    <!--            android:textStyle="bold"-->
+    <!--            app:layout_constraintBottom_toBottomOf="parent"-->
+    <!--            app:layout_constraintStart_toStartOf="parent"-->
+    <!--            app:layout_constraintTop_toTopOf="parent" />-->
 
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/iv_help"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:adjustViewBounds="true"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="10dp"
-            android:src="@drawable/ic_help"
-            android:tint="#C8C8C8"
-            app:layout_constraintBottom_toBottomOf="@id/tv_pose_report"
-            app:layout_constraintStart_toEndOf="@id/tv_pose_report"
-            app:layout_constraintTop_toTopOf="@id/tv_pose_report" />
+    <!--        <androidx.appcompat.widget.AppCompatImageView-->
+    <!--            android:id="@+id/iv_help"-->
+    <!--            android:layout_width="wrap_content"-->
+    <!--            android:layout_height="40dp"-->
+    <!--            android:adjustViewBounds="true"-->
+    <!--            android:paddingHorizontal="10dp"-->
+    <!--            android:paddingVertical="10dp"-->
+    <!--            android:src="@drawable/ic_help"-->
+    <!--            android:tint="#C8C8C8"-->
+    <!--            app:layout_constraintBottom_toBottomOf="@id/tv_pose_report"-->
+    <!--            app:layout_constraintStart_toEndOf="@id/tv_pose_report"-->
+    <!--            app:layout_constraintTop_toTopOf="@id/tv_pose_report" />-->
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/tb_pose_report"
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
-            app:layout_constraintBottom_toBottomOf="@id/tv_pose_report"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/tv_pose_report"
-            app:thumbTint="@color/btn_toggle_thumb"
-            app:trackTint="@color/btn_toggle_track" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    <!--        <com.google.android.material.materialswitch.MaterialSwitch-->
+    <!--            android:id="@+id/tb_pose_report"-->
+    <!--            android:layout_width="wrap_content"-->
+    <!--            android:layout_height="50dp"-->
+    <!--            app:layout_constraintBottom_toBottomOf="@id/tv_pose_report"-->
+    <!--            app:layout_constraintEnd_toEndOf="parent"-->
+    <!--            app:layout_constraintTop_toTopOf="@id/tv_pose_report"-->
+    <!--            app:thumbTint="@color/btn_toggle_thumb"-->
+    <!--            app:trackTint="@color/btn_toggle_track" />-->
+    <!--    </androidx.constraintlayout.widget.ConstraintLayout>-->
 
     <!-- 처음에 정답 영상 보기 -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -291,7 +290,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         app:layout_constraintBottom_toTopOf="@id/btn_ok"
-        app:layout_constraintTop_toBottomOf="@id/layout_pose_report">
+        app:layout_constraintTop_toBottomOf="@id/layout_shot_cnt">
 
         <TextView
             android:id="@+id/tv_show_answer"

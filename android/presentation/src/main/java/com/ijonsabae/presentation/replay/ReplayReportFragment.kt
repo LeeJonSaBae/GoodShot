@@ -2,20 +2,26 @@ package com.ijonsabae.presentation.replay
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
+import com.ijonsabae.presentation.config.Const.Companion.BACKSWING
+import com.ijonsabae.presentation.config.Const.Companion.DOWNSWING
 import com.ijonsabae.presentation.databinding.FragmentReplayReportBinding
+import com.ijonsabae.presentation.shot.SwingVideoProcessor
 import kotlin.math.abs
 
 private const val TAG = "굿샷_ReplayReportFragment"
@@ -25,12 +31,12 @@ class ReplayReportFragment :
         FragmentReplayReportBinding::bind,
         R.layout.fragment_replay_report
     ) {
-
+    private val args: ReplayReportFragmentArgs by navArgs()
     private lateinit var player: ExoPlayer
     private lateinit var playerView: PlayerView
     private val swingFlowAdapter by lazy { SwingFlowAdapter() }
-    private val backSwingFlowAnalysisAdapter by lazy { BackSwingFlowAnalysisAdapter(requireContext()) }
-    private val downSwingFlowAnalysisAdapter by lazy { DownSwingFlowAnalysisAdapter(requireContext()) }
+    private val backSwingFlowAnalysisAdapter by lazy { BackSwingFlowAnalysisAdapter() }
+    private val downSwingFlowAnalysisAdapter by lazy { DownSwingFlowAnalysisAdapter() }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -45,7 +51,7 @@ class ReplayReportFragment :
         playerView = binding.pvReplayVideo
         player = ExoPlayer.Builder(requireContext()).build()
         playerView.player = player
-        val videoUri = Uri.parse("android.resource://${activity?.packageName}/${R.raw.test_video}")
+        val videoUri = Uri.parse(SwingVideoProcessor.getSwingVideoFile(fragmentContext, swingCode = args.SwingFeedback.swingCode, userId = args.SwingFeedback.userID).toString())
         val mediaItem = MediaItem.fromUri(videoUri)
         player.setMediaItem(mediaItem)
         player.prepare()
@@ -70,9 +76,8 @@ class ReplayReportFragment :
     }
 
     private fun initSwingFlowViewPager(viewPager: ViewPager2) {
-        swingFlowAdapter.apply { submitList(getSwingFlowData()) }
         viewPager.adapter = swingFlowAdapter
-
+        swingFlowAdapter.submitList(loadPoseImage())
         viewPager.offscreenPageLimit = 1
         viewPager.overScrollMode = RecyclerView.OVER_SCROLL_NEVER
         val itemDecoration = HorizontalMarginItemDecoration(horizontalMarginInPx = 20)
@@ -87,7 +92,19 @@ class ReplayReportFragment :
     }
 
     private fun initSummary() {
-        binding.tvSummary.text = "탑스윙까지 팔꿈치를 쭉 펴고 올려보세요.\n더 높은 파워로 일정한 스윙을 할 수 있을 거에요."
+        Log.d(TAG, "initSummary: ${args.SwingFeedback}")
+        binding.tvSummary.text = args.SwingFeedback.solution
+    }
+
+    private fun loadPoseImage(): List<SwingFlowDTO>{
+        val result = SwingVideoProcessor.getSwingPoseFiles(fragmentContext, swingCode = args.SwingFeedback.swingCode, userId = args.SwingFeedback.userID)
+        val pose = listOf("ADDRESS", "TOE_UP", "MID_BACKSWING", "TOP", "MID_DOWNSWING", "IMPACT", "MID_FOLLOW_THROUGH", "FINISH")
+        return result.mapIndexed { index, file ->
+            SwingFlowDTO(
+                title = pose[index],
+                swingImg = file.toUri()
+            ,)
+        }
     }
 
 
@@ -96,157 +113,23 @@ class ReplayReportFragment :
         backSwingFlowAnalysisRecyclerView.layoutManager = LinearLayoutManager(context)
         backSwingFlowAnalysisRecyclerView.adapter = backSwingFlowAnalysisAdapter
 
-        val initialListBack = getBackSwingFlowAnalysisData(0)
-        backSwingFlowAnalysisAdapter.submitList(initialListBack)
+        val downSwingCommentList = args.SwingFeedbackCommentList.filter{
+            // poseType이 downSwing인 것만
+            it.poseType == DOWNSWING
+        }.toMutableList()
+
+        val backSwingCommentList = args.SwingFeedbackCommentList.filter{
+            // poseType이 backSwing인 것만
+            it.poseType == BACKSWING
+        }.toMutableList()
+
+        backSwingFlowAnalysisAdapter.submitList(downSwingCommentList)
 
         val downSwingFlowAnalysisRecyclerView = binding.rvDownSwingFlowAnalysis
         downSwingFlowAnalysisRecyclerView.layoutManager = LinearLayoutManager(context)
         downSwingFlowAnalysisRecyclerView.adapter = downSwingFlowAnalysisAdapter
 
-        val initialListDown = getDownSwingFlowAnalysisData(0)
-        downSwingFlowAnalysisAdapter.submitList(initialListDown)
-
-        // ViewPager와 RecyclerView 내용 연동
-//        binding.vpSwingFlow.registerOnPageChangeCallback(object :
-//            ViewPager2.OnPageChangeCallback() {
-//            override fun onPageSelected(position: Int) {
-//                super.onPageSelected(position)
-//                val newItems = getSwingFlowAnalysisData(position)
-//                swingFlowAnalysisAdapter.updateData(newItems)
-//            }
-//        })
-    }
-
-    private fun getSwingFlowData(): List<SwingFlowDTO> {
-        // TODO : api 연결 후 데이터 가져와서 뿌리도록 바꾸기 (지금은 dummy data)
-        return listOf(
-            SwingFlowDTO("Address", resources.getDrawable(R.drawable.dummy_img)),
-            SwingFlowDTO("Toe-Up", resources.getDrawable(R.drawable.dummy_img)),
-            SwingFlowDTO("Mid-Backswing", resources.getDrawable(R.drawable.dummy_img)),
-            SwingFlowDTO("Top", resources.getDrawable(R.drawable.dummy_img)),
-            SwingFlowDTO("Mid-Downswing", resources.getDrawable(R.drawable.dummy_img)),
-            SwingFlowDTO("Impact", resources.getDrawable(R.drawable.dummy_img)),
-            SwingFlowDTO("Mid-Follow-Through", resources.getDrawable(R.drawable.dummy_img)),
-            SwingFlowDTO("Finish", resources.getDrawable(R.drawable.dummy_img)),
-        )
-    }
-
-    private fun getBackSwingFlowAnalysisData(position: Int): MutableList<SwingFlowAnalysisDTO> {
-        return when (position) {
-            // TODO : api 연결 후 여기 데이터 가져와서 뿌리도록 바꾸기 (지금은 dummy data)
-            0 -> mutableListOf(
-                SwingFlowAnalysisDTO(
-                    true, "골판 위치가 수평으로 잘 유지됐어요!"
-                ),
-                SwingFlowAnalysisDTO(
-                    true, "어깨가 한쪽으로 기울어지지 않도록 해야 합니다."
-                ),
-                SwingFlowAnalysisDTO(
-                    false, "허리가 꺾여 있어요 주의해야 할 것 같아요."
-                ),
-                SwingFlowAnalysisDTO(
-                    false, "머리 위치가 중앙에 고정되어 있어요!"
-                ),
-                SwingFlowAnalysisDTO(
-                    true, "골반이 과하게 회전되어 있어요."
-                )
-            )
-
-            1 -> mutableListOf(
-                SwingFlowAnalysisDTO(
-                    true, "아아아ㅏㅇ"
-                ),
-                SwingFlowAnalysisDTO(
-                    false, "아ㅣ너랻ㄴ라ㅣ멀ㄴ!"
-                ),
-                SwingFlowAnalysisDTO(
-                    true, "ㅁㄴㅇㄹ"
-                ),
-                SwingFlowAnalysisDTO(
-                    true, "ㅈㄷㅅㄱㄷ"
-                ),
-                SwingFlowAnalysisDTO(
-                    true, "ㅇ넘디;허ㅚ;ㄷ마/."
-                )
-            )
-
-            else -> mutableListOf(
-                SwingFlowAnalysisDTO(
-                    false, "골판 위치가 수평으로 잘 유지됐어요!"
-                ),
-                SwingFlowAnalysisDTO(
-                    true, "어깨가 한쪽으로 기울어지지 않도록 해야 합니다."
-                ),
-                SwingFlowAnalysisDTO(
-                    true, "허리가 꺾여 있어요 주의해야 할 것 같아요."
-                ),
-                SwingFlowAnalysisDTO(
-                    true, "머리 위치가 중앙에 고정되어 있어요!"
-                ),
-                SwingFlowAnalysisDTO(
-                    false, "골반이 과하게 회전되어 있어요."
-                )
-            )
-        }
-    }
-
-    private fun getDownSwingFlowAnalysisData(position: Int): MutableList<SwingFlowAnalysisDTO> {
-        return when (position) {
-            // TODO : api 연결 후 여기 데이터 가져와서 뿌리도록 바꾸기 (지금은 dummy data)
-            0 -> mutableListOf(
-                SwingFlowAnalysisDTO(
-                    true, "골판 위치가 수평으로 잘 유지됐어요!"
-                ),
-                SwingFlowAnalysisDTO(
-                    true, "어깨가 한쪽으로 기울어지지 않도록 해야 합니다."
-                ),
-                SwingFlowAnalysisDTO(
-                    false, "허리가 꺾여 있어요 주의해야 할 것 같아요."
-                ),
-                SwingFlowAnalysisDTO(
-                    false, "머리 위치가 중앙에 고정되어 있어요!"
-                ),
-                SwingFlowAnalysisDTO(
-                    true, "골반이 과하게 회전되어 있어요."
-                )
-            )
-
-            1 -> mutableListOf(
-                SwingFlowAnalysisDTO(
-                    true, "아아아ㅏㅇ"
-                ),
-                SwingFlowAnalysisDTO(
-                    false, "아ㅣ너랻ㄴ라ㅣ멀ㄴ!"
-                ),
-                SwingFlowAnalysisDTO(
-                    true, "ㅁㄴㅇㄹ"
-                ),
-                SwingFlowAnalysisDTO(
-                    true, "ㅈㄷㅅㄱㄷ"
-                ),
-                SwingFlowAnalysisDTO(
-                    true, "ㅇ넘디;허ㅚ;ㄷ마/."
-                )
-            )
-
-            else -> mutableListOf(
-                SwingFlowAnalysisDTO(
-                    false, "골판 위치가 수평으로 잘 유지됐어요!"
-                ),
-                SwingFlowAnalysisDTO(
-                    true, "어깨가 한쪽으로 기울어지지 않도록 해야 합니다."
-                ),
-                SwingFlowAnalysisDTO(
-                    true, "허리가 꺾여 있어요 주의해야 할 것 같아요."
-                ),
-                SwingFlowAnalysisDTO(
-                    true, "머리 위치가 중앙에 고정되어 있어요!"
-                ),
-                SwingFlowAnalysisDTO(
-                    false, "골반이 과하게 회전되어 있어요."
-                )
-            )
-        }
+        downSwingFlowAnalysisAdapter.submitList(backSwingCommentList)
     }
 
     override fun onStart() {
