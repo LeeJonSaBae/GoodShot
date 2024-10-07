@@ -1,5 +1,6 @@
 package com.d201.goodshot.swing.domain;
 
+import com.d201.goodshot.swing.enums.ProblemType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,6 +20,9 @@ public class Report {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Enumerated(EnumType.STRING)
+    private ProblemType problemType;
 
     private String content;
 
