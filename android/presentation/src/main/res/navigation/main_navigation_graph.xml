@@ -166,6 +166,9 @@
             <action
                 android:id="@+id/action_profile_to_change_password_dialog"
                 app:destination="@id/change_password_dialog" />
+            <action
+                android:id="@+id/action_profile_to_login_dialog"
+                app:destination="@id/login_dialog" />
         </fragment>
 
         <fragment
@@ -175,16 +178,22 @@
             tools:layout="@layout/fragment_total_report" />
 
         <dialog
+            android:id="@+id/login_dialog"
+            android:name="com.ijonsabae.presentation.profile.LoginDialog"
+            tools:label="login_dialog"
+            tools:layout="@layout/dialog_login" />
+
+        <dialog
             android:id="@+id/resign_dialog"
             android:name="com.ijonsabae.presentation.profile.ResignDialog"
             tools:label="resign_dialog"
-            tools:layout="@layout/dialog_resign"></dialog>
+            tools:layout="@layout/dialog_resign" />
 
         <dialog
             android:id="@+id/change_password_dialog"
             android:name="com.ijonsabae.presentation.profile.ChangePasswordDialog"
             tools:label="change_password_dialog"
-            tools:layout="@layout/dialog_change_password"></dialog>
+            tools:layout="@layout/dialog_change_password" />
     </navigation>
 
 

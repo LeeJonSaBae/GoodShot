@@ -1,25 +1,18 @@
 package com.ijonsabae.presentation.profile
 
-import android.Manifest
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.ContentResolver
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.MimeTypeMap
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -35,6 +28,7 @@ import com.ijonsabae.presentation.databinding.FragmentProfileBinding
 import com.ijonsabae.presentation.login.LoginActivity
 import com.ijonsabae.presentation.main.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
@@ -43,7 +37,7 @@ private const val TAG = "굿샷_ProfileFragment"
 @AndroidEntryPoint
 class ProfileFragment :
     BaseFragment<FragmentProfileBinding>(FragmentProfileBinding::bind, R.layout.fragment_profile) {
-    private val profileViewModel: ProfileViewModel by viewModels()
+    private val profileViewModel: ProfileViewModel by activityViewModels()
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
@@ -112,6 +106,10 @@ class ProfileFragment :
         binding.layoutResign.setOnClickListener {
             navController.navigate(R.id.action_profile_to_resign_dialog)
         }
+
+        binding.layoutGoLogin.setOnClickListener {
+            navController.navigate(R.id.action_profile_to_login_dialog)
+        }
     }
 
     private fun initFlow(){
@@ -121,11 +119,12 @@ class ProfileFragment :
                     profileViewModel.isLogoutSucceed.collect { result ->
                         if (result == 200) {
                             showToastShort("로그아웃 되었습니다!")
-                            val intent = Intent(fragmentContext, LoginActivity::class.java).apply {
-                                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-                            }
-                            startActivity(intent)
-                            requireActivity().finish()
+//
+//                            val intent = Intent(fragmentContext, LoginActivity::class.java).apply {
+//                                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+//                            }
+//                            startActivity(intent)
+//                            requireActivity().finish()
                         }
                     }
                 }
@@ -164,6 +163,13 @@ class ProfileFragment :
 
                     }
                 }
+                launch {
+                    profileViewModel.isLogin.collect {
+                        Log.d(TAG, "initFlow: ${it}")
+                        
+                        getUserInfo()
+                    }
+                }
             }
         }
     }
@@ -181,7 +187,13 @@ class ProfileFragment :
 
     private fun getUserInfo() {
         lifecycleScope.launch(coroutineExceptionHandler) {
-            profileViewModel.getProfileInfo()
+            Log.d(TAG, "getUserInfo: ${profileViewModel.getToken()}")
+            if(profileViewModel.getToken() == null){
+                setGuestUI()
+            }else{
+                setUserUI()
+                profileViewModel.getProfileInfo()
+            }
 
             profileViewModel.profileInfo.collect { profileInfo ->
                 Log.d(TAG, "profileInfo: $profileInfo")
@@ -192,6 +204,20 @@ class ProfileFragment :
                     )
                 }
             }
+        }
+    }
+
+    private fun setGuestUI(){
+        binding.apply {
+            layoutLogin.visibility = View.INVISIBLE
+            layoutGoLogin.visibility = View.VISIBLE
+        }
+    }
+
+    private fun setUserUI(){
+        binding.apply {
+            layoutLogin.visibility = View.VISIBLE
+            layoutGoLogin.visibility = View.INVISIBLE
         }
     }
 

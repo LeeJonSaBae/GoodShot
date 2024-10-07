@@ -12,215 +12,289 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- 사용자 정보 -->
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layout_user_info"
+            android:id="@+id/layout_login"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toTopOf="@id/layout_change_password"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_chainStyle="packed">
+            app:layout_constraintBottom_toBottomOf="parent"
+            >
+            <!-- 사용자 정보 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layout_user_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toTopOf="@id/layout_change_password"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_chainStyle="packed">
 
-            <!-- 프로필 사진 -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/profile_cardview"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
+                <!-- 프로필 사진 -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/profile_cardview"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:layout_marginTop="20dp"
+                    app:cardCornerRadius="20dp"
+                    app:layout_constraintBottom_toTopOf="@id/tv_name"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <ImageView
+                        android:id="@+id/iv_profile_img"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:adjustViewBounds="true"
+                        android:scaleType="centerCrop"
+                        tools:src="@drawable/dummy_img" />
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- 프로필사진 편집 버튼 -->
+                <ImageView
+                    android:id="@+id/btn_edit_profile_img"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="end|bottom"
+                    android:layout_marginEnd="-15dp"
+                    android:layout_marginBottom="-15dp"
+                    android:adjustViewBounds="true"
+                    android:elevation="3dp"
+                    android:src="@drawable/ic_edit_profile_image"
+                    app:layout_constraintBottom_toBottomOf="@id/profile_cardview"
+                    app:layout_constraintEnd_toEndOf="@id/profile_cardview" />
+
+                <!-- 이름 -->
+                <TextView
+                    android:id="@+id/tv_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:textSize="23sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/profile_cardview"
+                    app:layout_constraintVertical_bias="0"
+                    tools:text="밍깅이" />
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- 비번 변경 버튼 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layout_change_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="20dp"
-                app:cardCornerRadius="20dp"
-                app:layout_constraintBottom_toTopOf="@id/tv_name"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                android:background="@drawable/profile_rounded_button_password"
+                app:layout_constraintBottom_toTopOf="@id/layout_logout"
+                app:layout_constraintTop_toBottomOf="@id/layout_user_info">
+
+                <TextView
+                    android:id="@+id/tv_change_password"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="비밀번호 변경"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <ImageView
-                    android:id="@+id/iv_profile_img"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
                     android:adjustViewBounds="true"
-                    android:scaleType="centerCrop"
-                    tools:src="@drawable/dummy_img" />
+                    android:src="@drawable/ic_go"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-            </androidx.cardview.widget.CardView>
-
-            <!-- 프로필사진 편집 버튼 -->
-            <ImageView
-                android:id="@+id/btn_edit_profile_img"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="end|bottom"
-                android:layout_marginEnd="-15dp"
-                android:layout_marginBottom="-15dp"
-                android:adjustViewBounds="true"
-                android:elevation="3dp"
-                android:src="@drawable/ic_edit_profile_image"
-                app:layout_constraintBottom_toBottomOf="@id/profile_cardview"
-                app:layout_constraintEnd_toEndOf="@id/profile_cardview" />
-
-            <!-- 이름 -->
-            <TextView
-                android:id="@+id/tv_name"
-                android:layout_width="wrap_content"
+            <!-- 로그아웃 버튼 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layout_logout"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="20dp"
-                android:textSize="23sp"
-                android:textStyle="bold"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/profile_cardview"
-                app:layout_constraintVertical_bias="0"
-                tools:text="밍깅이" />
+                android:background="@drawable/profile_rounded_button_password"
+                app:layout_constraintBottom_toTopOf="@id/layout_resign"
+                app:layout_constraintTop_toBottomOf="@id/layout_change_password">
 
+                <TextView
+                    android:id="@+id/tv_logout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="로그아웃"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/ic_go"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- 비번 변경 버튼 -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layout_change_password"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="20dp"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/profile_rounded_button_password"
-            app:layout_constraintBottom_toTopOf="@id/layout_logout"
-            app:layout_constraintTop_toBottomOf="@id/layout_user_info">
-
-            <TextView
-                android:id="@+id/tv_change_password"
-                android:layout_width="wrap_content"
+            <!-- 회원 탈퇴 버튼 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layout_resign"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="비밀번호 변경"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/profile_rounded_button_password"
+                app:layout_constraintBottom_toTopOf="@id/layout_go_total_report"
+                app:layout_constraintTop_toBottomOf="@id/layout_logout">
 
-            <ImageView
-                android:layout_width="wrap_content"
+                <TextView
+                    android:id="@+id/tv_resign"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="회원 탈퇴"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/ic_go"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- 종합 리포트로 가기 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layout_go_total_report"
+                android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:adjustViewBounds="true"
-                android:src="@drawable/ic_go"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/profile_rounded_button_go_total_report"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintDimensionRatio="4:3"
+                app:layout_constraintTop_toBottomOf="@id/layout_resign"
+                app:layout_constraintVertical_bias="0">
+
+                <ImageView
+                    android:id="@+id/iv_go_total_report1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:paddingHorizontal="20dp"
+                    android:src="@drawable/ic_go_total_report"
+                    app:layout_constraintBottom_toTopOf="@id/tv_go_total_report"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintWidth_percent="0.5" />
+
+                <TextView
+                    android:id="@+id/tv_go_total_report"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="종합 리포트 보러가기"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_chainStyle="packed"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/iv_go_total_report1" />
+
+                <ImageView
+                    android:id="@+id/iv_go_total_report2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_marginStart="10dp"
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/ic_go_total_report2"
+                    app:layout_constraintBottom_toBottomOf="@id/tv_go_total_report"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0"
+                    app:layout_constraintStart_toEndOf="@id/tv_go_total_report"
+                    app:layout_constraintTop_toTopOf="@id/tv_go_total_report" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- 로그아웃 버튼 -->
+        <!-- 로그인 가기 -->
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layout_logout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="20dp"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/profile_rounded_button_password"
-            app:layout_constraintBottom_toTopOf="@id/layout_resign"
-            app:layout_constraintTop_toBottomOf="@id/layout_change_password">
-
-            <TextView
-                android:id="@+id/tv_logout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="로그아웃"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:adjustViewBounds="true"
-                android:src="@drawable/ic_go"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <!-- 회원 탈퇴 버튼 -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layout_resign"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="20dp"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/profile_rounded_button_password"
-            app:layout_constraintBottom_toTopOf="@id/layout_go_total_report"
-            app:layout_constraintTop_toBottomOf="@id/layout_logout">
-
-            <TextView
-                android:id="@+id/tv_resign"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="회원 탈퇴"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:adjustViewBounds="true"
-                android:src="@drawable/ic_go"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <!-- 종합 리포트로 가기 -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layout_go_total_report"
+            android:id="@+id/layout_go_login"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:paddingVertical="30dp"
             android:layout_marginHorizontal="20dp"
-            android:layout_marginTop="20dp"
             android:background="@drawable/profile_rounded_button_go_total_report"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintDimensionRatio="4:3"
-            app:layout_constraintTop_toBottomOf="@id/layout_resign"
-            app:layout_constraintVertical_bias="0">
-
-            <ImageView
-                android:id="@+id/iv_go_total_report1"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:adjustViewBounds="true"
-                android:paddingHorizontal="20dp"
-                android:src="@drawable/ic_go_total_report"
-                app:layout_constraintBottom_toTopOf="@id/tv_go_total_report"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintWidth_percent="0.5" />
+            app:layout_constraintTop_toTopOf="parent"
+            android:visibility="gone"
+            >
 
             <TextView
-                android:id="@+id/tv_go_total_report"
+                android:id="@+id/tv_go_login_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:text="종합 리포트 보러가기"
+                android:text="로그인 후 이용 가능합니다"
                 android:textColor="@color/white"
                 android:textSize="20sp"
-                android:textStyle="bold"
+                android:fontFamily="@font/pretendard_bold"
+                app:layout_constraintBottom_toTopOf="@id/iv_go_login"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/iv_go_login"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:adjustViewBounds="true"
+                android:paddingHorizontal="20dp"
+                android:src="@drawable/ic_go_login"
+                app:layout_constraintBottom_toTopOf="@id/tv_go_login"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_go_login_title"
+                app:layout_constraintWidth_percent="0.5" />
+
+            <TextView
+                android:id="@+id/tv_go_login"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="로그인 하러 가기"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:fontFamily="@font/pretendard_bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/iv_go_total_report1" />
+                app:layout_constraintTop_toBottomOf="@id/iv_go_login" />
 
             <ImageView
-                android:id="@+id/iv_go_total_report2"
+                android:id="@+id/iv_go_login2"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:layout_marginStart="10dp"
                 android:adjustViewBounds="true"
                 android:src="@drawable/ic_go_total_report2"
-                app:layout_constraintBottom_toBottomOf="@id/tv_go_total_report"
+                app:layout_constraintBottom_toBottomOf="@id/tv_go_login"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0"
-                app:layout_constraintStart_toEndOf="@id/tv_go_total_report"
-                app:layout_constraintTop_toTopOf="@id/tv_go_total_report" />
+                app:layout_constraintStart_toEndOf="@id/tv_go_login"
+                app:layout_constraintTop_toTopOf="@id/tv_go_login" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-
 </ScrollView>
-    
-
