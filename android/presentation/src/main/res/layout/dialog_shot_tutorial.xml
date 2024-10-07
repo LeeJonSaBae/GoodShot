@@ -18,6 +18,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- 닫기 버튼 -->
+    <ImageView
+        android:id="@+id/btn_close"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginEnd="10dp"
+        android:src="@drawable/ic_close"
+        app:layout_constraintBottom_toBottomOf="@id/tv_title"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tv_title" />
+
+
     <View
         android:id="@+id/view_divider"
         android:layout_width="match_parent"
@@ -25,7 +38,7 @@
         android:layout_marginTop="20dp"
         android:background="#E8E8E8"
         app:layout_constraintTop_toBottomOf="@id/tv_title" />
-    
+
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/vp_tutorial"
         android:layout_width="match_parent"
