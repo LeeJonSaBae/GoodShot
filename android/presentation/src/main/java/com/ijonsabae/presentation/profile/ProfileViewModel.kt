@@ -17,6 +17,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.runBlocking
 import java.net.URI
 import javax.inject.Inject
 
@@ -33,7 +34,7 @@ class ProfileViewModel @Inject constructor(
     private val getLocalAccessTokenUseCase: GetLocalAccessTokenUseCase
 ) : ViewModel() {
 
-    private val _isLogin: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private val _isLogin: MutableStateFlow<Boolean> = MutableStateFlow(runBlocking {getToken()!=null})
     val isLogin: StateFlow<Boolean> = _isLogin
 
     private val _profileInfo = MutableStateFlow<Profile?>(null)
