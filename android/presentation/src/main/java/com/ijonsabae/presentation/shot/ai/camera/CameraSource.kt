@@ -20,7 +20,7 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.Const.Companion.BACKSWING
 import com.ijonsabae.presentation.config.Const.Companion.BAD
 import com.ijonsabae.presentation.config.Const.Companion.DOWNSWING
-import com.ijonsabae.presentation.config.Const.Companion.GOOD
+import com.ijonsabae.presentation.config.Const.Companion.NICE
 import com.ijonsabae.presentation.model.FeedBack
 import com.ijonsabae.presentation.shot.CameraState
 import com.ijonsabae.presentation.shot.CameraState.ADDRESS
@@ -31,7 +31,6 @@ import com.ijonsabae.presentation.shot.CameraState.RESULT
 import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.PostureFeedback
 import com.ijonsabae.presentation.shot.SwingLocalDataProcessor
-import com.ijonsabae.presentation.shot.ai.ClubDetector
 import com.ijonsabae.presentation.shot.ai.PostureExtractor
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ANKLE
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_EAR
@@ -888,7 +887,7 @@ class CameraSource(
                 swingCode = swingSaveResult.first,
                 poseType = DOWNSWING,
                 content = comment.content,
-                commentType = if (comment.type == "BAD") BAD else GOOD
+                commentType = if (comment.type == "BAD") BAD else NICE
             ))
         }
         swingCommentList.forEach { swingFeedbackComment ->

@@ -16,8 +16,10 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseDialog
 import com.ijonsabae.presentation.databinding.DialogLoginBinding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class LoginDialog : BaseDialog<DialogLoginBinding>(
@@ -56,7 +58,7 @@ class LoginDialog : BaseDialog<DialogLoginBinding>(
             if(checkValidation()){
                 lifecycleScope.launch (coroutineExceptionHandler){
                     val result = loginDialogViewModel.login().getOrThrow()
-                    runBlocking {
+                    withContext(Dispatchers.IO) {
                         loginDialogViewModel.setToken(result.data)
                         loginDialogViewModel.saveToken(result.data)
                     }

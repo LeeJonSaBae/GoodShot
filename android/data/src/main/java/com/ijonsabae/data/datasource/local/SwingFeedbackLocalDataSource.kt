@@ -3,8 +3,9 @@ package com.ijonsabae.data.datasource.local
 import androidx.paging.PagingSource
 import com.ijonsabae.data.dao.SwingFeedbackCommentDao
 import com.ijonsabae.data.dao.SwingFeedbackDao
-import com.ijonsabae.domain.model.SwingFeedbackComment
 import com.ijonsabae.domain.model.SwingFeedback
+import com.ijonsabae.domain.model.SwingFeedbackComment
+import com.ijonsabae.domain.model.SwingFeedbackSyncRoomData
 import javax.inject.Inject
 
 class SwingFeedbackLocalDataSource @Inject constructor(
@@ -19,6 +20,9 @@ class SwingFeedbackLocalDataSource @Inject constructor(
     }
     fun getAllSwingFeedback(userID: Long): PagingSource<Int, SwingFeedback> {
         return swingFeedbackDao.getAllSwingFeedback(userID)
+    }
+    fun getSwingFeedbackListNeedToUpload(userID:Long): List<SwingFeedback>{
+        return swingFeedbackDao.getAllSwingFeedbackNeedToUpload(userID)
     }
     fun getLikeSwingFeedbackList(userID: Long): PagingSource<Int, SwingFeedback> {
         return swingFeedbackDao.getLikeSwingFeedback(userID)
@@ -39,16 +43,22 @@ class SwingFeedbackLocalDataSource @Inject constructor(
         swingFeedbackDao.updateUserId(oldUserId, newUserId)
         return swingFeedbackCommentDao.updateUserId(oldUserId, newUserId)
     }
-
-    fun updateLikeStatus(userID: Long, swingCode: String, likeStatus: Boolean): Int{
-        return swingFeedbackDao.updateLikeStatus(userID, swingCode, likeStatus)
+    fun updateLikeStatus(userID: Long, swingCode: String, likeStatus: Boolean, currentTime: Long): Int{
+        return swingFeedbackDao.updateLikeStatus(userID, swingCode, likeStatus, currentTime)
     }
-
     fun updateClampStatus(userID: Long, swingCode: String, clampStatus: Boolean): Int{
         return swingFeedbackDao.updateClampStatus(userID, swingCode, clampStatus)
     }
-
-    fun updateTitle(userID: Long, swingCode: String, title: String): Int{
-        return swingFeedbackDao.updateTitle(userID, swingCode, title)
+    fun updateTitle(userID: Long, swingCode: String, title: String, currentTime: Long): Int{
+        return swingFeedbackDao.updateTitle(userID, swingCode, title, currentTime)
+    }
+    fun syncUpdateStatus(userID: Long): Int{
+        return swingFeedbackDao.syncUpdateStatus(userID)
+    }
+    fun hideSwingFeedback(userID: Long, swingCode: String, currentTime: Long): Int{
+        return swingFeedbackDao.hideSwingFeedback(userID,swingCode, currentTime)
+    }
+    fun getChangedSwingFeedback(userID: Long): List<SwingFeedbackSyncRoomData>{
+        return swingFeedbackDao.getChangedSwingFeedback(userID)
     }
 }
