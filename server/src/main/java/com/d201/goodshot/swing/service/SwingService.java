@@ -261,31 +261,33 @@ public class SwingService {
         // 즐겨찾기 (바꼈는지 안바꼈는지)
         // 업데이트 열이 2이면 해당 레코드 삭제해야 함 (삭제된 데이터면 S3도 같이 삭제)
         for(SwingUpdateDataRequest swingUpdateDataRequest : swingUpdateDataRequestList) {
-            Swing swing = swingRepository.findByCode(swingUpdateDataRequest.getCode()).orElseThrow(NotFoundSwingException::new);
-            int update = swingUpdateDataRequest.getUpdate();
+            swingRepository.findByCode(swingUpdateDataRequest.getCode()).ifPresent(swing -> {
+                int update = swingUpdateDataRequest.getUpdate();
 
-            // update : 1 (수정)
-            if (update==1) {
-                swing.updateSwingData(swingUpdateDataRequest);
-            } else if (update == 2) {
-                // update : 2 (삭제)
-                swingRepository.delete(swing);
-                // s3 영상 삭제
-                PresignedUrlRequest presignedUrlVideoRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.MP4);
-                String url = folder + user.getId() + "/" + "video" + "/" + swingUpdateDataRequest.getCode() + "." + presignedUrlVideoRequest.getImageExtension().getUploadExtension();
-                s3Service.deleteObject(url);
-                // s3 이미지 삭제 (썸네일, 8가지 자세)
-                PresignedUrlRequest presignedUrlThumbnailRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.JPG);
-                url = folder + user.getId() + "/" + "thumbnail" + "/" + swingUpdateDataRequest.getCode() + "." + presignedUrlThumbnailRequest.getImageExtension().getUploadExtension();
-                s3Service.deleteObject(url);
+                // update : 1 (수정)
+                if (update == 1) {
+                    swing.updateSwingData(swingUpdateDataRequest);
+                } else if (update == 2) {
+                    // update : 2 (삭제)
+                    swingRepository.delete(swing);
 
-                for (int i = 0; i < 8; i++) {
-                    PresignedUrlRequest presignedUrlImageRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.JPG);
-                    url = folder + user.getId() + "/" + "thumbnail" + "/" + swingUpdateDataRequest.getCode() + "_" + i + "." + presignedUrlThumbnailRequest.getImageExtension().getUploadExtension();
+                    // s3 영상 삭제
+                    PresignedUrlRequest presignedUrlVideoRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.MP4);
+                    String url = folder + user.getId() + "/" + "video" + "/" + swingUpdateDataRequest.getCode() + "." + presignedUrlVideoRequest.getImageExtension().getUploadExtension();
                     s3Service.deleteObject(url);
-                }
-            }
 
+                    // s3 이미지 삭제 (썸네일, 8가지 자세)
+                    PresignedUrlRequest presignedUrlThumbnailRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.JPG);
+                    url = folder + user.getId() + "/" + "thumbnail" + "/" + swingUpdateDataRequest.getCode() + "." + presignedUrlThumbnailRequest.getImageExtension().getUploadExtension();
+                    s3Service.deleteObject(url);
+
+                    for (int i = 0; i < 8; i++) {
+                        PresignedUrlRequest presignedUrlImageRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.JPG);
+                        url = folder + user.getId() + "/" + "thumbnail" + "/" + swingUpdateDataRequest.getCode() + "_" + i + "." + presignedUrlThumbnailRequest.getImageExtension().getUploadExtension();
+                        s3Service.deleteObject(url);
+                    }
+                }
+            });
         }
 
     }
