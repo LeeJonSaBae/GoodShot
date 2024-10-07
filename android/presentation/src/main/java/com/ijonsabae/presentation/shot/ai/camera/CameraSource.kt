@@ -1,19 +1,4 @@
-package com.ijonsabae.presentation.shot.ai.camera/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-==============================================================================
-*/
-
+package com.ijonsabae.presentation.shot.ai.camera
 
 import android.content.Context
 import android.content.Intent
@@ -442,7 +427,6 @@ class CameraSource(
 
             else -> {
                 if (currentState == SWING) {
-                    // 오른어깨와 왼발이 가까워지면
                     if (pelvisTwisting.not() &&
                         abs(keyPoints[RIGHT_SHOULDER.position].coordinate.x - keyPoints[LEFT_ANKLE.position].coordinate.x) < 0.05f &&
                         abs(keyPoints[RIGHT_SHOULDER.position].coordinate.y - keyPoints[RIGHT_ANKLE.position].coordinate.y) > 0.3f &&
@@ -699,18 +683,8 @@ class CameraSource(
                         jointQueue.toList().reversed(),
                         isLeftHanded.not()
                     )
-                    //TODO 문현 : List<Comment> 처리
 
-                    Log.d("분석결과", "$poseAnalysisResults")
 
-                    Log.d("분석결과", "${poseAnalysisResults.solution.name}")
-                    poseAnalysisResults.backSwingProblems.forEach {
-                        Log.d("분석결과", "${it.javaClass.simpleName}")
-                    }
-                    Log.d("분석결과", "-------------------------------------------------")
-                    poseAnalysisResults.downSwingProblems.forEach {
-                        Log.d("분석결과", "${it.javaClass.simpleName}")
-                    }
 
                     // 나의 스윙 이미지와 전문가의 스윙 이미지 결정하기
                     val userSwingImage: Bitmap

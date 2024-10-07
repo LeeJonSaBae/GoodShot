@@ -68,7 +68,6 @@ class CameraFragment :
     @Inject
     lateinit var getUserIdUseCase: GetUserIdUseCase
 
-    //TODO: Inject 유즈케이스 받아서 lateinitvar로 받아서 camerasource에 던져주면 된다
     private val permissionList = arrayOf(Manifest.permission.CAMERA)
     private var camera: Camera? = null
     private var cameraController: CameraControl? = null
