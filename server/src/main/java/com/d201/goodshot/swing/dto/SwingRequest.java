@@ -25,14 +25,6 @@ public class SwingRequest {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class SwingUpdateDataRequest {
-        private List<SwingUpdateDataItem> data;
-    }
-
-    @Getter
-    @Builder
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class SwingUpdateDataItem {
         private Boolean likeStatus;
         private String title;
         private String code;

@@ -9,7 +9,6 @@ import com.d201.goodshot.swing.domain.Swing;
 import com.d201.goodshot.swing.dto.CommentItem;
 import com.d201.goodshot.swing.dto.SwingData;
 import com.d201.goodshot.swing.dto.SwingRequest.SwingDataRequest;
-import com.d201.goodshot.swing.dto.SwingRequest.SwingUpdateDataItem;
 import com.d201.goodshot.swing.dto.SwingRequest.SwingUpdateDataRequest;
 import com.d201.goodshot.swing.dto.SwingResponse.ReportResponse;
 import com.d201.goodshot.swing.dto.SwingResponse.SwingCodeResponse;
@@ -107,7 +106,7 @@ public class SwingService {
                     double currentSimilarity = cumulativeSimilarity.getOrDefault(poseType, 0.0);
 
                     // 유사도 값을 누적하여 더하기 (100을 곱한 값을 더함)
-                    cumulativeSimilarity.put(poseType, currentSimilarity + (value * 100));
+                    cumulativeSimilarity.put(poseType, currentSimilarity + Math.round(value * 100));
                 }
 
             } catch (IOException e) {
@@ -143,9 +142,15 @@ public class SwingService {
     }
 
     private String generateComment(String top1, String top2) {
-        // 가장 빈도수가 많은 2개에 대한
+        // 가장 빈도수가 많은 2개에 대해서 (이러면 피드백이 top1이 3개, top2가 3개, 총 6개 나오겠지)
 
-        return null;
+
+        // top1 에서 랜덤으로 하나 뽑고, top2 에서 랜덤으로 하나 뽑아
+        String feedback1 = "";
+        String feedback2 = "";
+
+        // 랜덤으로 뽑은 값 합쳐서 return
+        return feedback1 + feedback2;
     }
 
     // 스윙 가져오기
@@ -243,36 +248,35 @@ public class SwingService {
     }
 
     // 스윙 동기화 (DB 랑 Room 변경, 삭제된 데이터 동기화)
-    public void syncSwingData(CustomUser customUser, SwingUpdateDataRequest swingUpdateDataRequest) {
+    public void syncSwingData(CustomUser customUser, List<SwingUpdateDataRequest> swingUpdateDataRequestList) {
 
         User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
-        List<SwingUpdateDataItem> swingUpdateDataItemList = swingUpdateDataRequest.getData();
 
         // 업데이트 열이 1이면 레코드 업데이트 해주고 (swing title)
         // 즐겨찾기 (바꼈는지 안바꼈는지)
         // 업데이트 열이 2이면 해당 레코드 삭제해야 함 (삭제된 데이터면 S3도 같이 삭제)
-        for(SwingUpdateDataItem swingUpdateDataItem : swingUpdateDataItemList) {
-            Swing swing = swingRepository.findByCode(swingUpdateDataItem.getCode()).orElseThrow(NotFoundUserException::new);
-            int update = swingUpdateDataItem.getUpdate();
+        for(SwingUpdateDataRequest swingUpdateDataRequest : swingUpdateDataRequestList) {
+            Swing swing = swingRepository.findByCode(swingUpdateDataRequest.getCode()).orElseThrow(NotFoundUserException::new);
+            int update = swingUpdateDataRequest.getUpdate();
 
             // update : 1 (수정)
             if (update==1) {
-                swing.updateSwingData(swingUpdateDataItem);
+                swing.updateSwingData(swingUpdateDataRequest);
             } else if (update == 2) {
                 // update : 2 (삭제)
                 swingRepository.delete(swing);
                 // s3 영상 삭제
                 PresignedUrlRequest presignedUrlVideoRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.MP4);
-                String url = folder + user.getId() + "/" + "video" + "/" + swingUpdateDataItem.getCode() + "." + presignedUrlVideoRequest.getImageExtension().getUploadExtension();
+                String url = folder + user.getId() + "/" + "video" + "/" + swingUpdateDataRequest.getCode() + "." + presignedUrlVideoRequest.getImageExtension().getUploadExtension();
                 s3Service.deleteObject(url);
                 // s3 이미지 삭제 (썸네일, 8가지 자세)
                 PresignedUrlRequest presignedUrlThumbnailRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.JPG);
-                url = folder + user.getId() + "/" + "thumbnail" + "/" + swingUpdateDataItem.getCode() + "." + presignedUrlThumbnailRequest.getImageExtension().getUploadExtension();
+                url = folder + user.getId() + "/" + "thumbnail" + "/" + swingUpdateDataRequest.getCode() + "." + presignedUrlThumbnailRequest.getImageExtension().getUploadExtension();
                 s3Service.deleteObject(url);
 
                 for (int i = 0; i < 8; i++) {
                     PresignedUrlRequest presignedUrlImageRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.JPG);
-                    url = folder + user.getId() + "/" + "thumbnail" + "/" + swingUpdateDataItem.getCode() + "_" + i + "." + presignedUrlThumbnailRequest.getImageExtension().getUploadExtension();
+                    url = folder + user.getId() + "/" + "thumbnail" + "/" + swingUpdateDataRequest.getCode() + "_" + i + "." + presignedUrlThumbnailRequest.getImageExtension().getUploadExtension();
                     s3Service.deleteObject(url);
                 }
             }
