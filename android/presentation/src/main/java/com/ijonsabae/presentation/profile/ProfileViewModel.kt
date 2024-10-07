@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.Profile
+import com.ijonsabae.domain.usecase.login.GetLocalAccessTokenUseCase
 import com.ijonsabae.domain.usecase.profile.GetPresignedURLUseCase
 import com.ijonsabae.domain.usecase.profile.GetProfileInfoUseCase
 import com.ijonsabae.domain.usecase.profile.LogoutUseCase
@@ -28,8 +29,12 @@ class ProfileViewModel @Inject constructor(
     private val getPresignedURLUseCase: GetPresignedURLUseCase,
     private val uploadProfileImageUseCase: UploadProfileImageUseCase,
     private val logoutUseCase: LogoutUseCase,
-    private val updateProfileUseCase: UpdateProfileUseCase
+    private val updateProfileUseCase: UpdateProfileUseCase,
+    private val getLocalAccessTokenUseCase: GetLocalAccessTokenUseCase
 ) : ViewModel() {
+
+    private val _isLogin: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isLogin: StateFlow<Boolean> = _isLogin
 
     private val _profileInfo = MutableStateFlow<Profile?>(null)
     val profileInfo: StateFlow<Profile?> = _profileInfo.asStateFlow()
@@ -48,6 +53,10 @@ class ProfileViewModel @Inject constructor(
 
 //    private val _updateProfileResult = MutableStateFlow<Result<CommonResponse<Unit>>>(null)
 //    val isUpdateProfileSucceed: StateFlow<Int?> = _updateProfileResult.asStateFlow()
+
+    suspend fun setLoginStatus(login:Boolean){
+        _isLogin.emit(login)
+    }
 
     suspend fun getProfileInfo() {
         val result = getProfileInfoUseCase().getOrThrow()
@@ -72,10 +81,15 @@ class ProfileViewModel @Inject constructor(
     suspend fun logout() {
         val result = logoutUseCase().getOrThrow()
         _isLogoutSucceed.value = result.code
+        _isLogin.emit(false)
     }
 
     suspend fun updateProfile(image: String?): Result<CommonResponse<Unit>>{
         return updateProfileUseCase(image.toString())
+    }
+
+    suspend fun getToken(): String? {
+        return getLocalAccessTokenUseCase()
     }
 
 }
