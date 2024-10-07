@@ -1,8 +1,6 @@
 package com.d201.goodshot.swing.domain;
 
-import com.d201.goodshot.swing.dto.SwingRequest;
 import com.d201.goodshot.swing.dto.SwingRequest.SwingUpdateDataItem;
-import com.d201.goodshot.swing.dto.SwingRequest.SwingUpdateDataRequest;
 import com.d201.goodshot.user.domain.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
