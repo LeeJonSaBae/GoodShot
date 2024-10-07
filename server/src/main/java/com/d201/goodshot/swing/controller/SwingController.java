@@ -32,7 +32,7 @@ public class SwingController {
 
     private final SwingService swingService;
 
-    @GetMapping("/comparison")
+    @PostMapping("/comparison")
     @Operation(summary = "스윙 비교하기", description = "Room 에 저장되어 있는 데이터랑 DB 에 저장되어 있는 데이터 비교해서 서버에 없는 데이터 보내기")
     @ApiResponses(value = {
             @ApiResponse(
