@@ -151,15 +151,15 @@ public class SwingService {
     }
 
     private String generateComment(String top1, String top2) {
-        // 가장 빈도수가 많은 2개에 대해서 (이러면 피드백이 top1이 3개, top2가 3개, 총 6개 나오겠지)
 
+        // 가장 빈도수가 많은 2개에 대해서
         // 1. top1, top2 에 맞는 enum 찾아서
         ProblemType problemType1 = ProblemType.findByComment(top1);
         ProblemType problemType2 = ProblemType.findByComment(top2);
 
         // 2. 그 enum 에 맞는 3개 피드백 찾아와 (Report DB 에서)
-        List<Report> feedbackList1 = reportRepository.findByProblemType(problemType1);
-        List<Report> feedbackList2 = reportRepository.findByProblemType(problemType2);
+        List<Report> feedbackList1 = reportRepository.findByProblem(problemType1);
+        List<Report> feedbackList2 = reportRepository.findByProblem(problemType2);
 
         // 3개 찾은 것 중에서 랜덤핑
         // top1 에서 랜덤으로 하나 뽑고, top2 에서 랜덤으로 하나 뽑아

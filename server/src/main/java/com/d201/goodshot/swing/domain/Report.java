@@ -22,7 +22,7 @@ public class Report {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private ProblemType problemType;
+    private ProblemType problem;
 
     private String content;
 
