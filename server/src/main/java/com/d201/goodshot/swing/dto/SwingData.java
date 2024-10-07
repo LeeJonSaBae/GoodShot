@@ -16,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 public class SwingData {
 
+    private Long id;
     private List<CommentItem> backSwingComments;
     private List<CommentItem> downSwingComments;
     private String similarity;
