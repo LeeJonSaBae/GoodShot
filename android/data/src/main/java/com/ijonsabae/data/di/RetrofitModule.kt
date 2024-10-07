@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.ijonsabae.data.BuildConfig
 import com.ijonsabae.data.exception.ResultCallAdapterFactory
+import com.ijonsabae.data.exception.YoutubeCallAdapterFactory
 import com.ijonsabae.data.retrofit.ConsultService
 import com.ijonsabae.data.retrofit.ProfileService
 import com.ijonsabae.data.retrofit.RefreshTokenAuthorizationInterceptor
@@ -143,11 +144,13 @@ class RetrofitModule {
         @Named("okhttp_client")client: OkHttpClient,
         scalarsConverterFactory: ScalarsConverterFactory,
         gsonConverterFactory: GsonConverterFactory,
+        youtubeCallAdapterFactory: YoutubeCallAdapterFactory
     ): Retrofit {
         return Retrofit.Builder()
             .baseUrl(YOUTUBE_IP)
             .addConverterFactory(scalarsConverterFactory)
             .addConverterFactory(gsonConverterFactory)
+            .addCallAdapterFactory(youtubeCallAdapterFactory)
             .client(client)
             .build()
     }

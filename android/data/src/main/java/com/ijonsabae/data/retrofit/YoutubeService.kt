@@ -13,5 +13,5 @@ interface YoutubeService {
         @Query("q") query: String,
         @Query("key") apiKey: String,
         @Query("maxResults") maxResults: Int
-    ): YouTubeResponse
+    ): Result<YouTubeResponse>
 }

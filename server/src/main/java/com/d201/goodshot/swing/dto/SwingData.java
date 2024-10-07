@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,17 +16,16 @@ import java.util.List;
 @NoArgsConstructor
 public class SwingData {
 
-    private Long id;
-    private MultipartFile swingVideo;
-    private List<MultipartFile> swingImages;
+    private Long id; // swing id
     private List<CommentItem> backSwingComments;
     private List<CommentItem> downSwingComments;
-    private List<Float> poseSimilarity;
+    private String similarity;
     private String solution;
     private int score;
     private double tempo;
-    private boolean likeStatus;
+    private Boolean likeStatus;
     private String title;
+    private String code;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

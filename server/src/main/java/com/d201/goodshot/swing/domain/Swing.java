@@ -1,6 +1,7 @@
 package com.d201.goodshot.swing.domain;
 
-import com.d201.goodshot.swing.dto.SwingData;
+import com.d201.goodshot.swing.dto.SwingRequest;
+import com.d201.goodshot.swing.dto.SwingRequest.SwingDataRequest;
 import com.d201.goodshot.swing.exception.SwingVideoProcessingException;
 import com.d201.goodshot.user.domain.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -34,10 +35,9 @@ public class Swing {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Lob
-    private byte[] swingVideo;
+    private String code; // 고유값
 
-    private boolean likeStatus; // 즐겨찾기 상태
+    private Boolean likeStatus; // 즐겨찾기 상태
 
     @Column(columnDefinition = "JSON")
     private String similarity;
@@ -55,25 +55,6 @@ public class Swing {
     private LocalDateTime time;
 
     @OneToMany(mappedBy = "swing", cascade = CascadeType.ALL)
-    private List<SwingImage> swingImages = new ArrayList<>();
-
-    @OneToMany(mappedBy = "swing", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
-
-    public void updateSwing(SwingData swingData) {
-        this.solution = swingData.getSolution();
-        this.score = swingData.getScore();
-        this.tempo = swingData.getTempo();
-        this.likeStatus = swingData.isLikeStatus();
-        this.title = swingData.getTitle();
-        this.time = swingData.getTime();  // 날짜도 갱신
-        this.similarity = swingData.getPoseSimilarity().toString(); // JSON 필드도 갱신
-
-        try {
-            this.swingVideo = swingData.getSwingVideo().getBytes();
-        } catch (IOException e) {
-            throw new SwingVideoProcessingException();
-        }
-    }
 
 }

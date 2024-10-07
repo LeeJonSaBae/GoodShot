@@ -21,5 +21,10 @@ class Const {
             }
         }
 
+        const val BACKSWING = 0
+        const val BAD = 0
+        const val DOWNSWING = 1
+        const val GOOD = 1
+
     }
 }

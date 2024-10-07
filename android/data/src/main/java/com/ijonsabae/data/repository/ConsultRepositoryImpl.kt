@@ -3,8 +3,8 @@ package com.ijonsabae.data.repository
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import com.ijonsabae.data.datastore.remote.ExpertRemoteDataSource
-import com.ijonsabae.data.datastore.remote.ExpertRemotePagingSource
+import com.ijonsabae.data.datasource.remote.ExpertRemoteDataSource
+import com.ijonsabae.data.datasource.remote.ExpertRemotePagingSource
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.Expert
 import com.ijonsabae.domain.model.ExpertDetail

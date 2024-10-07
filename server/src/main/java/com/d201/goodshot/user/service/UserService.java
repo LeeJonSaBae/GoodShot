@@ -110,9 +110,10 @@ public class UserService {
                 log.info("redis refreshToken: {}", auth.getRefreshToken());
 
                 // 현재 redis 에 있는 token, 사용자가 가지고 있는 token 동일한지 확인
+                Long id = (Long) tokenUtil.getClaim(refreshToken, "id", Long.class);
                 if (StringUtils.equals(auth.getRefreshToken(), refreshToken)) {
                     // 새로운 token 발급
-                    return tokenUtil.generateToken(User.builder().email(email).build());
+                    return tokenUtil.generateToken(User.builder().email(email).id(id).build());
                 }
             } catch (Exception e) {
                 throw new InvalidTokenException();

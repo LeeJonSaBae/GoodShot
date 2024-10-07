@@ -40,12 +40,12 @@ class SwipeDeleteHelper @Inject constructor() : ItemTouchHelper.Callback() {
     override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
         currentDx = 0f
         getDefaultUIUtil().`clearView`(getView(viewHolder))
-        previousPosition = viewHolder.adapterPosition
+        previousPosition = viewHolder.bindingAdapterPosition
     }
 
     override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
         viewHolder?.let {
-            currentPosition = viewHolder.adapterPosition
+            currentPosition = viewHolder.bindingAdapterPosition
             getDefaultUIUtil().onSelected(getView(it))
         }
     }

@@ -60,8 +60,11 @@ class LoginFragment :
                         )
                     ).getOrThrow()
                     loginViewModel.setToken(result.data)
+                    loginViewModel.saveToken(result.data)
                     if(binding.checkbox.isChecked){
-                        loginViewModel.saveToken(result.data)
+                        loginViewModel.setAutoLoginStatus(true)
+                    }else{
+                        loginViewModel.setAutoLoginStatus(false)
                     }
                 }
             }

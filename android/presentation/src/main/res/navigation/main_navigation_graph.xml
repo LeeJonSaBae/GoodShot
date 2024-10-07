@@ -106,16 +106,13 @@
             tools:layout="@layout/dialog_feedback">
 
             <argument
-                android:name="feedback"
-                app:argType="com.ijonsabae.presentation.model.FeedBack" />
-            <argument
                 android:name="swingCnt"
-                app:argType="integer"
-                android:defaultValue="0" />
+                android:defaultValue="0"
+                app:argType="integer" />
             <argument
                 android:name="totalSwingCnt"
-                app:argType="integer"
-                android:defaultValue="0" />
+                android:defaultValue="0"
+                app:argType="integer" />
             <action
                 android:id="@+id/action_feedback_dialog_to_shot"
                 app:destination="@id/shot"
@@ -142,7 +139,14 @@
             android:id="@+id/replay_report"
             android:name="com.ijonsabae.presentation.replay.ReplayReportFragment"
             tools:label="replay report"
-            tools:layout="@layout/fragment_replay_report" />
+            tools:layout="@layout/fragment_replay_report" >
+            <argument
+                android:name="Swing_Feedback_Comment_List"
+                app:argType="com.ijonsabae.presentation.model.SwingFeedbackCommentParcelable[]" />
+            <argument
+                android:name="Swing_Feedback"
+                app:argType="com.ijonsabae.presentation.model.SwingFeedbackSerializable" />
+        </fragment>
     </navigation>
     <navigation
         android:id="@+id/profile_tab"
@@ -174,15 +178,13 @@
             android:id="@+id/resign_dialog"
             android:name="com.ijonsabae.presentation.profile.ResignDialog"
             tools:label="resign_dialog"
-            tools:layout="@layout/dialog_resign">
-        </dialog>
+            tools:layout="@layout/dialog_resign"></dialog>
 
         <dialog
             android:id="@+id/change_password_dialog"
             android:name="com.ijonsabae.presentation.profile.ChangePasswordDialog"
             tools:label="change_password_dialog"
-            tools:layout="@layout/dialog_change_password">
-        </dialog>
+            tools:layout="@layout/dialog_change_password"></dialog>
     </navigation>
 
 
