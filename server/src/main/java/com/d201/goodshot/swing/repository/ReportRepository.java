@@ -9,5 +9,5 @@ import java.util.List;
 
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Integer> {
-    List<Report> findByProblemType(ProblemType problemType);
+    List<Report> findByProblem(ProblemType problem);
 }
