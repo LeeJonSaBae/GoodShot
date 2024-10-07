@@ -17,9 +17,19 @@ import java.io.OutputStream
 import java.nio.ByteBuffer
 
 
-object SwingVideoProcessor {
+object SwingLocalDataProcessor {
 
     const val GUEST_ID: Long = -1L
+
+    fun convertSwingcodeToTimestamp(swingCode: String) : Long {
+        val parts = swingCode.split("_")
+        return if (parts.size > 1 && parts[1].all { it.isDigit() }) {
+            parts[1].toLong()
+        } else {
+            -1
+        }
+    }
+
     fun saveBitmapToGallery(context: Context, bitmap: Bitmap, fileName: String): Uri? {
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)

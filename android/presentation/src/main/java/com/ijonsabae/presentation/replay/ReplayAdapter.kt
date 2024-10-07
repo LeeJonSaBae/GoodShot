@@ -17,13 +17,11 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.DiffUtil.DiffResult.NO_POSITION
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.ijonsabae.domain.model.Replay
 import com.ijonsabae.domain.model.SwingFeedback
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.databinding.ItemReplayBinding
-import com.ijonsabae.presentation.shot.SwingVideoProcessor
+import com.ijonsabae.presentation.shot.SwingLocalDataProcessor
 import com.ijonsabae.presentation.util.formatDateFromLongKorea
-import kotlinx.coroutines.runBlocking
 
 private const val TAG = "SearchResultOfMountainListAdapter_싸피"
 
@@ -70,7 +68,7 @@ class ReplayAdapter(private val context: Context) :
             val replayItem = getItem(position)
             replayItem?.let {
                 Glide.with(binding.root)
-                    .load(SwingVideoProcessor.getSwingThumbnailFile(context, replayItem.swingCode, replayItem.userID))
+                    .load(SwingLocalDataProcessor.getSwingThumbnailFile(context, replayItem.swingCode, replayItem.userID))
                     .into(binding.ivThumbnail)
                 binding.tvTitle.text = replayItem.title
                 binding.tvDate.text = formatDateFromLongKorea(replayItem.date)

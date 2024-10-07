@@ -45,7 +45,7 @@ import com.ijonsabae.presentation.shot.CameraState.POSITIONING
 import com.ijonsabae.presentation.shot.CameraState.RESULT
 import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.PostureFeedback
-import com.ijonsabae.presentation.shot.SwingVideoProcessor
+import com.ijonsabae.presentation.shot.SwingLocalDataProcessor
 import com.ijonsabae.presentation.shot.ai.PostureExtractor
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ANKLE
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_EAR
@@ -64,7 +64,6 @@ import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_HIP
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_KNEE
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_SHOULDER
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_WRIST
-import com.ijonsabae.presentation.shot.ai.data.Comment
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
@@ -82,17 +81,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.io.File
 import java.util.Arrays
 import java.util.LinkedList
 import java.util.Locale
 import java.util.Queue
 import java.util.concurrent.CountDownLatch
 import kotlin.math.abs
-import kotlin.math.atan2
 import kotlin.math.max
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 data class SwingTiming(
     val backswingTime: Long,
@@ -703,7 +698,7 @@ class CameraSource(
                     determineSwingImage(poseAnalysisResults, preciseBitmaps).let {
                         answerSwingImageResId = it.first
                         if (selfCameraOptionEnable) { // 전면 카메라 스윙 시 결과 사진 반전 처리
-                            userSwingImage = SwingVideoProcessor.flipBitmapHorizontally(it.second)
+                            userSwingImage = SwingLocalDataProcessor.flipBitmapHorizontally(it.second)
                         } else {
                             userSwingImage = it.second
                         }
@@ -737,7 +732,7 @@ class CameraSource(
 
                     // 영상 만들기
                     val swingPoseBitmaps = preciseBitmaps.map {it.data}
-                    val swingSaveResult = SwingVideoProcessor.saveSwingDataToInternalStorage(context, swingPoseBitmaps, actualSwingIndices.reversed(), selfCameraOptionEnable, userId)
+                    val swingSaveResult = SwingLocalDataProcessor.saveSwingDataToInternalStorage(context, swingPoseBitmaps, actualSwingIndices.reversed(), selfCameraOptionEnable, userId)
 
                     // 영상 + PoseAnalysisResult(솔루션 + 피드백 + 코멘트) + @ 룸에 저장
                     saveSwingFeedbackAndComment(swingSaveResult, tempoRatio, poseAnalysisResults)

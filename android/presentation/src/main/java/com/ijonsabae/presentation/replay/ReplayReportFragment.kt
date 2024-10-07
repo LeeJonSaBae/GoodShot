@@ -21,7 +21,7 @@ import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.config.Const.Companion.BACKSWING
 import com.ijonsabae.presentation.config.Const.Companion.DOWNSWING
 import com.ijonsabae.presentation.databinding.FragmentReplayReportBinding
-import com.ijonsabae.presentation.shot.SwingVideoProcessor
+import com.ijonsabae.presentation.shot.SwingLocalDataProcessor
 import kotlin.math.abs
 
 private const val TAG = "굿샷_ReplayReportFragment"
@@ -51,7 +51,7 @@ class ReplayReportFragment :
         playerView = binding.pvReplayVideo
         player = ExoPlayer.Builder(requireContext()).build()
         playerView.player = player
-        val videoUri = Uri.parse(SwingVideoProcessor.getSwingVideoFile(fragmentContext, swingCode = args.SwingFeedback.swingCode, userId = args.SwingFeedback.userID).toString())
+        val videoUri = Uri.parse(SwingLocalDataProcessor.getSwingVideoFile(fragmentContext, swingCode = args.SwingFeedback.swingCode, userId = args.SwingFeedback.userID).toString())
         val mediaItem = MediaItem.fromUri(videoUri)
         player.setMediaItem(mediaItem)
         player.prepare()
@@ -97,7 +97,7 @@ class ReplayReportFragment :
     }
 
     private fun loadPoseImage(): List<SwingFlowDTO>{
-        val result = SwingVideoProcessor.getSwingPoseFiles(fragmentContext, swingCode = args.SwingFeedback.swingCode, userId = args.SwingFeedback.userID)
+        val result = SwingLocalDataProcessor.getSwingPoseFiles(fragmentContext, swingCode = args.SwingFeedback.swingCode, userId = args.SwingFeedback.userID)
         val pose = listOf("ADDRESS", "TOE_UP", "MID_BACKSWING", "TOP", "MID_DOWNSWING", "IMPACT", "MID_FOLLOW_THROUGH", "FINISH")
         return result.mapIndexed { index, file ->
             SwingFlowDTO(

@@ -12,7 +12,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ijonsabae.domain.model.SwingFeedback
@@ -27,7 +26,7 @@ import com.ijonsabae.presentation.databinding.FragmentReplayBinding
 import com.ijonsabae.presentation.main.MainActivity
 import com.ijonsabae.presentation.mapper.SwingFeedbackCommentMapper
 import com.ijonsabae.presentation.mapper.SwingFeedbackMapper
-import com.ijonsabae.presentation.shot.SwingVideoProcessor
+import com.ijonsabae.presentation.shot.SwingLocalDataProcessor
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -82,7 +81,7 @@ class ReplayFragment :
 
                     override fun onItemDelete(item: SwingFeedback) {
                         lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
-                            SwingVideoProcessor.deleteLocalSwingData(fragmentContext, item.swingCode, item.userID)
+                            SwingLocalDataProcessor.deleteLocalSwingData(fragmentContext, item.swingCode, item.userID)
                             // 이건 Room에서 지우는 것
                             deleteLocalSwingFeedbackUseCase(item.userID, item.swingCode)
                         }
