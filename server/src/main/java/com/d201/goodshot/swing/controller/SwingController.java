@@ -5,6 +5,8 @@ import com.d201.goodshot.global.security.dto.CustomUser;
 import com.d201.goodshot.swing.domain.Swing;
 import com.d201.goodshot.swing.dto.SwingData;
 import com.d201.goodshot.swing.dto.SwingRequest.SwingDataRequest;
+import com.d201.goodshot.swing.dto.SwingResponse;
+import com.d201.goodshot.swing.dto.SwingResponse.ReportResponse;
 import com.d201.goodshot.swing.dto.SwingResponse.SwingCodeResponse;
 import com.d201.goodshot.swing.service.SwingService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -71,6 +73,21 @@ public class SwingController {
     public BaseResponse<List<SwingData>> importSwingData(@AuthenticationPrincipal CustomUser customUser, @RequestBody SwingDataRequest swingDataRequest) {
         List<SwingData> response = swingService.importSwingData(customUser, swingDataRequest);
         return BaseResponse.of(HttpStatus.OK, "스윙 데이터 가져오기에 성공했습니다.", response);
+    }
+
+    @GetMapping("/report")
+    @Operation(summary = "스윙 종합 리포트", description = "누적 스윙에 대한 종합 리포트 제공")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "스윙 종합 리포트 가져오기에 성공했습니다.",
+                    content = @Content(mediaType = "",
+                            examples = @ExampleObject(value = "")))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    public BaseResponse<ReportResponse> getReport(@AuthenticationPrincipal CustomUser customUser) {
+        ReportResponse response = swingService.getReport(customUser);
+        return BaseResponse.of(HttpStatus.OK, "스윙 종합 리포트 가져오기에 성공했습니다.", response);
     }
 
 }

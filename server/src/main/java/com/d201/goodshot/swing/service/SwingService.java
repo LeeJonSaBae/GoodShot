@@ -12,19 +12,22 @@ import com.d201.goodshot.swing.dto.SwingRequest.SwingDataRequest;
 import com.d201.goodshot.swing.dto.SwingResponse.ReportResponse;
 import com.d201.goodshot.swing.dto.SwingResponse.SwingCodeResponse;
 import com.d201.goodshot.swing.enums.PoseType;
+import com.d201.goodshot.swing.exception.SwingJsonProcessingException;
 import com.d201.goodshot.swing.repository.CommentRepository;
 import com.d201.goodshot.swing.repository.SwingRepository;
 import com.d201.goodshot.user.domain.User;
 import com.d201.goodshot.user.exception.NotFoundUserException;
 import com.d201.goodshot.user.repository.UserRepository;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.persistence.*;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
+import java.io.IOException;
+import java.net.http.HttpHeaders;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,16 +45,105 @@ public class SwingService {
     public ReportResponse getReport(CustomUser customUser) {
 
         User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
+        List<Swing> swings = swingRepository.findByUser(user); // swing 전부 찾기
+
+        double totalScore = 0.0;
+
+        // 유사도 값을 누적할 맵 (8가지 자세에 대한 유사도를 저장)
+        Map<String, Double> cumulativeSimilarity = new HashMap<>();
+        // 유사도를 0으로 초기화
+        cumulativeSimilarity.put("address", 0.0);
+        cumulativeSimilarity.put("toeUp", 0.0);
+        cumulativeSimilarity.put("midBackSwing", 0.0);
+        cumulativeSimilarity.put("top", 0.0);
+        cumulativeSimilarity.put("midDownSwing", 0.0);
+        cumulativeSimilarity.put("impact", 0.0);
+        cumulativeSimilarity.put("midFollowThrough", 0.0);
+        cumulativeSimilarity.put("finish", 0.0);
+
+        ObjectMapper objectMapper = new ObjectMapper(); // JSON 파서를 위한 ObjectMapper 생성
+
+        // Comment content 빈도를 저장할 맵
+        Map<String, Integer> commentFrequency = new HashMap<>();
+        int swingCount = swings.size();
 
         // 1. 해당 user 에 대한 Comment 전부 가져와서
+        for(Swing swing : swings) {
+            List<Comment> comments = swing.getComments(); // 하나의 스윙에 Comment 는 10개
+
+            for (Comment comment : comments) {
+                // Comment의 content 가져오기
+                String content = comment.getContent();
+
+                // content의 빈도를 카운트
+                commentFrequency.put(content, commentFrequency.getOrDefault(content, 0) + 1);
+            }
+
+            // 점수
+            totalScore += swing.getScore();
+
+            // 유사도 (0 ~ 1 사이값) : 100 곱해줘서 계산해야 함
+            String similarity = swing.getSimilarity(); // json 형식
+            // 8가지 자세 각 value 값 뽑아서 더하기
+            // 유사도 처리 (JSON 형식 파싱)
+            String similarityJson = swing.getSimilarity(); // JSON 형식 문자열
+            try {
+                // JSON 문자열을 Map<String, Double> 형식으로 파싱
+                Map<String, Double> similarityMap = objectMapper.readValue(similarityJson, new TypeReference<Map<String, Double>>() {});
+
+                // 8가지 자세의 유사도를 누적하여 더함
+                for (Map.Entry<String, Double> entry : similarityMap.entrySet()) {
+                    String poseType = entry.getKey();
+                    Double value = entry.getValue();
+
+                    // cumulativeSimilarity 에서 poseType 에 해당하는 값을 가져오고, 없으면 기본값 0.0 사용
+                    double currentSimilarity = cumulativeSimilarity.getOrDefault(poseType, 0.0);
+
+                    // 유사도 값을 누적하여 더하기 (100을 곱한 값을 더함)
+                    cumulativeSimilarity.put(poseType, currentSimilarity + (value * 100));
+                }
+
+            } catch (IOException e) {
+                throw new SwingJsonProcessingException();
+            }
+
+        }
+
+        double averageScore = totalScore / swingCount;
 
         // 2. 데이터 전처리 (반복적으로 문제가 있었던 Comment 3개만 뽑기)
+        List<String> top3Comments = commentFrequency.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed()) // 빈도 순으로 내림차순 정렬
+                .limit(3) // 상위 3개 선택
+                .map(Map.Entry::getKey) // 키 (comment content)만 추출
+                .toList();
 
-        // 3. Chat GPT API 활용 (자세 교정에 대한 종합 의견 5줄로 달라하기)
+        // 3. Chat GPT API 활용 (3가지 Comment 백스윙, 다운스윙 나누어서 주고 자세 교정에 대한 종합 의견 5줄로 달라하기)
+        String totalComment = callGptApi(top3Comments);
+
+        // 8가지 자세에 대한 평균 유사도 계산
+        List<Double> averageSimilarity = cumulativeSimilarity.values().stream()
+                .map(aDouble -> aDouble / swingCount) // 누적된 값을 스윙 개수로 나눔
+                .toList();
 
         return ReportResponse.builder()
                 .name(user.getName())
+                .score(averageScore)
+                .problems(top3Comments)
+                .similarity(averageSimilarity)
+                .content(totalComment)
                 .build();
+    }
+
+    private String callGptApi(List<String> top3Comments) {
+        String apiKey = "YOUR_OPENAI_API_KEY";  // OpenAI API 키
+        String url = "https://api.openai.com/v1/completions"; // url
+
+        // ChatGPT  프롬프트 생성
+        String prompt = top3Comments.get(0) + ", " + top3Comments.get(1) + ", " + top3Comments.get(2) + ". 3가지가 골프 스윙할 때 가장 문제가 큰 부분이야. 이 부분을 고치려면 어떻게 해야하는지 5줄로 자세하게 피드백을 해줘.";
+
+        // 임시
+        return "다운스윙 시 손과 클럽 보다 빠르게 골반을 오른발 뒤꿈치 바깥쪽으로 열며 회전하는 연습을 해야 합니다. 힘 있는 골반 오픈을 위해서는 전환 동작 시 오른발 쪽으로 약간 주저 앉았다가 (스쿼트 동작) 오픈해 주면 골반의 회전력을 높일 수 있습니다.";
     }
 
     // 스윙 가져오기
@@ -68,7 +160,6 @@ public class SwingService {
         return swings.stream()
                 .filter(swing -> !codesSet.contains(swing.getCode())) // 서버에만 있는 데이터를 필터링
                 .map(swing -> SwingData.builder()
-                        .id(swing.getId())
                         .similarity(swing.getSimilarity())
                         .solution(swing.getSolution())
                         .score(swing.getScore())
