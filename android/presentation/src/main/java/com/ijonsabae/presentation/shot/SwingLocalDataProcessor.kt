@@ -15,6 +15,8 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 
 object SwingLocalDataProcessor {
@@ -28,35 +30,6 @@ object SwingLocalDataProcessor {
         } else {
             -1
         }
-    }
-
-    fun saveBitmapToGallery(context: Context, bitmap: Bitmap, fileName: String): Uri? {
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-            put(
-                MediaStore.MediaColumns.RELATIVE_PATH,
-                Environment.DIRECTORY_PICTURES + "/SwingAnalysis"
-            )
-        }
-
-        var uri: Uri? = null
-        try {
-            uri = context.contentResolver.insert(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                contentValues
-            )
-            uri?.let {
-                val outputStream: OutputStream? = context.contentResolver.openOutputStream(it)
-                outputStream?.use { stream ->
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("싸피", "Error saving bitmap: ${e.message}")
-        }
-
-        return uri
     }
 
     @SuppressLint("HardwareIds")
@@ -222,6 +195,75 @@ object SwingLocalDataProcessor {
         }
     }
 
+    //TODO 영민 : 로그인 시? 네트워크 연결 시? 게스트 정보 로컬 회원 저장소로 이동 시 사용
+    fun guestDataTransfer(context: Context, userId: Long): Boolean {
+        /**
+         * 게스트 저장소 데이터를 회원 저장소로 이동
+         * 저장 성공 시 true 반환
+         * */
+        val guestVideoDir = File(context.filesDir, "videos/$GUEST_ID")
+        val destVideoDir = File(context.filesDir, "videos/$userId")
+        val guestThumbnailDir = File(context.filesDir, "thumbnails/$GUEST_ID")
+        val destThumbnailDir = File(context.filesDir, "thumbnails/$userId")
+        val guestSwingPoseDir = File(context.filesDir, "swingPose/$GUEST_ID")
+        val destSwingPoseDir = File(context.filesDir, "swingPose/$userId")
+
+        //게스트 데이터를 회원 저장소로 이동
+        if (!moveFilesInLocalStorage(guestVideoDir, destVideoDir)) return false
+        if (!moveFilesInLocalStorage(guestThumbnailDir, destThumbnailDir)) return false
+        if (!moveFilesInLocalStorage(guestSwingPoseDir, destSwingPoseDir)) return false
+
+        return true
+    }
+
+
+    fun moveFilesInLocalStorage(srcDir: File, destDir: File) : Boolean {
+        if (!destDir.exists()) {
+            destDir.mkdirs()
+        }
+
+        srcDir.listFiles()?.forEach { file ->
+            if (file.isFile) {
+                val destFile = File(destDir, file.name)
+                try {
+                    Files.move(file.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+                } catch (e: Exception) {
+                    println("'${file.name}' 파일 이동 중 오류 발생: ${e.message}")
+                    return false
+                }
+            }
+        }
+        return true
+    }
+
+    fun saveBitmapToGallery(context: Context, bitmap: Bitmap, fileName: String): Uri? {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+            put(
+                MediaStore.MediaColumns.RELATIVE_PATH,
+                Environment.DIRECTORY_PICTURES + "/SwingAnalysis"
+            )
+        }
+
+        var uri: Uri? = null
+        try {
+            uri = context.contentResolver.insert(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                contentValues
+            )
+            uri?.let {
+                val outputStream: OutputStream? = context.contentResolver.openOutputStream(it)
+                outputStream?.use { stream ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("싸피", "Error saving bitmap: ${e.message}")
+        }
+
+        return uri
+    }
 
 
 
