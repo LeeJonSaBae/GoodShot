@@ -36,7 +36,12 @@ abstract class BaseFragment<B : ViewBinding>(
     if(throwable is RetrofitException)
     throwable.apply {
       printStackTrace()
-      showToastShort("$code : $message")
+      if(throwable.code == 401){
+        showToastShort("로그인을 해주세요!")
+      }
+      else{
+        showToastShort("$code : $message")
+      }
     }
     else if(throwable is RuntimeException){
       throwable.apply {

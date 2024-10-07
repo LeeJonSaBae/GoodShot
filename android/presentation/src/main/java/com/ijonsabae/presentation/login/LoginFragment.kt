@@ -69,6 +69,9 @@ class LoginFragment :
                 }
             }
         }
+        binding.btnGuestLogin.setOnClickListener{
+            (fragmentContext as LoginActivity).login()
+        }
     }
 
     private fun setUnderLineText() {
