@@ -8,6 +8,7 @@ import com.d201.goodshot.swing.domain.Comment;
 import com.d201.goodshot.swing.domain.Report;
 import com.d201.goodshot.swing.domain.Swing;
 import com.d201.goodshot.swing.dto.CommentItem;
+import com.d201.goodshot.swing.dto.Similarity;
 import com.d201.goodshot.swing.dto.SwingData;
 import com.d201.goodshot.swing.dto.SwingRequest.SwingDataRequest;
 import com.d201.goodshot.swing.dto.SwingRequest.SwingUpdateDataRequest;
@@ -26,6 +27,7 @@ import com.d201.goodshot.user.repository.UserRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +39,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class SwingService {
 
     private final SwingRepository swingRepository;
@@ -179,34 +182,48 @@ public class SwingService {
     }
 
     // 스윙 가져오기
-//    public List<SwingData> importSwingData(CustomUser customUser, SwingDataRequest swingDataRequest) {
-//        User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
-//        List<Swing> swings = swingRepository.findByUser(user); // 해당 사용자에 대한 swing 전부 찾아오기
-//        Set<String> codesSet = new HashSet<>(swingDataRequest.getCodes());
-//
-//        // 받아온 swingDataRequest 내부에 있는 codes 를 돌면서
-//        // swings 에 있는 code 랑 비교해서
-//        // 서버에만 있는 스윙 데이터 return
-//
-//        // 서버에만 있는 스윙 데이터를 필터링
-//        return swings.stream()
-//                .filter(swing -> !codesSet.contains(swing.getCode())) // 서버에만 있는 데이터를 필터링
-//                .map(swing -> SwingData.builder()
-//                        .id(swing.getId())
-//                        .similarity(swing.getSimilarity())
-//                        .solution(swing.getSolution())
-//                        .score(swing.getScore())
-//                        .tempo(swing.getTempo())
-//                        .likeStatus(swing.getLikeStatus())
-//                        .title(swing.getTitle())
-//                        .code(swing.getCode())
-//                        .time(swing.getTime())
-//                        .backSwingComments(convertCommentsToCommentItems(swing.getComments(), PoseType.BACK))
-//                        .downSwingComments(convertCommentsToCommentItems(swing.getComments(), PoseType.DOWN))
-//                        .build())
-//                .collect(Collectors.toList()); // List로 변환하여 반환
-//
-//    }
+    public List<SwingData> importSwingData(CustomUser customUser, SwingDataRequest swingDataRequest) {
+        User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
+        List<Swing> swings = swingRepository.findByUser(user); // 해당 사용자에 대한 swing 전부 찾아오기
+        Set<String> codesSet = new HashSet<>(swingDataRequest.getCodes());
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // 받아온 swingDataRequest 내부에 있는 codes 를 돌면서
+        // swings 에 있는 code 랑 비교해서
+        // 서버에만 있는 스윙 데이터 return
+
+        // 서버에만 있는 스윙 데이터를 필터링
+        return swings.stream()
+                .filter(swing -> !codesSet.contains(swing.getCode())) // 서버에만 있는 데이터를 필터링
+                .map(swing -> {
+                    Similarity similarityObject;
+                    try {
+                        // JSON 문자열을 Similarity 객체로 변환
+                        // JSON 파싱 전에 로그 출력
+                        log.info("Parsing similarity JSON: {}", swing.getSimilarity());
+                        similarityObject = objectMapper.readValue(swing.getSimilarity(), Similarity.class);
+                    } catch (Exception e) {
+                        throw new SwingJsonProcessingException();
+                    }
+
+                    return SwingData.builder()
+                            .id(swing.getId())
+                            .similarity(similarityObject)
+                            .solution(swing.getSolution())
+                            .score(swing.getScore())
+                            .tempo(swing.getTempo())
+                            .likeStatus(swing.getLikeStatus())
+                            .title(swing.getTitle())
+                            .code(swing.getCode())
+                            .time(swing.getTime())
+                            .backSwingComments(convertCommentsToCommentItems(swing.getComments(), PoseType.BACK))
+                            .downSwingComments(convertCommentsToCommentItems(swing.getComments(), PoseType.DOWN))
+                            .build();
+                })
+                .collect(Collectors.toList()); // List로 변환하여 반환
+
+    }
 
     // comment 를 commentItem 으로 back, down 으로 나누기
     private List<CommentItem> convertCommentsToCommentItems(List<Comment> comments, PoseType poseType) {

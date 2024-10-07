@@ -62,7 +62,7 @@ public class SwingController {
         return BaseResponse.of(HttpStatus.OK, "스윙 데이터 내보내기에 성공했습니다.", null);
     }
 
-    @GetMapping("/import")
+    @PostMapping("/import")
     @Operation(summary = "스윙 가져오기", description = "DB 에 저장되어 있는 데이터 가져오기")
     @ApiResponses(value = {
             @ApiResponse(
