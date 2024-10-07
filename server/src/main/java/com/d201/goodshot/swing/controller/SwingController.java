@@ -102,7 +102,7 @@ public class SwingController {
                             examples = @ExampleObject(value = "")))
     })
     @ResponseStatus(HttpStatus.OK)
-    public BaseResponse<Void> syncSwingData(@AuthenticationPrincipal CustomUser customUser, SwingUpdateDataRequest swingUpdateDataRequest) {
+    public BaseResponse<Void> syncSwingData(@AuthenticationPrincipal CustomUser customUser, @RequestBody SwingUpdateDataRequest swingUpdateDataRequest) {
         swingService.syncSwingData(customUser, swingUpdateDataRequest);
         return BaseResponse.of(HttpStatus.OK, "스윙 동기화에 성공했습니다.", null);
     }
