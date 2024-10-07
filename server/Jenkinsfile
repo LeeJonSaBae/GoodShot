@@ -15,11 +15,6 @@ pipeline {
                 }
             }
         }
-        stage('Cleanup Old Git References') {
-          steps {
-            sh 'git remote prune origin'
-          }
-        }
         stage('Build Backend') {
             steps {
                 script {
