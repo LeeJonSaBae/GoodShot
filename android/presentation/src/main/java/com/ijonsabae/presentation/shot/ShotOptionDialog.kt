@@ -140,16 +140,8 @@ class ShotOptionDialog : BaseDialog<DialogShotOptionBinding>(
             .setAutoDismissDuration(3000L)
             .build()
 
-
-//        binding.ivHelp.setOnClickListener {
-//            balloon1.showAlignTop(it)
-//        }
         binding.ivHelp2.setOnClickListener {
             balloon2.showAlignTop(it)
-        }
-
-        lifecycleScope.launch {
-            shotDialogViewModel.initializeTotalSwingCnt()
         }
     }
 

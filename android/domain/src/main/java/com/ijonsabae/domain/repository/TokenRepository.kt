@@ -2,6 +2,7 @@ package com.ijonsabae.domain.repository
 
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.Token
+import kotlinx.coroutines.flow.StateFlow
 
 interface TokenRepository {
     suspend fun getLocalAccessToken(): String?
@@ -11,4 +12,5 @@ interface TokenRepository {
     suspend fun clearToken()
     suspend fun reissueRemoteToken():Result<CommonResponse<Token>>
     suspend fun getLocalTokenCreatedTime(): Long?
+    suspend fun getLocalAccessTokenFlow(): StateFlow<String?>
 }

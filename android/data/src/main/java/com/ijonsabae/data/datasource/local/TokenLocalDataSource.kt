@@ -9,9 +9,13 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.ijonsabae.domain.model.Token
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import java.util.Calendar
 import java.util.TimeZone
 import javax.inject.Inject
@@ -64,5 +68,9 @@ class TokenLocalDataSource @Inject constructor(@ApplicationContext private val c
 
     suspend fun clear() {
         context.tokenDataStore.edit { it.clear() }
+    }
+
+    suspend fun getLocalAccessTokenFlow(): StateFlow<String?> {
+        return context.tokenDataStore.data.map { it[ACCESS_TOKEN] }.stateIn(CoroutineScope(Dispatchers.IO))
     }
 }

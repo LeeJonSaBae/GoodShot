@@ -37,15 +37,11 @@ class ShotSettingViewModel @Inject constructor() : ViewModel() {
         _showMidReport.emit(status)
     }
 
-    private val _totalSwingCnt: MutableStateFlow<Int> = MutableStateFlow(1)
+    private val _totalSwingCnt: MutableStateFlow<Int> = MutableStateFlow(15)
     val totalSwingCnt: StateFlow<Int>
         get() = _totalSwingCnt
 
     suspend fun setTotalSwingCnt(cnt: Int) {
         _totalSwingCnt.emit(cnt)
-    }
-
-    suspend fun initializeTotalSwingCnt() {
-        _totalSwingCnt.emit(1)
     }
 }

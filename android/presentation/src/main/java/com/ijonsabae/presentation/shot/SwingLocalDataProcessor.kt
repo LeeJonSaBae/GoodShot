@@ -110,7 +110,6 @@ object SwingLocalDataProcessor {
         }
     }
 
-    // TODO 영민 : 로컬에서 영상 삭제하는 기능 -> SwingVideoProcessor.deleteLocalSwingData(context, "04385360c7d8d191_1728212595135", 1) 이런식으로 삭제. 작동확인
     fun deleteLocalSwingData(context: Context, swingCode: String, userId: Long) {
         val swingVideoFile = getSwingVideoFile(context, swingCode, userId)
         val swingThumbnailFile = getSwingThumbnailFile(context, swingCode, userId)
@@ -123,7 +122,6 @@ object SwingLocalDataProcessor {
         }
     }
 
-    // TODO 영민 : File객체로 경로를 반환하는 함수입니다.
     fun getSwingVideoFile(context: Context, swingCode: String, userId: Long = GUEST_ID): File {
         val videoFileName = "$swingCode.mp4"
         val videoDir = File(context.filesDir, "videos/$userId")
@@ -195,7 +193,6 @@ object SwingLocalDataProcessor {
         }
     }
 
-    //TODO 영민 : 로그인 시? 네트워크 연결 시? 게스트 정보 로컬 회원 저장소로 이동 시 사용
     fun guestDataTransfer(context: Context, userId: Long): Boolean {
         /**
          * 게스트 저장소 데이터를 회원 저장소로 이동

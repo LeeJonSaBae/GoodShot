@@ -5,6 +5,7 @@ import com.ijonsabae.data.datasource.remote.TokenRemoteDataSource
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.Token
 import com.ijonsabae.domain.repository.TokenRepository
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 class TokenRepositoryImpl @Inject constructor(
@@ -38,5 +39,9 @@ class TokenRepositoryImpl @Inject constructor(
 
     override suspend fun getLocalTokenCreatedTime(): Long? {
         return tokenLocalDataSource.getLocalTokenCreatedTime()
+    }
+
+    override suspend fun getLocalAccessTokenFlow(): StateFlow<String?> {
+        return tokenLocalDataSource.getLocalAccessTokenFlow()
     }
 }

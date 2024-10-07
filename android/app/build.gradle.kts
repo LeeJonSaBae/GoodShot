@@ -44,5 +44,6 @@ dependencies {
 
     // Hilt 세팅
     implementation(libs.hilt.android)
+    implementation(libs.androidx.appcompat)
     kapt(libs.hilt.compiler)
 }

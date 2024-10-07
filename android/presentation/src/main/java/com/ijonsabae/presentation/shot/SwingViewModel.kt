@@ -32,7 +32,7 @@ class SwingViewModel @Inject constructor(
     private var _swingCnt: Int = 0
 
     fun getUserId(): Long{
-        return _id
+        return runBlocking { getUserIdUseCase() }
     }
 
     fun insertSwingFeedbackComment(swingFeedbackComment: SwingFeedbackComment){
