@@ -70,21 +70,21 @@ public class S3Service {
         return request;
     }
 
-    // S3 이미지 제거
-    public void deleteImage(String imageUrl) {
+    // S3 객체 제거
+    public void deleteObject(String url) {
         // 객체 키 추출
-        String objectKey = extractObjectKeyFromUrl(imageUrl);
+        String objectKey = extractObjectKeyFromUrl(url);
 
         // 객체 삭제
         amazonS3.deleteObject(new DeleteObjectRequest(bucket, objectKey));
     }
 
-    private String extractObjectKeyFromUrl(String imageUrl) {
+    private String extractObjectKeyFromUrl(String url) {
         // URL 에서 버킷 프리픽스 제거
-        if (imageUrl.startsWith(prefix)) {
-            return imageUrl.substring(prefix.length());
+        if (url.startsWith(prefix)) {
+            return url.substring(prefix.length());
         }
-        return imageUrl;
+        return url;
     }
 
 }
