@@ -283,7 +283,7 @@ public class SwingService {
 
                     for (int i = 0; i < 8; i++) {
                         PresignedUrlRequest presignedUrlImageRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.JPG);
-                        url = folder + user.getId() + "/" + "thumbnail" + "/" + swingUpdateDataRequest.getCode() + "_" + i + "." + presignedUrlThumbnailRequest.getImageExtension().getUploadExtension();
+                        url = folder + user.getId() + "/" + "thumbnail" + "/" + swingUpdateDataRequest.getCode() + "_" + i + "." + presignedUrlImageRequest.getImageExtension().getUploadExtension();
                         s3Service.deleteObject(url);
                     }
                 }
