@@ -9,6 +9,8 @@ import com.d201.goodshot.swing.domain.Swing;
 import com.d201.goodshot.swing.dto.CommentItem;
 import com.d201.goodshot.swing.dto.SwingData;
 import com.d201.goodshot.swing.dto.SwingRequest.SwingDataRequest;
+import com.d201.goodshot.swing.dto.SwingRequest.SwingUpdateDataItem;
+import com.d201.goodshot.swing.dto.SwingRequest.SwingUpdateDataRequest;
 import com.d201.goodshot.swing.dto.SwingResponse.ReportResponse;
 import com.d201.goodshot.swing.dto.SwingResponse.SwingCodeResponse;
 import com.d201.goodshot.swing.enums.PoseType;
@@ -21,13 +23,11 @@ import com.d201.goodshot.user.repository.UserRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.net.http.HttpHeaders;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,6 +39,13 @@ public class SwingService {
     private final SwingRepository swingRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+
+    @Value("${image.prefix}")
+    private String prefix;
+
+    @Value("${image.folder}")
+    private String folder;
+
     private final S3Service s3Service;
 
     // 종합 리포트 조회
@@ -160,6 +167,7 @@ public class SwingService {
         return swings.stream()
                 .filter(swing -> !codesSet.contains(swing.getCode())) // 서버에만 있는 데이터를 필터링
                 .map(swing -> SwingData.builder()
+                        .id(swing.getId())
                         .similarity(swing.getSimilarity())
                         .solution(swing.getSolution())
                         .score(swing.getScore())
@@ -238,6 +246,46 @@ public class SwingService {
 
         return swingCodeResponses;
     }
+
+    // 스윙 동기화 (DB 랑 Room 변경, 삭제된 데이터 동기화)
+    public void syncSwingData(CustomUser customUser, SwingUpdateDataRequest swingUpdateDataRequest) {
+
+        User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
+        List<SwingUpdateDataItem> swingUpdateDataItemList = swingUpdateDataRequest.getData();
+
+        // 업데이트 열이 1이면 레코드 업데이트 해주고 (swing title)
+        // 즐겨찾기 (바꼈는지 안바꼈는지)
+        // 업데이트 열이 2이면 해당 레코드 삭제해야 함 (삭제된 데이터면 S3도 같이 삭제)
+        for(SwingUpdateDataItem swingUpdateDataItem : swingUpdateDataItemList) {
+            Swing swing = swingRepository.findByCode(swingUpdateDataItem.getCode()).orElseThrow(NotFoundUserException::new);
+            int update = swingUpdateDataItem.getUpdate();
+
+            // update : 1 (수정)
+            if (update==1) {
+                swing.updateSwingData(swingUpdateDataItem);
+            } else if (update == 2) {
+                // update : 2 (삭제)
+                swingRepository.delete(swing);
+                // s3 영상 삭제
+                PresignedUrlRequest presignedUrlVideoRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.MP4);
+                String url = folder + user.getId() + "/" + "video" + "/" + swingUpdateDataItem.getCode() + "." + presignedUrlVideoRequest.getImageExtension().getUploadExtension();
+                s3Service.deleteObject(url);
+                // s3 이미지 삭제 (썸네일, 8가지 자세)
+                PresignedUrlRequest presignedUrlThumbnailRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.JPG);
+                url = folder + user.getId() + "/" + "thumbnail" + "/" + swingUpdateDataItem.getCode() + "." + presignedUrlThumbnailRequest.getImageExtension().getUploadExtension();
+                s3Service.deleteObject(url);
+
+                for (int i = 0; i < 8; i++) {
+                    PresignedUrlRequest presignedUrlImageRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.JPG);
+                    url = folder + user.getId() + "/" + "thumbnail" + "/" + swingUpdateDataItem.getCode() + "_" + i + "." + presignedUrlThumbnailRequest.getImageExtension().getUploadExtension();
+                    s3Service.deleteObject(url);
+                }
+            }
+
+        }
+
+    }
+
 
     // 스윙 내보내기
     public void exportSwingData(CustomUser customUser, List<SwingData> swingDataList) {

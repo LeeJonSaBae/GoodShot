@@ -4,7 +4,9 @@ import com.d201.goodshot.global.base.BaseResponse;
 import com.d201.goodshot.global.security.dto.CustomUser;
 import com.d201.goodshot.swing.domain.Swing;
 import com.d201.goodshot.swing.dto.SwingData;
+import com.d201.goodshot.swing.dto.SwingRequest;
 import com.d201.goodshot.swing.dto.SwingRequest.SwingDataRequest;
+import com.d201.goodshot.swing.dto.SwingRequest.SwingUpdateDataRequest;
 import com.d201.goodshot.swing.dto.SwingResponse;
 import com.d201.goodshot.swing.dto.SwingResponse.ReportResponse;
 import com.d201.goodshot.swing.dto.SwingResponse.SwingCodeResponse;
@@ -88,6 +90,21 @@ public class SwingController {
     public BaseResponse<ReportResponse> getReport(@AuthenticationPrincipal CustomUser customUser) {
         ReportResponse response = swingService.getReport(customUser);
         return BaseResponse.of(HttpStatus.OK, "스윙 종합 리포트 가져오기에 성공했습니다.", response);
+    }
+
+    @PostMapping("/sync")
+    @Operation(summary = "스윙 동기화", description = "변경된 사항 서버에 적용하기")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "스윙 동기화에 성공했습니다.",
+                    content = @Content(mediaType = "",
+                            examples = @ExampleObject(value = "")))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    public BaseResponse<Void> syncSwingData(@AuthenticationPrincipal CustomUser customUser, @RequestBody SwingUpdateDataRequest swingUpdateDataRequest) {
+        swingService.syncSwingData(customUser, swingUpdateDataRequest);
+        return BaseResponse.of(HttpStatus.OK, "스윙 동기화에 성공했습니다.", null);
     }
 
 }

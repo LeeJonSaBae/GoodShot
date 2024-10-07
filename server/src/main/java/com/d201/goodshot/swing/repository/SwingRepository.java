@@ -13,4 +13,6 @@ public interface SwingRepository extends JpaRepository<Swing, Integer> {
 
     List<Swing> findByUser(User user);
 
+    Optional<Swing> findByCode(String code);
+
 }

@@ -1,5 +1,8 @@
 package com.d201.goodshot.swing.domain;
 
+import com.d201.goodshot.swing.dto.SwingRequest;
+import com.d201.goodshot.swing.dto.SwingRequest.SwingUpdateDataItem;
+import com.d201.goodshot.swing.dto.SwingRequest.SwingUpdateDataRequest;
 import com.d201.goodshot.user.domain.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
@@ -50,7 +53,13 @@ public class Swing {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime time;
 
-    @OneToMany(mappedBy = "swing", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "swing", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
+
+    public void updateSwingData(SwingUpdateDataItem swingUpdateDataItem) {
+        this.likeStatus = swingUpdateDataItem.getLikeStatus();
+        this.time = swingUpdateDataItem.getTime();
+        this.title = swingUpdateDataItem.getTitle();
+    }
 
 }
