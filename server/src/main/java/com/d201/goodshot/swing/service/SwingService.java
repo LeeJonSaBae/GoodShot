@@ -13,6 +13,7 @@ import com.d201.goodshot.swing.dto.SwingRequest.SwingUpdateDataRequest;
 import com.d201.goodshot.swing.dto.SwingResponse.ReportResponse;
 import com.d201.goodshot.swing.dto.SwingResponse.SwingCodeResponse;
 import com.d201.goodshot.swing.enums.PoseType;
+import com.d201.goodshot.swing.exception.NotFoundSwingException;
 import com.d201.goodshot.swing.exception.SwingJsonProcessingException;
 import com.d201.goodshot.swing.repository.CommentRepository;
 import com.d201.goodshot.swing.repository.SwingRepository;
@@ -144,7 +145,11 @@ public class SwingService {
     private String generateComment(String top1, String top2) {
         // 가장 빈도수가 많은 2개에 대해서 (이러면 피드백이 top1이 3개, top2가 3개, 총 6개 나오겠지)
 
+        // 1. top1, top2 에 맞는 enum 찾아서
 
+        // 2. 그 enum 에 맞는 3개 피드백 찾아와 (Report DB 에서)
+
+        // 3개 찾은 것 중에서 랜덤핑
         // top1 에서 랜덤으로 하나 뽑고, top2 에서 랜덤으로 하나 뽑아
         String feedback1 = "";
         String feedback2 = "";
@@ -256,7 +261,7 @@ public class SwingService {
         // 즐겨찾기 (바꼈는지 안바꼈는지)
         // 업데이트 열이 2이면 해당 레코드 삭제해야 함 (삭제된 데이터면 S3도 같이 삭제)
         for(SwingUpdateDataRequest swingUpdateDataRequest : swingUpdateDataRequestList) {
-            Swing swing = swingRepository.findByCode(swingUpdateDataRequest.getCode()).orElseThrow(NotFoundUserException::new);
+            Swing swing = swingRepository.findByCode(swingUpdateDataRequest.getCode()).orElseThrow(NotFoundSwingException::new);
             int update = swingUpdateDataRequest.getUpdate();
 
             // update : 1 (수정)
