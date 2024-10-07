@@ -122,6 +122,7 @@ dependencies {
     implementation(libs.tensorflow.lite)
     implementation(libs.tensorflow.lite.gpu)
     implementation(libs.tensorflow.lite.support)
+    implementation (libs.tensorflow.tensorflow.lite.task.vision)
 
     // Media3 ExoPlayer
     implementation(libs.media3.exoplayer)
@@ -142,4 +143,5 @@ dependencies {
 
     // viewpager indicator
     implementation(libs.dotsindicator)
+
 }

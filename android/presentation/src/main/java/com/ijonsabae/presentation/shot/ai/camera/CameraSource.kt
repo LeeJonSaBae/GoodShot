@@ -46,6 +46,7 @@ import com.ijonsabae.presentation.shot.CameraState.RESULT
 import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.PostureFeedback
 import com.ijonsabae.presentation.shot.SwingLocalDataProcessor
+import com.ijonsabae.presentation.shot.ai.ClubDetector
 import com.ijonsabae.presentation.shot.ai.PostureExtractor
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ANKLE
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_EAR
@@ -171,6 +172,9 @@ class CameraSource(
         val classifier8 = PoseClassifier.create(context, MODEL_FILENAME_8, LABELS_FILENAME_8)
         setClassifier(classifier4, classifier8)
 
+        // TODO 모델 초기화 부분
+        // ClubDetector.initialize(context)
+
         initializeSwingCnt()
     }
 
@@ -285,6 +289,22 @@ class CameraSource(
                             imageQueue.poll()
                         }
                         imageQueue.offer(TimestampedData(capturedBmp, currentTime, -1))
+                        
+
+                        //클럽 테스트
+//                        Log.d("ClubLog", "w : ${bitmap.width} |  h : ${bitmap.height}")
+                        // TODO 모델 검증 부분 성능 낮음
+//
+//                        bitmap
+//                        val detectionResults = ClubDetector.detectClub(bitmap)
+//                        // 결과 처리
+//                        for (result in detectionResults) {
+//                            val box = result.boundingBox
+//                            val score = result.score
+//                            Log.d("ClubLog", "box: $box, score: $score")
+//                            // 여기서 감지된 클럽에 대한 추가 처리를 수행합니다.
+//                            // 예: 화면에 바운딩 박스 그리기, 결과 로깅 등
+//                        }
                     }
 
                     // 정규화된 관절 좌표를 큐에 추가
