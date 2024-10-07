@@ -71,7 +71,7 @@ class ReplayAdapter(private val context: Context) :
                     .load(SwingLocalDataProcessor.getSwingThumbnailFile(context, replayItem.swingCode, replayItem.userID))
                     .into(binding.ivThumbnail)
                 binding.tvTitle.text = replayItem.title
-                binding.tvDate.text = formatDateFromLongKorea(replayItem.date)
+                binding.tvDate.text = formatDateFromLongKorea(SwingLocalDataProcessor.convertSwingcodeToTimestamp(replayItem.swingCode))
                 binding.tvTag1.text = "점수 ${replayItem.score}점"
                 binding.tvTag2.text = "템포 ${replayItem.tempo}"
                 binding.root.setOnClickListener { itemClickListener.onItemClick(replayItem) }
