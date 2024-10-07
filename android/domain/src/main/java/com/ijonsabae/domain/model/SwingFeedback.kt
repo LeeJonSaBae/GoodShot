@@ -13,5 +13,6 @@ data class SwingFeedback(
     val tempo: Double,
     val title: String,
     val date: Long,
-    val isClamped: Boolean = false
+    val isClamped: Boolean = false,
+    val isUpdated: Int = 0
 )

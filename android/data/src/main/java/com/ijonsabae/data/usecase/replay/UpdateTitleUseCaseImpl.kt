@@ -8,7 +8,7 @@ import javax.inject.Inject
 class UpdateTitleUseCaseImpl @Inject constructor(
     private val swingFeedbackRepository: SwingFeedbackRepository
 ): UpdateTitleUseCase {
-    override fun invoke(userID: Long, swingCode: String, title: String): Int {
-        return swingFeedbackRepository.updateTitle(userID, swingCode, title)
+    override fun invoke(userID: Long, swingCode: String, title: String, currentTime: Long): Int {
+        return swingFeedbackRepository.updateTitle(userID, swingCode, title, currentTime)
     }
 }

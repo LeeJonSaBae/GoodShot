@@ -4,8 +4,9 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.ijonsabae.data.datasource.local.SwingFeedbackLocalDataSource
-import com.ijonsabae.domain.model.SwingFeedbackComment
 import com.ijonsabae.domain.model.SwingFeedback
+import com.ijonsabae.domain.model.SwingFeedbackComment
+import com.ijonsabae.domain.model.SwingFeedbackSyncRoomData
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -63,15 +64,23 @@ class SwingFeedbackRepositoryImpl @Inject constructor(
         return swingFeedbackLocalDataSource.updateUserId(oldUserId, newUserId)
     }
 
-    override fun updateLikeStatus(userID: Long, swingCode: String, likeStatus: Boolean): Int {
-        return swingFeedbackLocalDataSource.updateLikeStatus(userID, swingCode, likeStatus)
+    override fun updateLikeStatus(userID: Long, swingCode: String, likeStatus: Boolean, currentTime: Long): Int {
+        return swingFeedbackLocalDataSource.updateLikeStatus(userID, swingCode, likeStatus, currentTime)
     }
 
     override fun updateClampStatus(userID: Long, swingCode: String, clampStatus: Boolean): Int {
         return swingFeedbackLocalDataSource.updateClampStatus(userID, swingCode, clampStatus)
     }
 
-    override fun updateTitle(userID: Long, swingCode: String, title: String): Int {
-        return swingFeedbackLocalDataSource.updateTitle(userID, swingCode, title)
+    override fun updateTitle(userID: Long, swingCode: String, title: String, currentTime: Long): Int {
+        return swingFeedbackLocalDataSource.updateTitle(userID, swingCode, title, currentTime)
+    }
+
+    override fun hideSwingFeedback(userID: Long, swingCode: String, currentTime: Long): Int{
+        return swingFeedbackLocalDataSource.hideSwingFeedback(userID, swingCode, currentTime)
+    }
+
+    override fun getChangedSwingFeedback(userID: Long): List<SwingFeedbackSyncRoomData>{
+        return swingFeedbackLocalDataSource.getChangedSwingFeedback(userID)
     }
 }

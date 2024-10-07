@@ -16,7 +16,9 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ijonsabae.domain.model.SwingFeedback
 import com.ijonsabae.domain.usecase.replay.DeleteLocalSwingFeedbackUseCase
+import com.ijonsabae.domain.usecase.replay.GetChangedSwingFeedbackUseCase
 import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackCommentUseCase
+import com.ijonsabae.domain.usecase.replay.HideSwingFeedbackUseCase
 import com.ijonsabae.domain.usecase.replay.UpdateClampStatusUseCase
 import com.ijonsabae.domain.usecase.replay.UpdateLikeStatusUseCase
 import com.ijonsabae.domain.usecase.replay.UpdateTitleUseCase
@@ -26,13 +28,14 @@ import com.ijonsabae.presentation.databinding.FragmentReplayBinding
 import com.ijonsabae.presentation.main.MainActivity
 import com.ijonsabae.presentation.mapper.SwingFeedbackCommentMapper
 import com.ijonsabae.presentation.mapper.SwingFeedbackMapper
-import com.ijonsabae.presentation.shot.SwingLocalDataProcessor
+import com.ijonsabae.presentation.mapper.SwingFeedbackSyncRoomDataMapper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import okhttp3.Dispatcher
 import javax.inject.Inject
 
 private const val TAG = "굿샷_ReplayFragment"
@@ -53,7 +56,13 @@ class ReplayFragment :
     lateinit var deleteLocalSwingFeedbackUseCase: DeleteLocalSwingFeedbackUseCase
 
     @Inject
+    lateinit var hideSwingFeedbackUseCase: HideSwingFeedbackUseCase
+
+    @Inject
     lateinit var getLocalSwingFeedbackCommentUseCase: GetLocalSwingFeedbackCommentUseCase
+
+    @Inject
+    lateinit var getChangedSwingFeedbackUseCase: GetChangedSwingFeedbackUseCase
 
     private val viewModel: ReplayFragmentViewModel by viewModels()
 
@@ -74,22 +83,23 @@ class ReplayFragment :
 
                     override fun onLikeClick(item: SwingFeedback) {
                         lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
-                            updateLikeStatusUseCase(item.userID, item.swingCode, !item.likeStatus)
+                            updateLikeStatusUseCase(item.userID, item.swingCode, !item.likeStatus, System.currentTimeMillis())
                         }
                         showToastShort("즐겨찾기 클릭~!")
                     }
 
                     override fun onItemDelete(item: SwingFeedback) {
                         lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
-                            SwingLocalDataProcessor.deleteLocalSwingData(fragmentContext, item.swingCode, item.userID)
+//                            SwingLocalDataProcessor.deleteLocalSwingData(fragmentContext, item.swingCode, item.userID)
                             // 이건 Room에서 지우는 것
-                            deleteLocalSwingFeedbackUseCase(item.userID, item.swingCode)
+                            hideSwingFeedbackUseCase(item.userID, item.swingCode, System.currentTimeMillis())
+//                            deleteLocalSwingFeedbackUseCase(item.userID, item.swingCode)
                         }
                     }
 
                     override fun onTitleChange(item: SwingFeedback, title: String) {
                         lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
-                            updateTitleUseCase(item.userID, item.swingCode, title)
+                            updateTitleUseCase(item.userID, item.swingCode, title, System.currentTimeMillis())
                         }
                     }
 
@@ -166,6 +176,11 @@ class ReplayFragment :
         dialog.window?.setWindowAnimations(R.style.DialogAnimation)
 
         dialogView.findViewById<View>(R.id.menu_export).setOnClickListener {
+            lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
+
+                SwingFeedbackSyncRoomDataMapper.mapperToSwingFeedbackSyncList(getChangedSwingFeedbackUseCase(viewModel.getUserID()))
+            }
+
             Toast.makeText(requireContext(), "내보내기 클릭", Toast.LENGTH_SHORT).show()
             dialog.dismiss()
         }

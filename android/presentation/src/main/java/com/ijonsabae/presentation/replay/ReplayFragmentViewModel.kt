@@ -22,6 +22,11 @@ class ReplayFragmentViewModel @Inject constructor(
 ): ViewModel() {
     private val _id = runBlocking { getUserIdUseCase() }
     var swingFeedbackList : Flow<PagingData<SwingFeedback>> = getLocalSwingFeedbackListUseCase(_id).cachedIn(viewModelScope)
+    fun getUserID(): Long{
+        return runBlocking {
+            getUserIdUseCase()
+        }
+    }
     fun getLocalSwingFeedbackLikeList(){
         swingFeedbackList = getLocalSwingFeedbackLikeListUseCase(_id).cachedIn(viewModelScope)
     }

@@ -9,6 +9,7 @@ import com.ijonsabae.data.exception.YoutubeCallAdapterFactory
 import com.ijonsabae.data.retrofit.ConsultService
 import com.ijonsabae.data.retrofit.ProfileService
 import com.ijonsabae.data.retrofit.RefreshTokenAuthorizationInterceptor
+import com.ijonsabae.data.retrofit.SwingService
 import com.ijonsabae.data.retrofit.TokenInterceptor
 import com.ijonsabae.data.retrofit.TokenService
 import com.ijonsabae.data.retrofit.UploadImageService
@@ -183,5 +184,10 @@ class RetrofitModule {
     @Provides
     fun provideYoutubeService(@Named("youtube_api_retrofit")retrofit: Retrofit): YoutubeService{
         return retrofit.create(YoutubeService::class.java)
+    }
+
+    @Provides
+    fun provideSwingService(@Named("default_retrofit")retrofit: Retrofit): SwingService {
+        return retrofit.create(SwingService::class.java)
     }
 }
