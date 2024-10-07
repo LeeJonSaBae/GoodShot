@@ -95,7 +95,12 @@ public class SwingService {
                 for (Map.Entry<String, Double> entry : similarityMap.entrySet()) {
                     String poseType = entry.getKey();
                     Double value = entry.getValue();
-                    cumulativeSimilarity.put(poseType, cumulativeSimilarity.get(poseType) + (value * 100)); // 100을 곱한 값을 더함
+
+                    // cumulativeSimilarity 에서 poseType 에 해당하는 값을 가져오고, 없으면 기본값 0.0 사용
+                    double currentSimilarity = cumulativeSimilarity.getOrDefault(poseType, 0.0);
+
+                    // 유사도 값을 누적하여 더하기 (100을 곱한 값을 더함)
+                    cumulativeSimilarity.put(poseType, currentSimilarity + (value * 100));
                 }
 
             } catch (IOException e) {
@@ -135,9 +140,10 @@ public class SwingService {
         String url = "https://api.openai.com/v1/completions"; // url
 
         // ChatGPT  프롬프트 생성
-        String prompt = top3Comments.get(0) + ", " + top3Comments.get(1) + ", " + top3Comments.get(2) + ". 3가지가 골프 스윙할 때 가장 문제가 큰 부분이야. 이 부분을 고치려면 어떻게 해야하는지 5줄로 자세하게 피드백을 해줘."
+        String prompt = top3Comments.get(0) + ", " + top3Comments.get(1) + ", " + top3Comments.get(2) + ". 3가지가 골프 스윙할 때 가장 문제가 큰 부분이야. 이 부분을 고치려면 어떻게 해야하는지 5줄로 자세하게 피드백을 해줘.";
 
-        return null;
+        // 임시
+        return "다운스윙 시 손과 클럽 보다 빠르게 골반을 오른발 뒤꿈치 바깥쪽으로 열며 회전하는 연습을 해야 합니다. 힘 있는 골반 오픈을 위해서는 전환 동작 시 오른발 쪽으로 약간 주저 앉았다가 (스쿼트 동작) 오픈해 주면 골반의 회전력을 높일 수 있습니다.";
     }
 
     // 스윙 가져오기
