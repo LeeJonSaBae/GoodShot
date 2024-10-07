@@ -18,6 +18,7 @@ import java.nio.ByteBuffer
 
 
 object SwingVideoProcessor {
+
     const val GUEST_ID: Long = -1L
     fun saveBitmapToGallery(context: Context, bitmap: Bitmap, fileName: String): Uri? {
         val contentValues = ContentValues().apply {
