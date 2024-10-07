@@ -5,6 +5,7 @@ import com.d201.goodshot.global.s3.dto.ImageRequest.PresignedUrlRequest;
 import com.d201.goodshot.global.s3.service.S3Service;
 import com.d201.goodshot.global.security.dto.CustomUser;
 import com.d201.goodshot.swing.domain.Comment;
+import com.d201.goodshot.swing.domain.Report;
 import com.d201.goodshot.swing.domain.Swing;
 import com.d201.goodshot.swing.dto.CommentItem;
 import com.d201.goodshot.swing.dto.SwingData;
@@ -12,10 +13,12 @@ import com.d201.goodshot.swing.dto.SwingRequest.SwingDataRequest;
 import com.d201.goodshot.swing.dto.SwingRequest.SwingUpdateDataRequest;
 import com.d201.goodshot.swing.dto.SwingResponse.ReportResponse;
 import com.d201.goodshot.swing.dto.SwingResponse.SwingCodeResponse;
+import com.d201.goodshot.swing.enums.CommentType;
 import com.d201.goodshot.swing.enums.PoseType;
-import com.d201.goodshot.swing.exception.NotFoundSwingException;
+import com.d201.goodshot.swing.enums.ProblemType;
 import com.d201.goodshot.swing.exception.SwingJsonProcessingException;
 import com.d201.goodshot.swing.repository.CommentRepository;
+import com.d201.goodshot.swing.repository.ReportRepository;
 import com.d201.goodshot.swing.repository.SwingRepository;
 import com.d201.goodshot.user.domain.User;
 import com.d201.goodshot.user.exception.NotFoundUserException;
@@ -39,6 +42,7 @@ public class SwingService {
     private final SwingRepository swingRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final ReportRepository reportRepository;
 
     @Value("${image.prefix}")
     private String prefix;
@@ -79,6 +83,8 @@ public class SwingService {
             List<Comment> comments = swing.getComments(); // 하나의 스윙에 Comment 는 10개
 
             for (Comment comment : comments) {
+                if(comment.getCommentType() == CommentType.NICE) continue; // NICE Comment 는 Pass
+
                 // Comment의 content 가져오기
                 String content = comment.getContent();
 
@@ -90,7 +96,6 @@ public class SwingService {
             totalScore += swing.getScore();
 
             // 유사도 (0 ~ 1 사이값) : 100 곱해줘서 계산해야 함
-            String similarity = swing.getSimilarity(); // json 형식
             // 8가지 자세 각 value 값 뽑아서 더하기
             // 유사도 처리 (JSON 형식 파싱)
             String similarityJson = swing.getSimilarity(); // JSON 형식 문자열
@@ -146,47 +151,62 @@ public class SwingService {
         // 가장 빈도수가 많은 2개에 대해서 (이러면 피드백이 top1이 3개, top2가 3개, 총 6개 나오겠지)
 
         // 1. top1, top2 에 맞는 enum 찾아서
+        ProblemType problemType1 = ProblemType.findByComment(top1);
+        ProblemType problemType2 = ProblemType.findByComment(top2);
 
         // 2. 그 enum 에 맞는 3개 피드백 찾아와 (Report DB 에서)
+        List<Report> feedbackList1 = reportRepository.findByProblemType(problemType1);
+        List<Report> feedbackList2 = reportRepository.findByProblemType(problemType2);
 
         // 3개 찾은 것 중에서 랜덤핑
         // top1 에서 랜덤으로 하나 뽑고, top2 에서 랜덤으로 하나 뽑아
-        String feedback1 = "";
-        String feedback2 = "";
+        String feedback1 = getRandomFeedback(feedbackList1);
+        String feedback2 = getRandomFeedback(feedbackList2);
 
         // 랜덤으로 뽑은 값 합쳐서 return
         return feedback1 + feedback2;
     }
 
-    // 스윙 가져오기
-    public List<SwingData> importSwingData(CustomUser customUser, SwingDataRequest swingDataRequest) {
-        User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
-        List<Swing> swings = swingRepository.findByUser(user); // 해당 사용자에 대한 swing 전부 찾아오기
-        Set<String> codesSet = new HashSet<>(swingDataRequest.getCodes());
+    // 랜덤으로 선택
+    private String getRandomFeedback(List<Report> feedbackList) {
+        if (feedbackList == null || feedbackList.isEmpty()) {
+            return "";  // 리스트가 비어있으면 빈 문자열 반환
+        }
 
-        // 받아온 swingDataRequest 내부에 있는 codes 를 돌면서
-        // swings 에 있는 code 랑 비교해서
-        // 서버에만 있는 스윙 데이터 return
-
-        // 서버에만 있는 스윙 데이터를 필터링
-        return swings.stream()
-                .filter(swing -> !codesSet.contains(swing.getCode())) // 서버에만 있는 데이터를 필터링
-                .map(swing -> SwingData.builder()
-                        .id(swing.getId())
-                        .similarity(swing.getSimilarity())
-                        .solution(swing.getSolution())
-                        .score(swing.getScore())
-                        .tempo(swing.getTempo())
-                        .likeStatus(swing.getLikeStatus())
-                        .title(swing.getTitle())
-                        .code(swing.getCode())
-                        .time(swing.getTime())
-                        .backSwingComments(convertCommentsToCommentItems(swing.getComments(), PoseType.BACK))
-                        .downSwingComments(convertCommentsToCommentItems(swing.getComments(), PoseType.DOWN))
-                        .build())
-                .collect(Collectors.toList()); // List로 변환하여 반환
-
+        Random random = new Random();
+        int randomIndex = random.nextInt(feedbackList.size());  // 랜덤한 인덱스 선택
+        return feedbackList.get(randomIndex).getContent();
     }
+
+    // 스윙 가져오기
+//    public List<SwingData> importSwingData(CustomUser customUser, SwingDataRequest swingDataRequest) {
+//        User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
+//        List<Swing> swings = swingRepository.findByUser(user); // 해당 사용자에 대한 swing 전부 찾아오기
+//        Set<String> codesSet = new HashSet<>(swingDataRequest.getCodes());
+//
+//        // 받아온 swingDataRequest 내부에 있는 codes 를 돌면서
+//        // swings 에 있는 code 랑 비교해서
+//        // 서버에만 있는 스윙 데이터 return
+//
+//        // 서버에만 있는 스윙 데이터를 필터링
+//        return swings.stream()
+//                .filter(swing -> !codesSet.contains(swing.getCode())) // 서버에만 있는 데이터를 필터링
+//                .map(swing -> SwingData.builder()
+//                        .id(swing.getId())
+//                        .similarity(swing.getSimilarity())
+//                        .solution(swing.getSolution())
+//                        .score(swing.getScore())
+//                        .tempo(swing.getTempo())
+//                        .likeStatus(swing.getLikeStatus())
+//                        .title(swing.getTitle())
+//                        .code(swing.getCode())
+//                        .time(swing.getTime())
+//                        .backSwingComments(convertCommentsToCommentItems(swing.getComments(), PoseType.BACK))
+//                        .downSwingComments(convertCommentsToCommentItems(swing.getComments(), PoseType.DOWN))
+//                        .build())
+//                .collect(Collectors.toList()); // List로 변환하여 반환
+//
+//    }
 
     // comment 를 commentItem 으로 back, down 으로 나누기
     private List<CommentItem> convertCommentsToCommentItems(List<Comment> comments, PoseType poseType) {
@@ -297,16 +317,24 @@ public class SwingService {
     public void exportSwingData(CustomUser customUser, List<SwingData> swingDataList) {
 
         User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
+        ObjectMapper objectMapper = new ObjectMapper();
 
         // 받아온 데이터 DB 에 저장
         for(SwingData swingData : swingDataList) {
+            String similarityJson;
+            try {
+                // Similarity 객체를 JSON 문자열로 변환
+                similarityJson = objectMapper.writeValueAsString(swingData.getSimilarity());
+            } catch (Exception e) {
+                throw new SwingJsonProcessingException();
+            }
 
             // swing 저장
             Swing swing = Swing.builder()
                     .code(swingData.getCode())
                     .user(user)
                     .likeStatus(swingData.getLikeStatus())
-                    .similarity(swingData.getSimilarity())
+                    .similarity(similarityJson)
                     .solution(swingData.getSolution())
                     .score(swingData.getScore())
                     .tempo(swingData.getTempo())
