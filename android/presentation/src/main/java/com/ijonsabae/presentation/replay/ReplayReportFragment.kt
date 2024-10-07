@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
@@ -76,7 +77,7 @@ class ReplayReportFragment :
 
     private fun initSwingFlowViewPager(viewPager: ViewPager2) {
         viewPager.adapter = swingFlowAdapter
-
+        swingFlowAdapter.submitList(loadPoseImage())
         viewPager.offscreenPageLimit = 1
         viewPager.overScrollMode = RecyclerView.OVER_SCROLL_NEVER
         val itemDecoration = HorizontalMarginItemDecoration(horizontalMarginInPx = 20)
@@ -93,6 +94,17 @@ class ReplayReportFragment :
     private fun initSummary() {
         Log.d(TAG, "initSummary: ${args.SwingFeedback}")
         binding.tvSummary.text = args.SwingFeedback.solution
+    }
+
+    private fun loadPoseImage(): List<SwingFlowDTO>{
+        val result = SwingVideoProcessor.getSwingPoseFiles(fragmentContext, swingCode = args.SwingFeedback.swingCode, userId = args.SwingFeedback.userID)
+        val pose = listOf("ADDRESS", "TOE_UP", "MID_BACKSWING", "TOP", "MID_DOWNSWING", "IMPACT", "MID_FOLLOW_THROUGH", "FINISH")
+        return result.mapIndexed { index, file ->
+            SwingFlowDTO(
+                title = pose[index],
+                swingImg = file.toUri()
+            ,)
+        }
     }
 
 

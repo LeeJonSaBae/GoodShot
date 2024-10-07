@@ -1,8 +1,8 @@
 package com.ijonsabae.presentation.replay
 
-import android.graphics.drawable.Drawable
+import android.net.Uri
 
 data class SwingFlowDTO(
     val title: String,
-    val swingImg: Drawable?
+    val swingImg: Uri
 )
