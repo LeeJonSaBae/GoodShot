@@ -23,6 +23,8 @@
         <item>다운스윙 시작 시 상체가 먼저 움직이지 않도록 하체부터 리드하기</item>
         <item>다운스윙 중 손목을 너무 빨리 풀지 말고 임팩트 순간까지 유지하기</item>
     </string-array>
+    <string name="home_recent_swing">님의 최근 스윙을 확인해보세요!</string>
+    <string name="home_total_swing_cnt">지금까지 번의 스윙을 연습했습니다!</string>
     <string name="home_recommendation_news">자세 교정에 대해 알아볼까요?</string>
     <string name="home_recommendation_youtube">떠오르는 골프 영상을 확인해보세요!</string>
     <string name="home_need_consultant_question">전문가의 상담이 필요하신가요?</string>

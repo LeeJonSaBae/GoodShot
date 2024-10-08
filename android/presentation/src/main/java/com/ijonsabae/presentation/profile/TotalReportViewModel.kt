@@ -25,6 +25,7 @@ class TotalReportViewModel @Inject constructor(
     suspend fun getTotalReport() {
         val result = getTotalReportUseCase().getOrThrow()
         if (result.code == 204) {
+            _totalReport.value = null
             _error.value = result.message
         } else {
             _totalReport.value = result.data

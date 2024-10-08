@@ -52,11 +52,12 @@ class HomeFragment :
     private fun initView() {
         (fragmentContext as MainActivity).hideAppBar()
 
+//        initAnimation()
+
         lifecycleScope.launch {
             if (getLocalAccessTokenUseCase() == null) {
                 binding.layoutContentNotLogin.visibility = View.VISIBLE
                 binding.layoutContentLogin.visibility = View.GONE
-
             } else {
                 binding.layoutContentNotLogin.visibility = View.GONE
                 binding.layoutContentLogin.visibility = View.VISIBLE
