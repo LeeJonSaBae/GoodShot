@@ -25,10 +25,8 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.config.Const.Companion.GalleryPermission
 import com.ijonsabae.presentation.databinding.FragmentProfileBinding
-import com.ijonsabae.presentation.login.LoginActivity
 import com.ijonsabae.presentation.main.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
@@ -38,6 +36,8 @@ private const val TAG = "굿샷_ProfileFragment"
 class ProfileFragment :
     BaseFragment<FragmentProfileBinding>(FragmentProfileBinding::bind, R.layout.fragment_profile) {
     private val profileViewModel: ProfileViewModel by activityViewModels()
+    private val totalReportViewModel: TotalReportViewModel by activityViewModels()
+
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
@@ -80,7 +80,7 @@ class ProfileFragment :
         (fragmentContext as MainActivity).showAppBar("마이 페이지")
         init()
         initFlow()
-        permissionChecker.setOnGrantedListener{
+        permissionChecker.setOnGrantedListener {
             openGallery()
         }
     }
@@ -94,7 +94,17 @@ class ProfileFragment :
         }
 
         binding.layoutGoTotalReport.setOnClickListener {
-            showTotalReport()
+            lifecycleScope.launch {
+                totalReportViewModel.totalReport.collect { totalReport ->
+                    if (totalReport == null) {
+                        navController.navigate(R.id.action_profile_to_forbidden_dialog)
+                    } else {
+                        showTotalReport()
+                    }
+
+                }
+            }
+
         }
 
         binding.layoutLogout.setOnClickListener {
@@ -112,9 +122,9 @@ class ProfileFragment :
         }
     }
 
-    private fun initFlow(){
+    private fun initFlow() {
         lifecycleScope.launch(coroutineExceptionHandler) {
-            repeatOnLifecycle(Lifecycle.State.STARTED){
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     profileViewModel.isLogoutSucceed.collect { result ->
                         if (result == 200) {
@@ -129,7 +139,7 @@ class ProfileFragment :
                     }
                 }
                 launch {
-                    profileViewModel.croppedUri.drop(1).collect{ croppedUri ->
+                    profileViewModel.croppedUri.drop(1).collect { croppedUri ->
                         launch(coroutineExceptionHandler) {
                             // Presigned URL 받아오기
                             val imageExtension =
@@ -148,16 +158,19 @@ class ProfileFragment :
                     profileViewModel.presignedUrl.drop(1).collect { presignedUrl ->
                         Log.d(TAG, "presignedUrl: $presignedUrl")
                         presignedUrl?.let {
-                            profileViewModel.uploadProfileImage(presignedUrl, profileViewModel.croppedUri.value).getOrThrow()
+                            profileViewModel.uploadProfileImage(
+                                presignedUrl,
+                                profileViewModel.croppedUri.value
+                            ).getOrThrow()
                         }
                     }
                 }
                 launch {
                     profileViewModel.imageUrl.drop(1).collect { imageUrl ->
                         val result = profileViewModel.updateProfile(imageUrl).getOrThrow()
-                        if(result.code == 200){
+                        if (result.code == 200) {
                             showToastShort("프로필 수정이 완료되었습니다!")
-                        }else{
+                        } else {
                             showToastShort("프로필 수정에 실패했습니다!")
                         }
 
@@ -166,7 +179,7 @@ class ProfileFragment :
                 launch {
                     profileViewModel.isLogin.collect {
                         Log.d(TAG, "initFlow: ${it}")
-                        
+
                         getUserInfo()
                     }
                 }
@@ -188,9 +201,9 @@ class ProfileFragment :
     private fun getUserInfo() {
         lifecycleScope.launch(coroutineExceptionHandler) {
             Log.d(TAG, "getUserInfo: ${profileViewModel.getToken()}")
-            if(profileViewModel.getToken() == null){
+            if (profileViewModel.getToken() == null) {
                 setGuestUI()
-            }else{
+            } else {
                 setUserUI()
                 profileViewModel.getProfileInfo()
             }
@@ -207,14 +220,14 @@ class ProfileFragment :
         }
     }
 
-    private fun setGuestUI(){
+    private fun setGuestUI() {
         binding.apply {
             layoutLogin.visibility = View.INVISIBLE
             layoutGoLogin.visibility = View.VISIBLE
         }
     }
 
-    private fun setUserUI(){
+    private fun setUserUI() {
         binding.apply {
             layoutLogin.visibility = View.VISIBLE
             layoutGoLogin.visibility = View.INVISIBLE
@@ -241,9 +254,9 @@ class ProfileFragment :
     }
 
     private fun checkPermissionAndOpenGallery() {
-        if(permissionChecker.checkPermission(fragmentContext, GalleryPermission)){
+        if (permissionChecker.checkPermission(fragmentContext, GalleryPermission)) {
             openGallery()
-        }else{
+        } else {
             showToastShort("권한을 설정하셔야 기록 서비스를 이용 가능합니다!")
             //ask for permission
             permissionChecker.requestPermissionLauncher.launch(GalleryPermission)

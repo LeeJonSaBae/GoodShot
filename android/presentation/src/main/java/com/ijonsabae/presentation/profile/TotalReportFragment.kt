@@ -39,6 +39,7 @@ class TotalReportFragment : BaseFragment<FragmentTotalReportBinding>(
 
         lifecycleScope.launch(coroutineExceptionHandler) {
             totalReportViewModel.getTotalReport()
+
             totalReportViewModel.totalReport.collect { totalReport ->
                 totalReport?.let {
                     initTotalScore(totalReport)
@@ -46,6 +47,7 @@ class TotalReportFragment : BaseFragment<FragmentTotalReportBinding>(
                     initTotalReportCommentsRecyclerView(totalReport)
                     initTip(totalReport)
                 }
+
             }
         }
 
