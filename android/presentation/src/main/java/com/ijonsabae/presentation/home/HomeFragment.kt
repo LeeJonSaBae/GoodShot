@@ -147,6 +147,9 @@ class HomeFragment :
                 })
                 submitList(homeViewModel.youtubeList)
             }
+        lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
+            youtubeRecyclerViewAdapter.submitList(homeViewModel.getYoutubeList())
+        }
 //        youtubeRecyclerViewAdapter.submitList(homeViewModel.youtubeList.v)
         recyclerView.adapter = youtubeRecyclerViewAdapter
         recyclerView.layoutManager =

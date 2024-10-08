@@ -23,16 +23,20 @@ class HomeViewModel @Inject constructor(
 //        _youtubeList.emit(youTubeResponse)
 //    }
 
-    private val _youtubeList : List<YoutubeDTO> = _youtubeIdList.map {
+    private var _youtubeList : List<YoutubeDTO> = _youtubeIdList.map {
         runBlocking(Dispatchers.IO) {
             YouTubeUtils.getYoutubeDto(it)
         }
     }
     val youtubeList: List<YoutubeDTO> = _youtubeList
 
-    init {
-//        viewModelScope.launch() {
-//            setYoutubeList(getSearchVideosUseCase("snippet", "로리 맥글로이처럼 잘 하는 법", 5))
-//        }
+    fun setYoutubeList(youtubeList: List<YoutubeDTO>){
+        _youtubeList = youtubeList
+    }
+
+    suspend fun getYoutubeList(): List<YoutubeDTO>{
+        return _youtubeIdList.map {
+            YouTubeUtils.getYoutubeDto(it)
+        }
     }
 }
