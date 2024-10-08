@@ -188,4 +188,10 @@ public class UserService {
         user.updateProfileUrl(profileRequest.getProfileUrl());
     }
 
+    //회원 이름 조회
+    public String getUserName(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(NotFoundUserException::new);
+        return user.getName();
+    }
+
 }

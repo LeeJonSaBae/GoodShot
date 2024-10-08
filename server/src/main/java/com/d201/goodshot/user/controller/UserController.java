@@ -220,4 +220,19 @@ public class UserController {
         return BaseResponse.of(HttpStatus.OK, "프로필 수정에 성공했습니다.", null);
     }
 
+    // 유저 이름 조회
+    @GetMapping("/name")
+    @Operation(summary = "요청한 유저이름 확인", description = "토큰으로 유저를 찾아서 해당 유저의 이름 반환")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "유저 이름 조회를 성공했습니다.",
+                    content = @Content(mediaType = "",
+                            examples = @ExampleObject(value = "")))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    public BaseResponse<String> getUserName(@AuthenticationPrincipal CustomUser customUser) {
+        return BaseResponse.of(HttpStatus.OK, "유저 이름 조회를 성공했습니다.", userService.getUserName(customUser.getEmail()));
+    }
+
 }
