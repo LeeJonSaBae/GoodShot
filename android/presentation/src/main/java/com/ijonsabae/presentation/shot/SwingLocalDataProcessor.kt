@@ -125,6 +125,7 @@ object SwingLocalDataProcessor {
     fun getSwingVideoFile(context: Context, swingCode: String, userId: Long = GUEST_ID): File {
         val videoFileName = "$swingCode.mp4"
         val videoDir = File(context.filesDir, "videos/$userId")
+
         return File(videoDir, videoFileName)
     }
 
