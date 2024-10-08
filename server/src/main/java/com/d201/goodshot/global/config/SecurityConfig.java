@@ -50,6 +50,7 @@ public class SecurityConfig {
                                     "/swagger-resources/**",
                                     "/webjars/**"
                             ).permitAll()
+                            .requestMatchers("/actuator/health").permitAll()
                             .requestMatchers("/users/join/**").permitAll()
                             .requestMatchers("/users/login").permitAll()
                             .requestMatchers("/users/reissue").permitAll()

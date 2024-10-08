@@ -61,6 +61,9 @@ dependencies {
 	// Mail
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 
+	// For HealthCheck
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
 }
 
 tasks.named('test') {
