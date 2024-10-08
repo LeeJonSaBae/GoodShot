@@ -1,5 +1,6 @@
 package com.ijonsabae.presentation.profile
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.ijonsabae.domain.model.LoginParam
 import com.ijonsabae.domain.model.Token
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
+private const val TAG = "LoginDialogViewModel 싸피"
 @HiltViewModel
 class LoginDialogViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
@@ -40,6 +42,7 @@ class LoginDialogViewModel @Inject constructor(
     suspend fun login() = loginUseCase(LoginParam(email.value, password.value))
 
     suspend fun setToken(token: Token) {
+        Log.d(TAG, "setToken: $token")
         _token.emit(token)
     }
 

@@ -37,6 +37,16 @@ fun formatTDateFromLongKorea(timeInMillis: Long): String {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss") // Z 표기 유지
     return seoulDateTime.format(formatter)             // 포맷팅
 }
+fun stringToTimeInMillis(dateString: String): Long {
+    // 문자열을 DateTimeFormatter에 맞게 파싱
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    val localDateTime = LocalDateTime.parse(dateString, formatter)
+
+    // LocalDateTime을 timeInMillis로 변환
+    val millis = localDateTime.atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli()
+
+    return millis
+}
 //TODO 문현 : swingcode 주어졌을 때 Thumbnail, viddeo, swingimages 경로 반환하는 함수 만들기
 
 

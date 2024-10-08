@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -8,6 +11,14 @@ plugins {
     id("androidx.navigation.safeargs.kotlin")
 
 }
+private val properties = Properties().apply {
+    load(FileInputStream(rootProject.file("local.properties")))
+}
+
+val S3_URL: String = properties.getProperty("S3_URL")
+val VIDEO: String = properties.getProperty("VIDEO")
+val IMAGE: String = properties.getProperty("IMAGE")
+val THUMBNAIL: String = properties.getProperty("THUMBNAIL")
 
 android {
     namespace = "com.ijonsabae.presentation"
@@ -15,7 +26,10 @@ android {
 
     defaultConfig {
         minSdk = 29
-
+        buildConfigField("String", "S3_URL", S3_URL)
+        buildConfigField("String", "VIDEO", VIDEO)
+        buildConfigField("String", "THUMBNAIL", THUMBNAIL)
+        buildConfigField("String", "IMAGE", IMAGE)
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -38,6 +52,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 

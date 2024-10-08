@@ -4,9 +4,8 @@ import com.ijonsabae.data.retrofit.SwingService
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.SwingComparisonParam
 import com.ijonsabae.domain.model.SwingFeedbackDataNeedToUpload
-import com.ijonsabae.domain.model.SwingFeedbackExportParam
+import com.ijonsabae.domain.model.SwingFeedbackExportImportParam
 import com.ijonsabae.domain.model.SwingFeedbackSync
-import retrofit2.http.Body
 import javax.inject.Inject
 
 class SwingFeedbackRemoteDataSource @Inject constructor(
@@ -20,7 +19,11 @@ class SwingFeedbackRemoteDataSource @Inject constructor(
         return swingService.comparisonSwingFeedback(swingComparisonParam)
     }
 
-    suspend fun exportSwingFeedback(swingFeedbackExportParamList: List<SwingFeedbackExportParam>): Result<CommonResponse<Unit>>{
+    suspend fun exportSwingFeedback(swingFeedbackExportParamList: List<SwingFeedbackExportImportParam>): Result<CommonResponse<Unit>>{
         return swingService.exportSwingFeedback(swingFeedbackExportParamList)
+    }
+
+    suspend fun importSwingFeedback(swingComparisonParam: SwingComparisonParam): Result<CommonResponse<List<SwingFeedbackExportImportParam>>>{
+        return swingService.importSwingFeedback(swingComparisonParam)
     }
 }

@@ -11,10 +11,12 @@ import com.ijonsabae.data.usecase.replay.GetLocalSwingFeedbackDataNeedSyncUseCas
 import com.ijonsabae.data.usecase.replay.GetLocalSwingFeedbackLikeListUseCaseImpl
 import com.ijonsabae.data.usecase.replay.GetLocalSwingFeedbackListNeedToUploadUseCaseImpl
 import com.ijonsabae.data.usecase.replay.GetLocalSwingFeedbackListUseCaseImpl
+import com.ijonsabae.data.usecase.replay.GetLocalSwingFeedbackPagingDataUseCaseImpl
 import com.ijonsabae.data.usecase.replay.GetLocalSwingFeedbackUseCaseImpl
 import com.ijonsabae.data.usecase.replay.GetRemoteSwingFeedbackListNeedToUploadUseCaseImpl
 import com.ijonsabae.data.usecase.replay.GetReplayUseCaseImpl
 import com.ijonsabae.data.usecase.replay.HideSwingFeedbackUseCaseImpl
+import com.ijonsabae.data.usecase.replay.ImportSwingFeedbackListUseCaseImpl
 import com.ijonsabae.data.usecase.replay.InsertLocalSwingFeedbackUseCaseImpl
 import com.ijonsabae.data.usecase.replay.SyncUpdateStatusUseCaseImpl
 import com.ijonsabae.data.usecase.replay.UpdateClampStatusUseCaseImpl
@@ -31,10 +33,12 @@ import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackDataNeedSyncUseC
 import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackLikeListUseCase
 import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackListNeedToUploadUseCase
 import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackListUseCase
+import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackPagingDataUseCase
 import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackUseCase
 import com.ijonsabae.domain.usecase.replay.GetRemoteSwingFeedbackListNeedToUploadUseCase
 import com.ijonsabae.domain.usecase.replay.GetReplayUseCase
 import com.ijonsabae.domain.usecase.replay.HideSwingFeedbackUseCase
+import com.ijonsabae.domain.usecase.replay.ImportSwingFeedbackListUseCase
 import com.ijonsabae.domain.usecase.replay.SyncUpdateStatusUseCase
 import com.ijonsabae.domain.usecase.replay.UpdateClampStatusUseCase
 import com.ijonsabae.domain.usecase.replay.UpdateLikeStatusUseCase
@@ -54,7 +58,7 @@ abstract class ReplayModule {
     abstract fun bindGetReplayUseCase(uc: GetReplayUseCaseImpl): GetReplayUseCase
 
     @Binds
-    abstract fun bindGetLocalSwingFeedbackListUseCase(uc: GetLocalSwingFeedbackListUseCaseImpl): GetLocalSwingFeedbackListUseCase
+    abstract fun bindGetLocalSwingFeedbackPagingDataUseCase(uc: GetLocalSwingFeedbackPagingDataUseCaseImpl): GetLocalSwingFeedbackPagingDataUseCase
 
     @Binds
     abstract fun bindGetLocalSwingFeedbackUseCase(uc: GetLocalSwingFeedbackUseCaseImpl): GetLocalSwingFeedbackUseCase
@@ -109,6 +113,12 @@ abstract class ReplayModule {
 
     @Binds
     abstract fun bindExportSwingFeedbackListUseCase(uc: ExportSwingFeedbackListUseCaseImpl): ExportSwingFeedbackListUseCase
+
+    @Binds
+    abstract fun bindImportSwingFeedbackListUseCase(uc: ImportSwingFeedbackListUseCaseImpl): ImportSwingFeedbackListUseCase
+
+    @Binds
+    abstract fun bindGetLocalSwingFeedbackListUseCase(uc: GetLocalSwingFeedbackListUseCaseImpl): GetLocalSwingFeedbackListUseCase
 
     @Binds
     abstract fun bindSwingFeedbackRepository(rp: SwingFeedbackRepositoryImpl): SwingFeedbackRepository

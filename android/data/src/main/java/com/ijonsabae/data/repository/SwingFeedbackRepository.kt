@@ -6,7 +6,7 @@ import com.ijonsabae.domain.model.SwingComparisonParam
 import com.ijonsabae.domain.model.SwingFeedback
 import com.ijonsabae.domain.model.SwingFeedbackComment
 import com.ijonsabae.domain.model.SwingFeedbackDataNeedToUpload
-import com.ijonsabae.domain.model.SwingFeedbackExportParam
+import com.ijonsabae.domain.model.SwingFeedbackExportImportParam
 import com.ijonsabae.domain.model.SwingFeedbackSync
 import com.ijonsabae.domain.model.SwingFeedbackSyncRoomData
 import kotlinx.coroutines.flow.Flow
@@ -28,7 +28,9 @@ interface SwingFeedbackRepository {
     fun syncUpdateStatus(userID: Long): Int
     fun hideSwingFeedback(userID: Long, swingCode: String, currentTime: Long): Int
     fun getChangedSwingFeedback(userID: Long): List<SwingFeedbackSyncRoomData>
+    fun getAllSwingFeedbackList(userID:Long): List<SwingFeedback>
     suspend fun syncSwingFeedbackData(swingFeedbackSyncList: List<SwingFeedbackSync>): Result<CommonResponse<Unit>>
     suspend fun comparisonSwingFeedback(swingComparisonParam: SwingComparisonParam): Result<CommonResponse<List<SwingFeedbackDataNeedToUpload>>>
-    suspend fun exportSwingFeedback(swingFeedbackExportParamList: List<SwingFeedbackExportParam>): Result<CommonResponse<Unit>>
+    suspend fun exportSwingFeedback(swingFeedbackExportParamList: List<SwingFeedbackExportImportParam>): Result<CommonResponse<Unit>>
+    suspend fun importSwingFeedback(swingComparisonParam: SwingComparisonParam): Result<CommonResponse<List<SwingFeedbackExportImportParam>>>
 }

@@ -2,9 +2,9 @@ package com.ijonsabae.domain.model
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.PrimaryKey
 
 @Entity(tableName = "swing_feedback_comment",
-    primaryKeys = ["userID", "swingCode", "poseType", "content", "commentType"],
     foreignKeys = [ForeignKey(
         entity = SwingFeedback::class,
         parentColumns = [
@@ -20,6 +20,8 @@ import androidx.room.ForeignKey
     )]
     )
 data class SwingFeedbackComment(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long=0,
     val userID: Long,
     val swingCode: String,
     val poseType: Int,

@@ -10,7 +10,7 @@ import com.ijonsabae.domain.model.SwingComparisonParam
 import com.ijonsabae.domain.model.SwingFeedback
 import com.ijonsabae.domain.model.SwingFeedbackComment
 import com.ijonsabae.domain.model.SwingFeedbackDataNeedToUpload
-import com.ijonsabae.domain.model.SwingFeedbackExportParam
+import com.ijonsabae.domain.model.SwingFeedbackExportImportParam
 import com.ijonsabae.domain.model.SwingFeedbackSync
 import com.ijonsabae.domain.model.SwingFeedbackSyncRoomData
 import kotlinx.coroutines.flow.Flow
@@ -99,6 +99,10 @@ class SwingFeedbackRepositoryImpl @Inject constructor(
         return swingFeedbackLocalDataSource.getChangedSwingFeedback(userID)
     }
 
+    override fun getAllSwingFeedbackList(userID: Long): List<SwingFeedback> {
+        return swingFeedbackLocalDataSource.getAllSwingFeedbackList(userID)
+    }
+
     override suspend fun syncSwingFeedbackData(swingFeedbackSyncList: List<SwingFeedbackSync>): Result<CommonResponse<Unit>> {
         return swingFeedbackRemoteDataSource.syncSwingFeedback(swingFeedbackSyncList)
     }
@@ -107,7 +111,11 @@ class SwingFeedbackRepositoryImpl @Inject constructor(
         return swingFeedbackRemoteDataSource.comparisonSwingFeedback(swingComparisonParam)
     }
 
-    override suspend fun exportSwingFeedback(swingFeedbackExportParamList: List<SwingFeedbackExportParam>): Result<CommonResponse<Unit>> {
+    override suspend fun exportSwingFeedback(swingFeedbackExportParamList: List<SwingFeedbackExportImportParam>): Result<CommonResponse<Unit>> {
         return swingFeedbackRemoteDataSource.exportSwingFeedback(swingFeedbackExportParamList)
+    }
+
+    override suspend fun importSwingFeedback(swingComparisonParam: SwingComparisonParam): Result<CommonResponse<List<SwingFeedbackExportImportParam>>> {
+        return swingFeedbackRemoteDataSource.importSwingFeedback(swingComparisonParam)
     }
 }

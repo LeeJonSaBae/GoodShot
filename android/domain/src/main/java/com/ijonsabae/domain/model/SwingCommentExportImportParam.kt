@@ -1,6 +1,6 @@
 package com.ijonsabae.domain.model
 
-data class SwingCommentExportParam(
+data class SwingCommentExportImportParam(
     val commentType: String,
     val content: String
 )

@@ -24,6 +24,9 @@ class SwingFeedbackLocalDataSource @Inject constructor(
     fun getSwingFeedbackListNeedToUpload(userID:Long): List<SwingFeedback>{
         return swingFeedbackDao.getAllSwingFeedbackNeedToUpload(userID)
     }
+    fun getAllSwingFeedbackList(userID:Long): List<SwingFeedback>{
+        return swingFeedbackDao.getAllSwingFeedbackList(userID)
+    }
     fun getLikeSwingFeedbackList(userID: Long): PagingSource<Int, SwingFeedback> {
         return swingFeedbackDao.getLikeSwingFeedback(userID)
     }
