@@ -5,24 +5,32 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import com.ijonsabae.domain.usecase.login.GetLocalAccessTokenUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentHomeBinding
 import com.ijonsabae.presentation.main.MainActivity
 import com.ijonsabae.presentation.replay.HorizontalMarginItemDecoration
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 import kotlin.math.abs
 
 
 private const val TAG = "굿샷_HomeFragment"
 
+@AndroidEntryPoint
 class HomeFragment :
     BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::bind, R.layout.fragment_home),
     YoutubeRecyclerViewAdapter.OnYoutubeItemClickListener {
 
+    @Inject
+    lateinit var getLocalAccessTokenUseCase: GetLocalAccessTokenUseCase
     private var newsList = mutableListOf<NewsDTO>()
     private var youtubeList = mutableListOf<YoutubeDTO>()
     private val NEWS_MARGIN_PX by lazy { resources.getDimension(R.dimen.home_news_margin_dp_between_items) }
@@ -32,24 +40,36 @@ class HomeFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        lifecycleScope.launch {
+            if (getLocalAccessTokenUseCase() == null) {
+                binding.layoutContentNotLogin.visibility = View.VISIBLE
+                binding.layoutContentLogin.visibility = View.GONE
+            } else {
+                binding.layoutContentNotLogin.visibility = View.GONE
+                binding.layoutContentLogin.visibility = View.VISIBLE
+            }
+
+            initNewsViewPager(binding.vpNews)
+            initYoutubeRecyclerView(binding.rvYoutube)
+            sendLoadingCompleteMessage()
+        }
+
         (fragmentContext as MainActivity).hideAppBar()
         initClickListener()
         initAppBarMotionLayout()
-        initNewsViewPager(binding.vpNews)
-        initYoutubeRecyclerView(binding.rvYoutube)
-        sendLoadingCompleteMessage()
+
 //        Log.d(TAG, "onViewCreated: margin = $NEWS_MARGIN_PX")
     }
 
-    private fun sendLoadingCompleteMessage(){
+    private fun sendLoadingCompleteMessage() {
         LocalBroadcastManager.getInstance(fragmentContext).sendBroadcast(Intent().apply {
             action = "loading"
             putExtra("complete", false)
         })
     }
 
-    private fun initClickListener(){
-        binding.btnConsult.setOnClickListener{
+    private fun initClickListener() {
+        binding.btnConsult.setOnClickListener {
             navController.navigate(R.id.action_home_to_consult)
         }
     }

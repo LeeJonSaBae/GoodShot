@@ -92,63 +92,116 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/appbar"
-        tools:visibility="gone">
+        tools:visibility="visible">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/layout_content"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <!-- 골프 추천 기사 - 타이틀 -->
-            <TextView
-                android:id="@+id/tv_title_news"
+            <!-- 로그인된 경우 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layout_content_login"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="44dp"
-                android:layout_marginTop="20dp"
-                android:text="@string/home_recommendation_news"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toTopOf="@id/vp_news"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_chainStyle="packed" />
+                android:layout_height="match_parent">
+                <!-- 골프 추천 기사 - 타이틀 -->
+                <TextView
+                    android:id="@+id/tv_title_news"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="44dp"
+                    android:layout_marginTop="20dp"
+                    android:text="@string/home_recommendation_news"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toTopOf="@id/vp_news"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_chainStyle="packed" />
 
-            <!-- 골프 추천 기사 - ViewPager -->
-            <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/vp_news"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:clipChildren="false"
-                app:layout_constraintBottom_toTopOf="@id/tv_title_youtube"
-                app:layout_constraintTop_toBottomOf="@id/tv_title_news" />
+                <!-- 골프 추천 기사 - ViewPager -->
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/vp_news"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:clipChildren="false"
+                    app:layout_constraintBottom_toTopOf="@id/tv_title_youtube"
+                    app:layout_constraintTop_toBottomOf="@id/tv_title_news" />
 
-            <!-- 골프 추천 영상 - 타이틀 -->
-            <TextView
-                android:id="@+id/tv_title_youtube"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="44dp"
-                android:layout_marginTop="20dp"
-                android:text="@string/home_recommendation_youtube"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toTopOf="@id/rv_youtube"
-                app:layout_constraintTop_toBottomOf="@id/vp_news" />
+                <!-- 골프 추천 영상 - 타이틀 -->
+                <TextView
+                    android:id="@+id/tv_title_youtube"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="44dp"
+                    android:layout_marginTop="20dp"
+                    android:text="@string/home_recommendation_youtube"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toTopOf="@id/rv_youtube"
+                    app:layout_constraintTop_toBottomOf="@id/vp_news" />
 
-            <!-- 골프 추천 영상 - ViewPager -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_youtube"
+                <!-- 골프 추천 영상 - ViewPager -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_youtube"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="10dp"
+                    android:layout_marginTop="10dp"
+                    android:nestedScrollingEnabled="false"
+                    android:orientation="horizontal"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tv_title_youtube"
+                    tools:listitem="@layout/item_home_youtube" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- 로그인 안된 경우 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layout_content_not_login"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="10dp"
-                android:layout_marginTop="10dp"
-                android:nestedScrollingEnabled="false"
-                android:orientation="horizontal"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_title_youtube"
-                tools:listitem="@layout/item_home_youtube" />
+                android:layout_height="match_parent"
+                android:visibility="gone">
+
+                <!-- 골프 추천 기사 - 타이틀 -->
+                <TextView
+                    android:id="@+id/tv_title_news_not_login"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="44dp"
+                    android:layout_marginTop="20dp"
+                    android:text="@string/home_recommendation_news"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toTopOf="@id/view_news_not_login"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_chainStyle="packed" />
+
+                <include
+                    android:id="@+id/view_news_not_login"
+                    layout="@layout/layout_no_network"
+                    app:layout_constraintBottom_toTopOf="@id/tv_title_youtube_not_login"
+                    app:layout_constraintTop_toBottomOf="@id/tv_title_news_not_login" />
+
+                <!-- 골프 추천 영상 - 타이틀 -->
+                <TextView
+                    android:id="@+id/tv_title_youtube_not_login"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="44dp"
+                    android:layout_marginTop="20dp"
+                    android:text="@string/home_recommendation_youtube"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toTopOf="@id/rv_youtube_not_login"
+                    app:layout_constraintTop_toBottomOf="@id/view_news_not_login" />
+
+                <include
+                    android:id="@+id/rv_youtube_not_login"
+                    layout="@layout/layout_no_network"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tv_title_youtube_not_login" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
+
 
     </androidx.core.widget.NestedScrollView>
 
