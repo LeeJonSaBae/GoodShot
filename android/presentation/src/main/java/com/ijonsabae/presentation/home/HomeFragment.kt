@@ -14,7 +14,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import com.ijonsabae.domain.model.YouTubeResponse
 import com.ijonsabae.domain.usecase.login.GetLocalAccessTokenUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
@@ -24,7 +23,6 @@ import com.ijonsabae.presentation.replay.HorizontalMarginItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-
 import javax.inject.Inject
 import kotlin.math.abs
 
@@ -45,13 +43,30 @@ class HomeFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        (fragmentContext as MainActivity).hideAppBar()
-        initFlow()
+
+        initView()
         initClickListener()
         initAppBarMotionLayout()
-        initNewsViewPager(binding.vpNews)
-        initYoutubeRecyclerView(binding.rvYoutube)
-        sendLoadingCompleteMessage()
+    }
+
+    private fun initView() {
+        (fragmentContext as MainActivity).hideAppBar()
+
+        lifecycleScope.launch {
+            if (getLocalAccessTokenUseCase() == null) {
+                binding.layoutContentNotLogin.visibility = View.VISIBLE
+                binding.layoutContentLogin.visibility = View.GONE
+
+            } else {
+                binding.layoutContentNotLogin.visibility = View.GONE
+                binding.layoutContentLogin.visibility = View.VISIBLE
+                initFlow()
+                initNewsViewPager(binding.vpNews)
+                initYoutubeRecyclerView(binding.rvYoutube)
+                sendLoadingCompleteMessage()
+            }
+        }
+
     }
 
     private fun initFlow() {
@@ -64,26 +79,7 @@ class HomeFragment :
                     youtubeRecyclerViewAdapter.submitList(list)
                 }
             }
-        }{ }
-
-        lifecycleScope.launch {
-            if (getLocalAccessTokenUseCase() == null) {
-                binding.layoutContentNotLogin.visibility = View.VISIBLE
-                binding.layoutContentLogin.visibility = View.GONE
-            } else {
-                binding.layoutContentNotLogin.visibility = View.GONE
-                binding.layoutContentLogin.visibility = View.VISIBLE
-            }
-
-            initNewsViewPager(binding.vpNews)
-            initYoutubeRecyclerView(binding.rvYoutube)
-            sendLoadingCompleteMessage()
         }
-
-        (fragmentContext as MainActivity).hideAppBar()
-        initClickListener()
-        initAppBarMotionLayout()
-
 //        Log.d(TAG, "onViewCreated: margin = $NEWS_MARGIN_PX")
     }
 
