@@ -8,6 +8,5 @@ import javax.inject.Inject
 class SetLocalTokenUseCaseImpl @Inject constructor(private val tokenRepository: TokenRepository) : SetLocalTokenUseCase {
     override suspend operator fun invoke(token: Token){
         tokenRepository.setLocalToken(token)
-
     }
 }

@@ -1,37 +1,120 @@
 package com.ijonsabae.presentation.replay
 
+import android.app.Dialog
 import android.os.Bundle
+import android.util.Log
+import android.view.Gravity
 import android.view.View
-import android.widget.Toast
-import androidx.navigation.fragment.findNavController
+import android.view.WindowManager
+import android.widget.ImageView
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.ijonsabae.domain.model.Replay
-import com.ijonsabae.domain.usecase.replay.GetReplayUseCase
+import com.ijonsabae.domain.model.SwingFeedback
+import com.ijonsabae.domain.usecase.profile.UploadPresignedDataUseCase
+import com.ijonsabae.domain.usecase.replay.DeleteLocalSwingFeedbackUseCase
+import com.ijonsabae.domain.usecase.replay.ExportSwingFeedbackListUseCase
+import com.ijonsabae.domain.usecase.replay.GetLocalChangedSwingFeedbackListUseCase
+import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackCommentUseCase
+import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackDataNeedSyncUseCase
+import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackListNeedToUploadUseCase
+import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackListUseCase
+import com.ijonsabae.domain.usecase.replay.GetRemoteSwingFeedbackListNeedToUploadUseCase
+import com.ijonsabae.domain.usecase.replay.HideSwingFeedbackUseCase
+import com.ijonsabae.domain.usecase.replay.ImportSwingFeedbackListUseCase
+import com.ijonsabae.domain.usecase.replay.SyncUpdateStatusUseCase
+import com.ijonsabae.domain.usecase.replay.UpdateClampStatusUseCase
+import com.ijonsabae.domain.usecase.replay.UpdateLikeStatusUseCase
+import com.ijonsabae.domain.usecase.replay.UpdateTitleUseCase
+import com.ijonsabae.domain.usecase.shot.InsertLocalSwingFeedbackCommentUseCase
+import com.ijonsabae.domain.usecase.shot.InsertLocalSwingFeedbackUseCase
+import com.ijonsabae.presentation.BuildConfig
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentReplayBinding
 import com.ijonsabae.presentation.main.MainActivity
+import com.ijonsabae.presentation.mapper.SwingFeedbackCommentMapper
+import com.ijonsabae.presentation.mapper.SwingFeedbackMapper
+import com.ijonsabae.presentation.shot.SwingLocalDataProcessor
+import com.ijonsabae.presentation.shot.SwingRemoteDataProcessor
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+private const val TAG = "ReplayFragment_싸피"
+
+const val S3_URL = BuildConfig.S3_URL
+const val IMAGE = BuildConfig.IMAGE
+const val THUMBNAIL = BuildConfig.THUMBNAIL
+const val VIDEO = BuildConfig.VIDEO
 @AndroidEntryPoint
 class ReplayFragment :
     BaseFragment<FragmentReplayBinding>(FragmentReplayBinding::bind, R.layout.fragment_replay) {
-
     @Inject
-    lateinit var getReplayUseCase: GetReplayUseCase
+    lateinit var updateTitleUseCase: UpdateTitleUseCase
+    @Inject
+    lateinit var updateClampStatusUseCase: UpdateClampStatusUseCase
+    @Inject
+    lateinit var updateLikeStatusUseCase: UpdateLikeStatusUseCase
+    @Inject
+    lateinit var hideSwingFeedbackUseCase: HideSwingFeedbackUseCase
+    @Inject
+    lateinit var getLocalSwingFeedbackCommentUseCase: GetLocalSwingFeedbackCommentUseCase
+    @Inject
+    lateinit var swingRemoteDataProcessor: SwingRemoteDataProcessor
+
+    private val viewModel: ReplayFragmentViewModel by viewModels()
 
     private val replayAdapter by lazy {
-        ReplayAdapter(requireContext()).apply {
+        ReplayAdapter(fragmentContext).apply {
             setItemClickListener(
                 object : ReplayAdapter.OnItemClickListener {
-                    override fun onItemClick(item: Replay) {
-                        findNavController().navigate(R.id.action_replay_to_replayReport)
+                    override fun onItemClick(item: SwingFeedback) {
+                        val swingFeedbackCommentParcelable = runBlocking {
+                            withContext(Dispatchers.IO) {
+                                SwingFeedbackCommentMapper.mapperToSwingFeedbackParcelableList(
+                                    getLocalSwingFeedbackCommentUseCase(item.userID,item.swingCode)
+                                )
+                            }
+                        }
+                        navController.navigate(ReplayFragmentDirections.actionReplayToReplayReport(
+                            swingFeedbackCommentParcelable.toTypedArray(), SwingFeedbackMapper.mapperToSwingFeedbackSerializable(item)
+                        ))
                     }
 
-                    override fun onLikeClick(item: Replay, check: Boolean) {
-                        Toast.makeText(context, "즐겨찾기 클릭~!", Toast.LENGTH_SHORT).show()
+                    override fun onLikeClick(item: SwingFeedback) {
+                        lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
+                            updateLikeStatusUseCase(item.userID, item.swingCode, !item.likeStatus, System.currentTimeMillis())
+                        }
+                        showToastShort("즐겨찾기 클릭~!")
+                    }
+
+                    override fun onItemDelete(item: SwingFeedback) {
+                        lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
+                            SwingLocalDataProcessor.deleteLocalSwingData(fragmentContext, item.swingCode, item.userID)
+                            // 이건 Room에서 지우는 것
+                            hideSwingFeedbackUseCase(item.userID, item.swingCode, System.currentTimeMillis())
+//                            deleteLocalSwingFeedbackUseCase(item.userID, item.swingCode)
+                        }
+                    }
+
+                    override fun onTitleChange(item: SwingFeedback, title: String) {
+                        lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
+                            updateTitleUseCase(item.userID, item.swingCode, title, System.currentTimeMillis())
+                        }
+                    }
+
+                    override fun changeClampStatus(item: SwingFeedback, clampStatus: Boolean) {
+                        lifecycleScope.launch {
+                            launch(Dispatchers.IO) {
+                                updateClampStatusUseCase(item.userID, item.swingCode, clampStatus)
+                            }
+                        }
                     }
                 }
             )
@@ -40,16 +123,120 @@ class ReplayFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        if(binding.cbFilter.isChecked){
+            viewModel.getLocalSwingFeedbackLikeList()
+            lifecycleScope.launch {
+                replayAdapter.submitData(viewModel.swingFeedbackList.value)
+            }
+        }else{
+            viewModel.getLocalSwingFeedbackList()
+            lifecycleScope.launch {
+                replayAdapter.submitData(viewModel.swingFeedbackList.value)
+                Log.d(TAG, "onViewCreated: ${replayAdapter.itemCount}")
+            }
+        }
         (fragmentContext as MainActivity).showAppBar("영상 다시보기")
+        binding.cbFilter.setOnCheckedChangeListener { buttonView, isChecked ->
+            if(isChecked){
+                viewModel.getLocalSwingFeedbackLikeList()
+            }else{
+                viewModel.getLocalSwingFeedbackList()
+            }
+            // room에서 Flow를 받아서 갱신하는데, Flow의 내부 값을 갱신하는게 아니라 Flow 값 자체를 바꾸는 거니까 emit 같은거로 감지하는게 무용지물
+            // 그냥 flow 자체를 바꾸면 직접 넣어줘야 함
+            lifecycleScope.launch {
+                replayAdapter.submitData(viewModel.swingFeedbackList.value)
+            }
+        }
         initRecyclerView()
+        initMoreBtn()
+    }
+
+    override fun onDestroyView() {
+        val ivMore = requireActivity().findViewById<ImageView>(R.id.iv_more)
+        ivMore.visibility = View.GONE
+        super.onDestroyView()
+
+    }
+
+    private fun initMoreBtn() {
+        val ivMore = requireActivity().findViewById<ImageView>(R.id.iv_more)
+        ivMore.visibility = View.VISIBLE
+
+        ivMore.setOnClickListener {
+            showCustomPopup(ivMore)
+        }
+    }
+
+    private fun showCustomPopup(anchorView: View) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_custom_popup_menu, null)
+        val dialog = Dialog(requireContext())
+
+        dialog.setContentView(dialogView)
+        dialog.window?.setWindowAnimations(R.style.DialogAnimation)
+
+        dialogView.findViewById<View>(R.id.menu_export).setOnClickListener {
+            lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
+                swingRemoteDataProcessor.uploadLocalSwingData(fragmentContext)
+                withContext(Dispatchers.Main) {
+                    showToastShort("내보내기가 완료됐습니다!")
+                }
+            }
+
+            dialog.dismiss()
+        }
+        dialogView.findViewById<View>(R.id.menu_import).setOnClickListener {
+            lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
+               swingRemoteDataProcessor.downloadRemoteSwingData(fragmentContext)
+                if(binding.cbFilter.isChecked){
+                    viewModel.getLocalSwingFeedbackLikeList()
+                    lifecycleScope.launch {
+                        replayAdapter.submitData(viewModel.swingFeedbackList.value)
+                    }
+                }else{
+                    viewModel.getLocalSwingFeedbackList()
+                    lifecycleScope.launch {
+                        replayAdapter.submitData(viewModel.swingFeedbackList.value)
+                        Log.d(TAG, "onViewCreated: ${replayAdapter.itemCount}")
+                    }
+                }
+                withContext(Dispatchers.Main){
+                    showToastShort("가져오기가 완료됐습니다!")
+                }
+            }
+            dialog.dismiss()
+        }
+
+        setDialogLocation(dialog, anchorView)
+        dialog.show()
+    }
+
+    private fun setDialogLocation(dialog: Dialog, anchorView: View) {
+        val window = dialog.window
+        window?.setDimAmount(0f)
+        window?.setBackgroundDrawableResource(android.R.color.transparent)
+        val location = IntArray(2)
+        anchorView.getLocationOnScreen(location)
+        val anchorX = location[0]
+        val anchorY = location[1]
+        Log.d(TAG, "setDialogLocation: $anchorX, $anchorY")
+
+        window?.setGravity(Gravity.TOP or Gravity.START)
+        val params: WindowManager.LayoutParams? = window?.attributes
+        params?.x = anchorX - 350
+        params?.y = anchorY
+        window?.attributes = params
     }
 
     private fun initRecyclerView() {
-        val list = getReplayUseCase().getOrThrow()
-        replayAdapter.submitList(list)
+        binding.rvReplay.itemAnimator = null
         val mountainRecyclerView = binding.rvReplay
         mountainRecyclerView.layoutManager = LinearLayoutManager(context)
-        mountainRecyclerView.adapter = replayAdapter
+        mountainRecyclerView.adapter = replayAdapter.apply {
+            lifecycleScope.launch {
+                submitData(viewModel.swingFeedbackList.last())
+            }
+        }
 
         // 스와이프로 삭제
         val swipeHelper = SwipeDeleteHelper().apply {

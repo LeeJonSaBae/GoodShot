@@ -6,7 +6,6 @@ import com.d201.goodshot.global.security.dto.Token;
 import com.d201.goodshot.global.security.dto.TokenResponse;
 import com.d201.goodshot.global.security.exception.InvalidTokenException;
 import com.d201.goodshot.user.dto.UserRequest.*;
-import com.d201.goodshot.user.dto.UserResponse;
 import com.d201.goodshot.user.dto.UserResponse.ProfileResponse;
 import com.d201.goodshot.user.service.EmailService;
 import com.d201.goodshot.user.service.UserService;
@@ -59,7 +58,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public BaseResponse<TokenResponse> login(@RequestBody LoginRequest loginRequest) {
         Token token = userService.login(loginRequest);
-        TokenResponse response = TokenResponse.builder().accessToken(token.getAccessToken()).refreshToken(token.getRefreshToken()).build();
+        TokenResponse response = TokenResponse.builder().accessToken(token.getAccessToken()).refreshToken(token.getRefreshToken()).userId(token.getUserId()).build();
         return BaseResponse.created(response);
     }
 
@@ -109,7 +108,7 @@ public class UserController {
             throw new InvalidTokenException();
         }
         Token token = userService.reissue(refreshToken, request);
-        TokenResponse response = TokenResponse.builder().accessToken(token.getAccessToken()).refreshToken(token.getRefreshToken()).build();
+        TokenResponse response = TokenResponse.builder().accessToken(token.getAccessToken()).refreshToken(token.getRefreshToken()).userId(token.getUserId()).build();
         return BaseResponse.created(response);
     }
 
@@ -202,8 +201,8 @@ public class UserController {
     })
     @ResponseStatus(HttpStatus.OK)
     public BaseResponse<ProfileResponse> getProfile(@AuthenticationPrincipal CustomUser customUser) {
-        ProfileResponse profileResponse = userService.getProfile(customUser.getEmail());
-        return BaseResponse.of(HttpStatus.OK, "프로필 조회에 성공했습니다.", profileResponse);
+        ProfileResponse response = userService.getProfile(customUser.getEmail());
+        return BaseResponse.of(HttpStatus.OK, "프로필 조회에 성공했습니다.", response);
     }
 
     @PutMapping("/profile")

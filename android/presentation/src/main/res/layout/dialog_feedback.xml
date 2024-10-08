@@ -6,77 +6,72 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:cardCornerRadius="30dp"
-    app:cardElevation="0dp"
-    >
+    app:cardElevation="0dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="20dp"
-        android:layout_marginHorizontal="15dp"
-        >
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="20dp">
 
         <TextView
             android:id="@+id/tv_consultant_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Good-Shot"
-            android:textSize="25sp"
-            android:textStyle="italic"
+            android:text="GoodShot"
             android:textColor="@color/dark_green"
-            android:fontFamily="@font/pretendard_regular"
-            app:layout_constraintTop_toTopOf="parent"
+            android:textSize="20sp"
+            android:textStyle="italic|bold"
             app:layout_constraintBottom_toTopOf="@id/tv_swing_count"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/btn_close"
             app:layout_constraintHorizontal_chainStyle="spread_inside"
-            />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <android.widget.Button
             android:id="@+id/btn_close"
             android:layout_width="35dp"
             android:layout_height="35dp"
             android:background="@drawable/bg_close_btn"
-            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            />
+            app:layout_constraintTop_toTopOf="parent" />
+
         <TextView
             android:id="@+id/tv_swing_count"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textColor="@color/dark_green"
             android:fontFamily="@font/pretendard_semibold"
             android:gravity="center_horizontal|center_vertical"
-            app:layout_constraintTop_toBottomOf="@id/btn_close"
+            android:textColor="@color/dark_green"
+            android:textSize="18sp"
             app:layout_constraintBottom_toTopOf="@id/cv_my_swing"
-            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintTop_toBottomOf="@id/btn_close"
             app:layout_constraintVertical_bias="0"
-            tools:text="2 / 10"
-            />
+            app:layout_constraintVertical_chainStyle="packed"
+            tools:text="2 / 10" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cv_my_swing"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginTop="20dp"
-            app:cardElevation="0dp"
-            app:cardCornerRadius="15dp"
             android:layout_marginEnd="15dp"
-            app:layout_constraintWidth_default="spread"
-            app:layout_constraintDimensionRatio="3:4"
-            app:layout_constraintStart_toStartOf="parent"
+            app:cardCornerRadius="15dp"
+            app:cardElevation="0dp"
             app:layout_constraintBottom_toTopOf="@id/sc_detail"
+            app:layout_constraintDimensionRatio="3:4"
             app:layout_constraintEnd_toStartOf="@id/cv_expert_swing"
-            app:layout_constraintTop_toBottomOf="@id/tv_swing_count">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_swing_count"
+            app:layout_constraintWidth_default="spread">
 
             <ImageView
                 android:id="@+id/iv_my_swing"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:show_buffering="never"
-                app:show_shuffle_button="false"
                 android:scaleType="centerCrop"
-                />
+                app:show_buffering="never"
+                app:show_shuffle_button="false" />
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
@@ -85,96 +80,93 @@
             android:layout_height="0dp"
             app:cardCornerRadius="15dp"
             app:cardElevation="0dp"
-            app:layout_constraintWidth_default="spread"
+            app:layout_constraintBottom_toBottomOf="@id/cv_my_swing"
             app:layout_constraintDimensionRatio="3:4"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/cv_my_swing"
             app:layout_constraintTop_toTopOf="@id/cv_my_swing"
-            app:layout_constraintBottom_toBottomOf="@id/cv_my_swing">
+            app:layout_constraintWidth_default="spread">
 
             <ImageView
                 android:id="@+id/iv_expert_swing"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                />
+                android:scaleType="centerCrop" />
         </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/tv_tempo_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:fontFamily="@font/pretendard_semibold"
+            android:text="템포"
+            android:textColor="@color/dark_green"
+            android:textSize="11sp"
+            app:layout_constraintEnd_toStartOf="@id/tv_back_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cv_my_swing" />
+
+        <TextView
+            android:id="@+id/tv_back_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/pretendard_semibold"
+            android:text="백스윙"
+            android:textColor="@color/dark_green"
+            android:textSize="11sp"
+            app:layout_constraintBottom_toBottomOf="@id/tv_down_title"
+            app:layout_constraintEnd_toStartOf="@id/tv_down_title"
+            app:layout_constraintStart_toEndOf="@id/tv_tempo_title"
+            app:layout_constraintTop_toTopOf="@id/tv_tempo_title" />
 
         <TextView
             android:id="@+id/tv_down_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="다운"
-            android:textSize="11sp"
             android:fontFamily="@font/pretendard_semibold"
+            android:text="다운스윙"
             android:textColor="@color/dark_green"
-            android:layout_marginTop="13dp"
-            app:layout_constraintTop_toBottomOf="@id/cv_my_swing"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/tv_tempo_title"
-            />
-        <TextView
-            android:id="@+id/tv_tempo_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="템포"
             android:textSize="11sp"
-            android:fontFamily="@font/pretendard_semibold"
-            android:textColor="@color/dark_green"
-            app:layout_constraintTop_toTopOf="@id/tv_down_title"
-            app:layout_constraintBottom_toBottomOf="@id/tv_down_title"
-            app:layout_constraintStart_toEndOf="@id/tv_down_title"
-            app:layout_constraintEnd_toStartOf="@id/tv_back_title"
-            />
-        <TextView
-            android:id="@+id/tv_back_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="백"
-            android:textSize="11sp"
-            android:fontFamily="@font/pretendard_semibold"
-            android:textColor="@color/dark_green"
-            app:layout_constraintTop_toTopOf="@id/tv_down_title"
-            app:layout_constraintBottom_toBottomOf="@id/tv_down_title"
-            app:layout_constraintStart_toEndOf="@id/tv_tempo_title"
             app:layout_constraintEnd_toEndOf="parent"
-            />
-        <TextView
-            android:id="@+id/tv_down"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="11sp"
-            android:textColor="@color/black"
-            android:fontFamily="@font/pretendard_regular"
-            app:layout_constraintTop_toBottomOf="@id/tv_down_title"
-            app:layout_constraintStart_toStartOf="@id/tv_down_title"
-            app:layout_constraintEnd_toEndOf="@id/tv_down_title"
-            tools:text="0.40"
-            />
+            app:layout_constraintStart_toEndOf="@id/tv_back_title"
+            app:layout_constraintTop_toTopOf="@id/tv_tempo_title" />
+
         <TextView
             android:id="@+id/tv_tempo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="11sp"
-            android:textColor="@color/black"
             android:fontFamily="@font/pretendard_regular"
-            app:layout_constraintTop_toBottomOf="@id/tv_down_title"
-            app:layout_constraintStart_toStartOf="@id/tv_tempo_title"
+            android:textColor="@color/black"
+            android:textSize="11sp"
             app:layout_constraintEnd_toEndOf="@id/tv_tempo_title"
-            tools:text="1.67"
-            />
+            app:layout_constraintStart_toStartOf="@id/tv_tempo_title"
+            app:layout_constraintTop_toBottomOf="@id/tv_tempo_title"
+            tools:text="0.40" />
+
         <TextView
             android:id="@+id/tv_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="11sp"
-            android:textColor="@color/black"
             android:fontFamily="@font/pretendard_regular"
-            app:layout_constraintTop_toBottomOf="@id/tv_down_title"
-            app:layout_constraintStart_toStartOf="@id/tv_back_title"
+            android:textColor="@color/black"
+            android:textSize="11sp"
             app:layout_constraintEnd_toEndOf="@id/tv_back_title"
-            tools:text="0.67"
-            />
+            app:layout_constraintStart_toStartOf="@id/tv_back_title"
+            app:layout_constraintTop_toBottomOf="@id/tv_back_title"
+            tools:text="1.67" />
+
+        <TextView
+            android:id="@+id/tv_down"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/pretendard_regular"
+            android:textColor="@color/black"
+            android:textSize="11sp"
+            app:layout_constraintEnd_toEndOf="@id/tv_down_title"
+            app:layout_constraintStart_toStartOf="@id/tv_down_title"
+            app:layout_constraintTop_toBottomOf="@id/tv_down_title"
+            tools:text="0.67" />
 
 
         <ScrollView
@@ -184,78 +176,60 @@
             android:layout_marginTop="25dp"
             android:layout_marginBottom="15dp"
             android:foregroundGravity="center_vertical"
-            app:layout_constraintTop_toBottomOf="@id/tv_down"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintHeight_percent="0.4"
-            >
+            app:layout_constraintTop_toBottomOf="@id/tv_tempo">
+
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/tv_consultant_name"
-                >
-
-                <com.ijonsabae.presentation.config.HalfHighlightTextView
-                    android:id="@+id/tv_feedback_problem"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textSize="18sp"
-                    android:textColor="@color/black"
-                    android:fontFamily="@font/pretendard_semibold"
-                    android:layout_marginBottom="5dp"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toTopOf="@id/tv_feedback_solution"
-                    tools:text="백스윙 시 상체가 너무 크게 들렸어요."
-                    />
+                app:layout_constraintTop_toBottomOf="@id/tv_consultant_name">
 
                 <com.ijonsabae.presentation.config.HalfHighlightTextView
                     android:id="@+id/tv_feedback_solution"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textSize="18sp"
-                    android:textColor="@color/black"
-                    android:fontFamily="@font/pretendard_semibold"
                     android:layout_marginBottom="20dp"
-                    app:layout_constraintTop_toBottomOf="@id/tv_feedback_problem"
+                    android:fontFamily="@font/pretendard_semibold"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
                     app:layout_constraintBottom_toTopOf="@id/tv_check_list_title"
-                    tools:text="백스윙 크기를 줄이는 연습이 필요합니다."
-                />
+                    app:layout_constraintTop_toBottomOf="parent"
+                    tools:text="백스윙 크기를 줄이는 연습이 필요합니다." />
 
                 <ImageView
                     android:id="@+id/iv_bar"
                     android:layout_width="wrap_content"
                     android:layout_height="0dp"
                     android:src="@drawable/bar"
-                    app:layout_constraintTop_toTopOf="@id/tv_check_list_title"
                     app:layout_constraintBottom_toBottomOf="@id/tv_check_list_title"
-                    app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toStartOf="@id/tv_check_list_title"
-                    />
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/tv_check_list_title" />
 
                 <TextView
                     android:id="@+id/tv_check_list_title"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="올바른 백스윙 자세를 확인하실 때는 간단히 다음 항목들을 확인해보세요."
-                    android:textSize="18sp"
-                    android:textColor="@color/black"
-                    android:fontFamily="@font/pretendard_semibold"
                     android:layout_marginStart="10dp"
                     android:layout_marginBottom="15dp"
-                    app:layout_constraintTop_toBottomOf="@id/tv_feedback_solution"
+                    android:fontFamily="@font/pretendard_semibold"
+                    android:text="올바른 백스윙 자세를 확인하실 때는 간단히 다음 항목들을 확인해보세요."
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
                     app:layout_constraintBottom_toTopOf="@id/rv_check_list"
-                    app:layout_constraintStart_toEndOf="@id/iv_bar"
                     app:layout_constraintEnd_toEndOf="parent"
-                    />
+                    app:layout_constraintStart_toEndOf="@id/iv_bar"
+                    app:layout_constraintTop_toBottomOf="@id/tv_feedback_solution" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rv_check_list"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                     android:nestedScrollingEnabled="false"
-                    app:layout_constraintTop_toBottomOf="@id/tv_check_list_title"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    />
+                    app:layout_constraintTop_toBottomOf="@id/tv_check_list_title" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </ScrollView>

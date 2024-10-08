@@ -1,6 +1,5 @@
 package com.d201.goodshot.expert.controller;
 
-import com.d201.goodshot.expert.dto.ExpertResponse;
 import com.d201.goodshot.expert.dto.ExpertResponse.ExpertDetailItem;
 import com.d201.goodshot.expert.dto.ExpertResponse.ExpertItemResponse;
 import com.d201.goodshot.expert.service.ExpertService;
@@ -18,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/experts")
-@Tag(name = "expert")
+@Tag(name = "Expert")
 @RequiredArgsConstructor
 @Slf4j
 public class ExpertController {
@@ -36,8 +35,8 @@ public class ExpertController {
     })
     @ResponseStatus(HttpStatus.OK)
     public BaseResponse<ExpertItemResponse> getExpertList(@RequestParam(value = "pageNo") int pageNo, @RequestParam(value = "pageSize") int pageSize) {
-        ExpertItemResponse expertItemResponse = expertService.getExpertList(pageNo, pageSize);
-        return BaseResponse.of(HttpStatus.OK, "전문가 목록 조회를 성공했습니다.", expertItemResponse);
+        ExpertItemResponse response = expertService.getExpertList(pageNo, pageSize);
+        return BaseResponse.of(HttpStatus.OK, "전문가 목록 조회를 성공했습니다.", response);
     }
 
     @GetMapping("/{id}")
@@ -51,8 +50,8 @@ public class ExpertController {
     })
     @ResponseStatus(HttpStatus.OK)
     public BaseResponse<ExpertDetailItem> getExpertDetail(@PathVariable int id) {
-        ExpertDetailItem expertDetailItem = expertService.getExpertDetail(id);
-        return BaseResponse.of(HttpStatus.OK, "전문가 상세 목록 조회를 성공했습니다.", expertDetailItem);
+        ExpertDetailItem response = expertService.getExpertDetail(id);
+        return BaseResponse.of(HttpStatus.OK, "전문가 상세 목록 조회를 성공했습니다.", response);
     }
 
 }

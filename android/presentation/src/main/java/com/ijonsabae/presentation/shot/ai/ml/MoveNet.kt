@@ -84,38 +84,6 @@ class MoveNet(private val interpreter: Interpreter, private var gpuDelegate: Gpu
 
     override fun estimatePoses(bitmap: Bitmap): Person {
 
-        // 원본 Bitmap 크기 출력
-        Log.d("BitmapSize", "Original Bitmap: width = ${bitmap.width}, height = ${bitmap.height}")
-
-        /*
-        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 360, 480, true)
-        */
-
-        // TODO: 패딩된 비트맵으로 추론하도록 수정하기
-        // TODO: VisualizationUtils에 있는 drawBodyKeypoints가 패딩 이전 좌표로 변환해서 그리도록 수정하기
-
-        /*
-        // 세로 길이를 기준으로 가로에 패딩을 추가해 1:1 비율로 만듭니다.
-        val targetSize = maxOf(bitmap.width, bitmap.height)
-
-        // 가로 패딩 계산 (세로 길이에 맞춰 가로에 패딩을 추가)
-        val widthPadding = maxOf(0, bitmap.height - bitmap.width)
-
-        // 새로운 비트맵을 생성하고 패딩을 추가
-        val paddedBitmap = Bitmap.createBitmap(targetSize, targetSize, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(paddedBitmap)
-        val paint = Paint()
-        paint.color = Color.BLACK // 패딩 색상 설정 (필요에 따라 조정)
-
-        canvas.drawRect(0f, 0f, targetSize.toFloat(), targetSize.toFloat(), paint)
-        canvas.drawBitmap(
-            bitmap,
-            (widthPadding / 2).toFloat(), // 가로 중앙에 배치
-            0f, // 세로는 그대로
-            null
-        )
-         */
-
         if (cropRegion == null) {
             cropRegion = initRectF(bitmap.width, bitmap.height)
         }

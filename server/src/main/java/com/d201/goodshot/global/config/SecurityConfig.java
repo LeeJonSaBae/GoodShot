@@ -52,11 +52,12 @@ public class SecurityConfig {
                             ).permitAll()
                             .requestMatchers("/users/join/**").permitAll()
                             .requestMatchers("/users/login").permitAll()
-                            .requestMatchers("/users/logout").permitAll()
                             .requestMatchers("/users/reissue").permitAll()
                             .requestMatchers("/users/email").permitAll()
                             .requestMatchers("/users/check-email").permitAll()
                             .requestMatchers("/users/temporary-password").permitAll()
+                            .requestMatchers("/experts").permitAll()
+                            .requestMatchers("/experts/**").permitAll()
                             .anyRequest().authenticated();
                 });
 

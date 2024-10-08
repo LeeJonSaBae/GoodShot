@@ -4,12 +4,16 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.ijonsabae.data.BuildConfig
 import com.ijonsabae.data.exception.ResultCallAdapterFactory
+import com.ijonsabae.data.exception.YoutubeCallAdapterFactory
+import com.ijonsabae.data.retrofit.ConsultService
 import com.ijonsabae.data.retrofit.ProfileService
 import com.ijonsabae.data.retrofit.RefreshTokenAuthorizationInterceptor
+import com.ijonsabae.data.retrofit.SwingService
 import com.ijonsabae.data.retrofit.TokenInterceptor
 import com.ijonsabae.data.retrofit.TokenService
+import com.ijonsabae.data.retrofit.PresignedService
 import com.ijonsabae.data.retrofit.UserService
-import com.ijonsabae.domain.repository.TokenRepository
+import com.ijonsabae.data.retrofit.YoutubeService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,7 +27,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Named
 
 const val SERVER_IP = BuildConfig.SERVER_IP
-
+const val YOUTUBE_IP = BuildConfig.YOUTUBE_IP
 @Module
 @InstallIn(SingletonComponent::class)
 class RetrofitModule {
@@ -36,8 +40,8 @@ class RetrofitModule {
     @Named("default_okhttp_client")
     fun provideDefaultOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor, tokenInterceptor: TokenInterceptor): OkHttpClient {
         return OkHttpClient.Builder()
-            .readTimeout(5000, TimeUnit.MILLISECONDS)
-            .connectTimeout(5000, TimeUnit.MILLISECONDS)
+            .readTimeout(150000, TimeUnit.MILLISECONDS)
+            .connectTimeout(150000, TimeUnit.MILLISECONDS)
             .addInterceptor(httpLoggingInterceptor)
             .addInterceptor(tokenInterceptor)
             .build()
@@ -51,6 +55,16 @@ class RetrofitModule {
             .connectTimeout(5000, TimeUnit.MILLISECONDS)
             .addInterceptor(httpLoggingInterceptor)
             .addInterceptor(refreshTokenAuthorizationInterceptor)
+            .build()
+    }
+
+    @Provides
+    @Named("okhttp_client")
+    fun provideOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
+        return OkHttpClient.Builder()
+            .readTimeout(5000, TimeUnit.MILLISECONDS)
+            .connectTimeout(5000, TimeUnit.MILLISECONDS)
+            .addInterceptor(httpLoggingInterceptor)
             .build()
     }
 
@@ -107,6 +121,40 @@ class RetrofitModule {
     }
 
     @Provides
+    @Named("no_interceptor_retrofit")
+    fun provideNoInterceptorRetrofit(
+        @Named("okhttp_client")client: OkHttpClient,
+        scalarsConverterFactory: ScalarsConverterFactory,
+        gsonConverterFactory: GsonConverterFactory,
+        resultCallAdapterFactory: ResultCallAdapterFactory
+    ): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(SERVER_IP)
+            .addConverterFactory(scalarsConverterFactory)
+            .addConverterFactory(gsonConverterFactory)
+            .addCallAdapterFactory(resultCallAdapterFactory)
+            .client(client)
+            .build()
+    }
+
+    @Provides
+    @Named("youtube_api_retrofit")
+    fun provideYoutubeAPIRetrofit(
+        @Named("okhttp_client")client: OkHttpClient,
+        scalarsConverterFactory: ScalarsConverterFactory,
+        gsonConverterFactory: GsonConverterFactory,
+        youtubeCallAdapterFactory: YoutubeCallAdapterFactory
+    ): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(YOUTUBE_IP)
+            .addConverterFactory(scalarsConverterFactory)
+            .addConverterFactory(gsonConverterFactory)
+            .addCallAdapterFactory(youtubeCallAdapterFactory)
+            .client(client)
+            .build()
+    }
+
+    @Provides
     fun provideProfileService(@Named("default_retrofit")retrofit: Retrofit): ProfileService {
         return retrofit.create(ProfileService::class.java)
     }
@@ -119,5 +167,25 @@ class RetrofitModule {
     @Provides
     fun provideTokenService(@Named("refresh_token_retrofit")retrofit: Retrofit): TokenService {
         return retrofit.create(TokenService::class.java)
+    }
+
+    @Provides
+    fun provideUploadImageService(@Named("no_interceptor_retrofit")retrofit: Retrofit): PresignedService {
+        return retrofit.create(PresignedService::class.java)
+    }
+
+    @Provides
+    fun provideExpertService(@Named("no_interceptor_retrofit")retrofit: Retrofit): ConsultService {
+        return retrofit.create(ConsultService::class.java)
+    }
+
+    @Provides
+    fun provideYoutubeService(@Named("youtube_api_retrofit")retrofit: Retrofit): YoutubeService{
+        return retrofit.create(YoutubeService::class.java)
+    }
+
+    @Provides
+    fun provideSwingService(@Named("default_retrofit")retrofit: Retrofit): SwingService {
+        return retrofit.create(SwingService::class.java)
     }
 }

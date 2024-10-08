@@ -5,11 +5,9 @@ import com.d201.goodshot.global.security.exception.InvalidTokenException;
 import com.d201.goodshot.global.security.util.TokenUtil;
 import com.d201.goodshot.user.domain.User;
 import com.d201.goodshot.user.dto.Auth;
-import com.d201.goodshot.user.dto.UserRequest;
 import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
 import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
 import com.d201.goodshot.user.dto.UserRequest.ProfileRequest;
-import com.d201.goodshot.user.dto.UserResponse;
 import com.d201.goodshot.user.dto.UserResponse.ProfileResponse;
 import com.d201.goodshot.user.exception.*;
 import com.d201.goodshot.user.repository.RefreshTokenRepository;
@@ -110,9 +108,10 @@ public class UserService {
                 log.info("redis refreshToken: {}", auth.getRefreshToken());
 
                 // 현재 redis 에 있는 token, 사용자가 가지고 있는 token 동일한지 확인
+                Long id = (Long) tokenUtil.getClaim(refreshToken, "id", Long.class);
                 if (StringUtils.equals(auth.getRefreshToken(), refreshToken)) {
                     // 새로운 token 발급
-                    return tokenUtil.generateToken(User.builder().email(email).build());
+                    return tokenUtil.generateToken(User.builder().email(email).id(id).build());
                 }
             } catch (Exception e) {
                 throw new InvalidTokenException();

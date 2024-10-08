@@ -5,31 +5,29 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.ijonsabae.domain.model.Consultant
+import com.ijonsabae.domain.model.Expert
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.databinding.ItemConsultantListBinding
-
-private const val TAG = "ConsultantListAdapter_싸피"
 class ConsultantListAdapter :
-    ListAdapter<Consultant, ConsultantListAdapter.ConsultantListViewHolder>(
+    PagingDataAdapter<Expert, ConsultantListAdapter.ConsultantListViewHolder>(
         Comparator
     ) {
 
-    companion object Comparator : DiffUtil.ItemCallback<Consultant>() {
+    companion object Comparator : DiffUtil.ItemCallback<Expert>() {
         override fun areItemsTheSame(
-            oldItem: Consultant,
-            newItem: Consultant
+            oldItem: Expert,
+            newItem: Expert
         ): Boolean {
             return System.identityHashCode(oldItem) == System.identityHashCode(newItem)
         }
 
         override fun areContentsTheSame(
-            oldItem: Consultant,
-            newItem: Consultant
+            oldItem: Expert,
+            newItem: Expert
         ): Boolean {
             return oldItem == newItem
         }
@@ -39,7 +37,7 @@ class ConsultantListAdapter :
     private lateinit var itemClickListener: OnItemClickListener
 
     interface OnItemClickListener {
-        fun onItemClick(item: Consultant)
+        fun onItemClick(item: Expert)
     }
 
     fun setItemClickListener(onItemClickListener: OnItemClickListener) {
@@ -49,17 +47,17 @@ class ConsultantListAdapter :
     inner class ConsultantListViewHolder(private val binding: ItemConsultantListBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bindInfo(position: Int) {
-            val consultant = getItem(position)
-
-            Glide.with(binding.root)
-                .load(consultant.profileImage).error(R.drawable.swing_example)
-                .into(binding.ivThumbnail)
-            Log.d(TAG, "bindInfo: ${consultant.profileImage}")
-            binding.tvName.text = consultant.name
-            binding.tvCareerTitle.text = "경력 ${consultant.career}년"
-            binding.tvCourse.text = "${consultant.course}"
-
-            binding.root.setOnClickListener { itemClickListener.onItemClick(consultant) }
+            val expert = getItem(position)
+            expert?.let {
+                val data = it
+                Glide.with(binding.root)
+                    .load(data.imageUrl).error(R.drawable.swing_example)
+                    .into(binding.ivThumbnail)
+                binding.tvName.text = data.name
+                binding.tvCareerTitle.text = "경력 ${data.expYears}년"
+                binding.tvField.text = "${data.field}"
+                binding.root.setOnClickListener { itemClickListener.onItemClick(data) }
+            }
         }
 
     }

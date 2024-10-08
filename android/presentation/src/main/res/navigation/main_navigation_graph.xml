@@ -31,9 +31,11 @@
             android:name="com.ijonsabae.presentation.consult.ConsultantDetailInfoDialog"
             tools:label="consult_dialog"
             tools:layout="@layout/dialog_consultant">
+
+
             <argument
-                android:name="consult"
-                app:argType="com.ijonsabae.presentation.model.Consultant" />
+                android:name="expert_detail"
+                app:argType="com.ijonsabae.presentation.model.ExpertDetail" />
         </dialog>
     </navigation>
     <navigation
@@ -45,18 +47,32 @@
             tools:label="shot"
             tools:layout="@layout/fragment_shot">
             <action
-                android:id="@+id/action_shot_to_shot_dialog"
-                app:destination="@id/shot_dialog" />
+                android:id="@+id/action_shot_to_shot_option_dialog"
+                app:destination="@id/shot_option_dialog" />
+            <action
+                android:id="@+id/action_shot_to_shot_tutorial_dialog"
+                app:destination="@id/shot_tutorial_dialog" />
+
         </fragment>
         <dialog
-            android:id="@+id/shot_dialog"
-            android:name="com.ijonsabae.presentation.shot.ShotDialog"
-            tools:label="shot dialog"
-            tools:layout="@layout/dialog_shot">
+            android:id="@+id/shot_option_dialog"
+            android:name="com.ijonsabae.presentation.shot.ShotOptionDialog"
+            tools:label="shot option dialog"
+            tools:layout="@layout/dialog_shot_option">
             <action
                 android:id="@+id/action_shot_dialog_to_swing_example"
                 app:destination="@id/swing_example" />
+            <action
+                android:id="@+id/action_shot_dialog_to_camera"
+                app:destination="@id/camera" />
         </dialog>
+
+        <dialog
+            android:id="@+id/shot_tutorial_dialog"
+            android:name="com.ijonsabae.presentation.shot.ShotTutorialDialog"
+            tools:label="shot tutorial dialog"
+            tools:layout="@layout/dialog_shot_tutorial" />
+
 
         <fragment
             android:id="@+id/swing_example"
@@ -76,19 +92,32 @@
             tools:layout="@layout/fragment_camera">
             <action
                 android:id="@+id/action_camera_to_shot"
-                app:destination="@id/shot" />
+                app:destination="@id/shot"
+                app:launchSingleTop="true"
+                app:popUpTo="@id/shot" />
             <action
                 android:id="@+id/action_camera_to_feedback_dialog"
                 app:destination="@id/feedback_dialog" />
         </fragment>
-        <dialog android:id="@+id/feedback_dialog"
+        <dialog
+            android:id="@+id/feedback_dialog"
             android:name="com.ijonsabae.presentation.shot.FeedbackDialog"
             tools:label="feedback dialog"
             tools:layout="@layout/dialog_feedback">
 
             <argument
-                android:name="feedback"
-                app:argType="com.ijonsabae.presentation.model.FeedBack" />
+                android:name="swingCnt"
+                android:defaultValue="0"
+                app:argType="integer" />
+            <argument
+                android:name="totalSwingCnt"
+                android:defaultValue="0"
+                app:argType="integer" />
+            <action
+                android:id="@+id/action_feedback_dialog_to_shot"
+                app:destination="@id/shot"
+                app:launchSingleTop="true"
+                app:popUpTo="@id/shot" />
         </dialog>
     </navigation>
 
@@ -110,11 +139,19 @@
             android:id="@+id/replay_report"
             android:name="com.ijonsabae.presentation.replay.ReplayReportFragment"
             tools:label="replay report"
-            tools:layout="@layout/fragment_replay_report" />
+            tools:layout="@layout/fragment_replay_report">
+            <argument
+                android:name="Swing_Feedback_Comment_List"
+                app:argType="com.ijonsabae.presentation.model.SwingFeedbackCommentParcelable[]" />
+            <argument
+                android:name="Swing_Feedback"
+                app:argType="com.ijonsabae.presentation.model.SwingFeedbackSerializable" />
+        </fragment>
     </navigation>
     <navigation
         android:id="@+id/profile_tab"
         app:startDestination="@id/profile">
+
         <fragment
             android:id="@+id/profile"
             android:name="com.ijonsabae.presentation.profile.ProfileFragment"
@@ -123,6 +160,18 @@
             <action
                 android:id="@+id/action_profile_to_totalReport"
                 app:destination="@id/profile_total_report" />
+            <action
+                android:id="@+id/action_profile_to_resign_dialog"
+                app:destination="@id/resign_dialog" />
+            <action
+                android:id="@+id/action_profile_to_change_password_dialog"
+                app:destination="@id/change_password_dialog" />
+            <action
+                android:id="@+id/action_profile_to_login_dialog"
+                app:destination="@id/login_dialog" />
+            <action
+                android:id="@+id/action_profile_to_forbidden_dialog"
+                app:destination="@id/forbidden_dialog" />
         </fragment>
 
         <fragment
@@ -130,6 +179,30 @@
             android:name="com.ijonsabae.presentation.profile.TotalReportFragment"
             tools:label="total report"
             tools:layout="@layout/fragment_total_report" />
+
+        <dialog
+            android:id="@+id/login_dialog"
+            android:name="com.ijonsabae.presentation.profile.LoginDialog"
+            tools:label="login_dialog"
+            tools:layout="@layout/dialog_login" />
+
+        <dialog
+            android:id="@+id/resign_dialog"
+            android:name="com.ijonsabae.presentation.profile.ResignDialog"
+            tools:label="resign_dialog"
+            tools:layout="@layout/dialog_resign" />
+
+        <dialog
+            android:id="@+id/change_password_dialog"
+            android:name="com.ijonsabae.presentation.profile.ChangePasswordDialog"
+            tools:label="change_password_dialog"
+            tools:layout="@layout/dialog_change_password" />
+
+        <dialog
+            android:id="@+id/forbidden_dialog"
+            android:name="com.ijonsabae.presentation.profile.ForbiddenDialog"
+            tools:label="forbidden_dialog"
+            tools:layout="@layout/dialog_forbidden" />
     </navigation>
 
 

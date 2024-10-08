@@ -1,20 +1,22 @@
 package com.ijonsabae.presentation.consult
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.ijonsabae.domain.model.Consultant
+import com.ijonsabae.domain.model.Expert
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentConsultBinding
 import com.ijonsabae.presentation.main.MainActivity
-import com.ijonsabae.presentation.model.convertConsultant
+import com.ijonsabae.presentation.model.convertExpertDetail
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+
+private const val TAG = "ConsultFragment_싸피"
 
 @AndroidEntryPoint
 class ConsultFragment :
@@ -24,12 +26,14 @@ class ConsultFragment :
         ConsultantListAdapter().apply {
             setItemClickListener(
                 object : ConsultantListAdapter.OnItemClickListener {
-                    override fun onItemClick(item: Consultant) {
-                        navController.navigate(
-                            ConsultFragmentDirections.actionConsultToConsultDialog(
-                                convertConsultant(item)
+                    override fun onItemClick(item: Expert) {
+                        lifecycleScope.launch(coroutineExceptionHandler) {
+                            navController.navigate(
+                                ConsultFragmentDirections.actionConsultToConsultDialog(
+                                    convertExpertDetail(consultViewModel.getConsultantInfo(item.id).getOrThrow().data)
+                                )
                             )
-                        )
+                        }
                     }
                 }
             )
@@ -46,19 +50,17 @@ class ConsultFragment :
 
     private fun initFlow() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                consultViewModel.consultantList.collect {
-                    consultantListAdapter.submitList(it)
-                    binding.tvCount.text = "(All ${it.size})"
-                }
+            consultViewModel.consultantList.collectLatest { result ->
+                Log.d(TAG, "setConsultantList: $result")
+                Log.d(TAG, "initFlow: ${result}")
+                consultantListAdapter.submitData(result)
             }
         }
     }
 
     private fun initRecyclerView() {
-        consultantListAdapter.submitList(consultViewModel.consultantList.value)
-        val mountainRecyclerView = binding.rvConsultant
-        mountainRecyclerView.layoutManager = LinearLayoutManager(context)
-        mountainRecyclerView.adapter = consultantListAdapter
+        val consultantRecyclerView = binding.rvConsultant
+        consultantRecyclerView.layoutManager = LinearLayoutManager(fragmentContext)
+        consultantRecyclerView.adapter = consultantListAdapter
     }
 }

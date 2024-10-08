@@ -25,6 +25,7 @@ public class ExpertResponse {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class ExpertItem {
+        long id;
         String imageUrl;
         String name;
         int expYears; // 경력
@@ -40,6 +41,8 @@ public class ExpertResponse {
         String name;
         int expYears;
         List<String> certificates;
+        String counselUrl;
+        String phoneNumber;
     }
 
 }

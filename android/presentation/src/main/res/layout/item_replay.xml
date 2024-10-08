@@ -25,7 +25,6 @@
             app:layout_constraintWidth_percent="0.25" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
     <!-- 리사이클러뷰 아이템 -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cv_replay_item"
@@ -39,6 +38,7 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible">
 
+        <!-- 스윙 영상 썸네일 -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -47,7 +47,7 @@
                 android:id="@+id/cv_thumbnail"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
-                android:layout_margin="20dp"
+                android:layout_margin="15dp"
                 app:cardCornerRadius="8dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -62,24 +62,35 @@
                     app:layout_constraintDimensionRatio="1:1"
                     tools:src="@drawable/dummy_img" />
             </androidx.cardview.widget.CardView>
-            <!-- 스윙 영상 썸네일 -->
-
 
             <!-- 제목 -->
             <TextView
                 android:id="@+id/tv_title"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
                 android:textSize="18sp"
                 android:textStyle="bold"
+                android:singleLine="true"
+                android:ellipsize="end"
                 app:layout_constraintBottom_toTopOf="@id/layout_tag1"
-                app:layout_constraintEnd_toStartOf="@id/tv_date"
-                app:layout_constraintHorizontal_chainStyle="spread_inside"
+                app:layout_constraintEnd_toStartOf="@id/iv_edit_title"
                 app:layout_constraintStart_toEndOf="@id/cv_thumbnail"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_chainStyle="packed"
                 tools:text="첫 스윙 영상" />
+
+            <!-- 제목 수정 버튼 -->
+            <ImageView
+                android:id="@+id/iv_edit_title"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:paddingVertical="4dp"
+                android:src="@drawable/ic_edit"
+                app:layout_constraintBottom_toBottomOf="@id/tv_title"
+                app:layout_constraintStart_toEndOf="@id/tv_title"
+                app:layout_constraintTop_toTopOf="@id/tv_title"
+                app:layout_constraintHorizontal_bias="1"
+                />
 
             <!-- 날짜 -->
             <TextView
@@ -87,10 +98,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="20dp"
+                android:textColor="@color/gray"
                 android:textSize="12sp"
                 app:layout_constraintBottom_toBottomOf="@id/tv_title"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/tv_title"
+                app:layout_constraintStart_toEndOf="@id/iv_edit_title"
                 app:layout_constraintTop_toTopOf="@id/tv_title"
                 tools:text="2024년 09월 11일" />
 
@@ -99,7 +111,7 @@
                 android:id="@+id/layout_tag1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="14dp"
                 android:background="@drawable/btn_tag_yellow"
                 android:paddingHorizontal="9dp"
                 android:paddingVertical="4dp"
@@ -109,10 +121,10 @@
 
                 <ImageView
                     android:id="@+id/iv_tag1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="11dp"
+                    android:layout_height="11dp"
                     android:adjustViewBounds="true"
-                    android:src="@drawable/ic_swing_pose"
+                    android:src="@drawable/ic_tag1"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@id/tv_tag1"
                     app:layout_constraintStart_toStartOf="parent"
@@ -124,14 +136,14 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
                     android:includeFontPadding="false"
-                    android:textColor="#F1C903"
+                    android:textColor="#FD8A02"
                     android:textSize="11sp"
                     android:textStyle="bold"
                     app:layout_constraintBottom_toBottomOf="@id/iv_tag1"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@id/iv_tag1"
                     app:layout_constraintTop_toTopOf="@id/iv_tag1"
-                    tools:text="좌타" />
+                    tools:text="점수 85점" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- 태그2 -->
@@ -139,19 +151,22 @@
                 android:id="@+id/layout_tag2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
                 android:background="@drawable/btn_tag_green"
                 android:paddingHorizontal="9dp"
                 android:paddingVertical="4dp"
                 app:layout_constraintBottom_toBottomOf="@id/layout_tag1"
+                app:layout_constraintEnd_toStartOf="@id/iv_like"
+                app:layout_constraintHorizontal_bias="0"
                 app:layout_constraintStart_toEndOf="@id/layout_tag1"
                 app:layout_constraintTop_toTopOf="@id/layout_tag1">
 
                 <ImageView
                     android:id="@+id/iv_tag2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="11dp"
+                    android:layout_height="11dp"
                     android:adjustViewBounds="true"
-                    android:src="@drawable/ic_sports_golf"
+                    android:src="@drawable/ic_tag2"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@id/tv_tag2"
                     app:layout_constraintStart_toStartOf="parent"
@@ -170,23 +185,23 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@id/iv_tag2"
                     app:layout_constraintTop_toTopOf="@id/iv_tag2"
-                    tools:text="아이언" />
+                    tools:text="템포 1.67" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- 즐겨찾기 -->
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/iv_like"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
                 android:layout_marginTop="-10dp"
                 android:adjustViewBounds="true"
-                android:paddingTop="16dp"
-                android:src="@drawable/ic_like"
-                android:tint="@color/gray"
+                android:paddingTop="14dp"
+                android:src="@drawable/ic_unlike2"
                 app:layout_constraintBottom_toBottomOf="@id/layout_tag2"
                 app:layout_constraintDimensionRatio="1:1"
                 app:layout_constraintEnd_toEndOf="@id/tv_date"
-                app:layout_constraintTop_toBottomOf="@id/tv_date" />
+                app:layout_constraintTop_toBottomOf="@id/tv_date"
+                tools:src="@drawable/ic_like2" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

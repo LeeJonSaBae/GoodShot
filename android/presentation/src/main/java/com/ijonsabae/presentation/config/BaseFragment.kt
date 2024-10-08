@@ -9,12 +9,15 @@ import androidx.activity.viewModels
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.viewbinding.ViewBinding
 import com.ijonsabae.domain.model.RetrofitException
 import com.ijonsabae.presentation.login.LoginViewModel
+import com.ijonsabae.presentation.util.PermissionChecker
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Named
@@ -27,25 +30,33 @@ abstract class BaseFragment<B : ViewBinding>(
   private var _binding: B? = null
   protected val binding get() = _binding!!
   protected lateinit var navController: NavController
+  protected lateinit var permissionChecker: PermissionChecker
   lateinit var fragmentContext: Context
 
   protected val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
     // error handling
-    if(throwable is RetrofitException)
-    throwable.apply {
-      printStackTrace()
-      showToastShort("$code : $message")
-    }
-    else if(throwable is RuntimeException){
-      throwable.apply {
-        printStackTrace()
-        showToastShort("통신 에러 : $message")
+    lifecycleScope.launch {
+      if(throwable is RetrofitException)
+        throwable.apply {
+          printStackTrace()
+          if(throwable.code == 401){
+            showToastShort("로그인을 해주세요!")
+          }
+          else{
+            showToastShort("$code : $message")
+          }
+        }
+      else if(throwable is RuntimeException){
+        throwable.apply {
+          printStackTrace()
+          showToastShort("통신 에러 : $message")
+        }
       }
-    }
-    else{
-      throwable.apply {
-        printStackTrace()
-        showToastShort("$message")
+      else{
+        throwable.apply {
+          printStackTrace()
+          showToastShort("$message")
+        }
       }
     }
   }
@@ -57,6 +68,7 @@ abstract class BaseFragment<B : ViewBinding>(
   override fun onAttach(context: Context) {
     super.onAttach(context)
     fragmentContext = context
+    permissionChecker = PermissionChecker(this)
   }
 
   override fun onCreateView(

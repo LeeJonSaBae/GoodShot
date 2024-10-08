@@ -1,14 +1,24 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
-    id("com.google.devtools.ksp")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
-    kotlin("plugin.serialization") version "2.0.20"
+    kotlin("plugin.serialization") version "1.9.22"
     id("kotlin-parcelize")
     id("androidx.navigation.safeargs.kotlin")
 
 }
+private val properties = Properties().apply {
+    load(FileInputStream(rootProject.file("local.properties")))
+}
+
+val S3_URL: String = properties.getProperty("S3_URL")
+val VIDEO: String = properties.getProperty("VIDEO")
+val IMAGE: String = properties.getProperty("IMAGE")
+val THUMBNAIL: String = properties.getProperty("THUMBNAIL")
 
 android {
     namespace = "com.ijonsabae.presentation"
@@ -16,7 +26,10 @@ android {
 
     defaultConfig {
         minSdk = 29
-
+        buildConfigField("String", "S3_URL", S3_URL)
+        buildConfigField("String", "VIDEO", VIDEO)
+        buildConfigField("String", "THUMBNAIL", THUMBNAIL)
+        buildConfigField("String", "IMAGE", IMAGE)
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -35,15 +48,24 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
+}
+
+kapt {
+    correctErrorTypes = true
 }
 
 dependencies {
     implementation(project(":domain"))
+
+//    // paging3
+    implementation(libs.androidx.paging.runtime)
+
     implementation(libs.androidx.window)
 
     //serialization
@@ -81,10 +103,6 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
 
-    //Room 의존성 추가
-    implementation(libs.androidx.room.common)
-    implementation(libs.androidx.room.ktx)
-    annotationProcessor(libs.androidx.room.compiler)
 
     // 코루틴
     implementation(libs.kotlinx.coroutines.android)
@@ -119,6 +137,7 @@ dependencies {
     implementation(libs.tensorflow.lite)
     implementation(libs.tensorflow.lite.gpu)
     implementation(libs.tensorflow.lite.support)
+    implementation (libs.tensorflow.tensorflow.lite.task.vision)
 
     // Media3 ExoPlayer
     implementation(libs.media3.exoplayer)
@@ -136,4 +155,8 @@ dependencies {
 
     // tooltip
     implementation(libs.balloon)
+
+    // viewpager indicator
+    implementation(libs.dotsindicator)
+
 }

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/btn_rounded_white_popup"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/menu_export"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingVertical="15dp"
+            android:paddingStart="25dp"
+            android:paddingEnd="20dp"
+            android:text="내보내기" />
+
+        <ImageView
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_gravity="center"
+            android:layout_marginEnd="25dp"
+            android:src="@drawable/ic_upload" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E9E9E9" />
+
+
+    <LinearLayout
+        android:id="@+id/menu_import"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingVertical="15dp"
+            android:paddingStart="25dp"
+            android:paddingEnd="20dp"
+            android:text="가져오기" />
+
+        <ImageView
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_gravity="center"
+            android:layout_marginEnd="25dp"
+            android:src="@drawable/ic_download" />
+    </LinearLayout>
+
+</LinearLayout>
