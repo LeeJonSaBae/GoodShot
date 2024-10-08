@@ -17,6 +17,7 @@ import com.d201.goodshot.swing.dto.SwingResponse.SwingCodeResponse;
 import com.d201.goodshot.swing.enums.CommentType;
 import com.d201.goodshot.swing.enums.PoseType;
 import com.d201.goodshot.swing.enums.ProblemType;
+import com.d201.goodshot.swing.exception.InsufficientAttemptsException;
 import com.d201.goodshot.swing.exception.SwingJsonProcessingException;
 import com.d201.goodshot.swing.repository.CommentRepository;
 import com.d201.goodshot.swing.repository.ReportRepository;
@@ -58,6 +59,11 @@ public class SwingService {
         User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
         List<Swing> swings = swingRepository.findByUser(user); // swing 전부 찾기
 
+        int swingCount = swings.size();
+        if(swingCount <= 15) { // swing 횟수가 부족하면 종합 리포트 조회 불가능 (15회)
+            throw new InsufficientAttemptsException();
+        }
+
         double totalScore = 0.0;
 
         // 유사도 값을 누적할 맵 (8가지 자세에 대한 유사도를 저장)
@@ -76,7 +82,6 @@ public class SwingService {
 
         // Comment content 빈도를 저장할 맵
         Map<String, Integer> commentFrequency = new HashMap<>();
-        int swingCount = swings.size();
 
         // 1. 해당 user 에 대한 Comment 전부 가져와서
         for(Swing swing : swings) {
