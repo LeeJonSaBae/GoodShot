@@ -2,12 +2,9 @@ package com.d201.goodshot.swing.controller;
 
 import com.d201.goodshot.global.base.BaseResponse;
 import com.d201.goodshot.global.security.dto.CustomUser;
-import com.d201.goodshot.swing.domain.Swing;
 import com.d201.goodshot.swing.dto.SwingData;
-import com.d201.goodshot.swing.dto.SwingRequest;
 import com.d201.goodshot.swing.dto.SwingRequest.SwingDataRequest;
 import com.d201.goodshot.swing.dto.SwingRequest.SwingUpdateDataRequest;
-import com.d201.goodshot.swing.dto.SwingResponse;
 import com.d201.goodshot.swing.dto.SwingResponse.ReportResponse;
 import com.d201.goodshot.swing.dto.SwingResponse.SwingCodeResponse;
 import com.d201.goodshot.swing.service.SwingService;

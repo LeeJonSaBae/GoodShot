@@ -6,7 +6,6 @@ import com.d201.goodshot.global.security.dto.Token;
 import com.d201.goodshot.global.security.dto.TokenResponse;
 import com.d201.goodshot.global.security.exception.InvalidTokenException;
 import com.d201.goodshot.user.dto.UserRequest.*;
-import com.d201.goodshot.user.dto.UserResponse;
 import com.d201.goodshot.user.dto.UserResponse.ProfileResponse;
 import com.d201.goodshot.user.service.EmailService;
 import com.d201.goodshot.user.service.UserService;
