@@ -333,37 +333,30 @@ class ReplayFragment :
                             )
                         )
                     }
+                    swingFeedbackParam.backSwingComments.forEach { comment ->
+                        insertLocalSwingFeedbackCommentUseCase(
+                            SwingFeedbackComment(
+                                userID = userID,
+                                swingCode = swingFeedbackParam.code,
+                                poseType = BACKSWING,
+                                content = comment.content,
+                                commentType = if(comment.commentType == "NICE"){NICE}else{BAD}
+                            )
+                        )
+                    }
                     // DownloadManager에 요청 추가
                     val downloadManager = fragmentContext.getSystemService(DOWNLOAD_SERVICE) as DownloadManager
                     val videoUri = Uri.parse(S3_URL + userID + VIDEO + swingFeedbackParam.code + ".mp4") // [파일 다운로드 주소 : 확장자명 포함되어야함]
                     val thumbnailUri = Uri.parse(S3_URL + userID + THUMBNAIL + swingFeedbackParam.code + ".jpg") // [파일 다운로드 주소 : 확장자명 포함되어야함]
-
+                    Log.d(TAG, "showCustomPopup: $videoUri")
                     fun returnImageUri(idx: Int): Uri{
                         return Uri.parse(S3_URL + userID + IMAGE + swingFeedbackParam.code + "_" + idx + ".jpg") // [파일 다운로드 주소 : 확장자명 포함되어야함]
                     }
 
-                    suspend fun downloadAndSaveFile(presignedUrl: String, saveFilePath: String) {
-                        withContext(Dispatchers.IO) {
-                            val client = OkHttpClient()
-                            val request = Request.Builder().url(presignedUrl).build()
 
-                            client.newCall(request).execute().use { response ->
-                                if (!response.isSuccessful) throw Exception("Failed to download file: ${response.code} ${response.message}")
-
-                                val body = response.body ?: throw Exception("Empty response body")
-                                val file = File(saveFilePath)
-
-                                FileOutputStream(file).use { outputStream ->
-                                    body.byteStream().use { inputStream ->
-                                        inputStream.copyTo(outputStream)
-                                    }
-                                }
-                            }
-                        }
-                    }
                     Log.d(TAG, "showCustomPopup: ${SwingLocalDataProcessor.getSwingVideoFile(fragmentContext, userId = userID, swingCode = swingFeedbackParam.code).path}")
-                    downloadAndSaveFile(videoUri.toString(),  SwingLocalDataProcessor.getSwingVideoFile(fragmentContext, userId = userID, swingCode = swingFeedbackParam.code).path)
-                    downloadAndSaveFile(thumbnailUri.toString(), SwingLocalDataProcessor.getSwingThumbnailFile(fragmentContext, userId = userID, swingCode = swingFeedbackParam.code).path)
+                    downloadAndSaveFile(videoUri.toString(),  SwingLocalDataProcessor.getSwingVideoFile(fragmentContext, userId = userID, swingCode = swingFeedbackParam.code).toString())
+                    downloadAndSaveFile(thumbnailUri.toString(), SwingLocalDataProcessor.getSwingThumbnailFile(fragmentContext, userId = userID, swingCode = swingFeedbackParam.code).toString())
                     val poseDestination = SwingLocalDataProcessor.getSwingPoseFiles(fragmentContext, userId = userID, swingCode = swingFeedbackParam.code)
                     for(i in 0 until 8){
                         downloadManager.apply {
@@ -403,7 +396,9 @@ class ReplayFragment :
                         Log.d(TAG, "onViewCreated: ${replayAdapter.itemCount}")
                     }
                 }
-                showToastShort("가져오기가 완료됐습니다!")
+                withContext(Dispatchers.Main){
+                    showToastShort("가져오기가 완료됐습니다!")
+                }
             }
             dialog.dismiss()
         }
@@ -451,6 +446,26 @@ class ReplayFragment :
             setOnTouchListener { v, event ->
                 swipeHelper.removePreviousClamp(this)
                 false
+            }
+        }
+    }
+
+    suspend fun downloadAndSaveFile(presignedUrl: String, saveFilePath: String) {
+        withContext(Dispatchers.IO) {
+            val client = OkHttpClient()
+            val request = Request.Builder().url(presignedUrl).build()
+
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) throw Exception("Failed to download file: ${response.code} ${response.message}")
+
+                val body = response.body ?: throw Exception("Empty response body")
+                val file = File(saveFilePath)
+
+                FileOutputStream(file).use { outputStream ->
+                    body.byteStream().use { inputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
             }
         }
     }
