@@ -32,9 +32,12 @@ class ShotOptionDialog : BaseDialog<DialogShotOptionBinding>(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         dialog?.window?.setBackgroundDrawableResource(R.drawable.rounded_dialog_background)
-        initFlow()
-        initButtons()
-        initTooltip()
+        lifecycleScope.launch {
+            shotDialogViewModel.setTotalSwingCnt(15)
+            initFlow()
+            initButtons()
+            initTooltip()
+        }
     }
 
     private fun initButtons() {
@@ -173,6 +176,7 @@ class ShotOptionDialog : BaseDialog<DialogShotOptionBinding>(
                 launch {
                     shotDialogViewModel.totalSwingCnt.collect() { cnt ->
                         binding.tvSliderValue.text = "${cnt} 회"
+                        binding.sbShotCnt.value = cnt.toFloat()
                     }
                 }
             }
