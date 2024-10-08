@@ -251,7 +251,9 @@ class CameraFragment :
     override fun onDestroyView() {
         (fragmentContext as MainActivity).showBottomNavBar()
         requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        cameraProvider.unbindAll()
+        if(::cameraProvider.isInitialized){
+            cameraProvider.unbindAll()
+        }
         super.onDestroyView()
     }
 
