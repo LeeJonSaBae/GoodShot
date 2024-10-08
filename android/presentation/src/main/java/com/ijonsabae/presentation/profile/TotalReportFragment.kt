@@ -1,7 +1,9 @@
 package com.ijonsabae.presentation.profile
 
+import android.content.Context
 import android.os.Bundle
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -51,6 +53,17 @@ class TotalReportFragment : BaseFragment<FragmentTotalReportBinding>(
             }
         }
 
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // 뒤로가기 클릭시 동작하는 로직
+                navController.navigate(R.id.action_profile_total_report_to_profile)
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(this, callback)
     }
 
     private fun initTotalScore(totalReport: TotalReport) {

@@ -3,9 +3,11 @@ package com.ijonsabae.presentation.shot
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Context.DOWNLOAD_SERVICE
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.ijonsabae.domain.model.SwingCommentExportImportParam
 import com.ijonsabae.domain.model.SwingComparisonParam
 import com.ijonsabae.domain.model.SwingFeedback
@@ -37,7 +39,6 @@ import com.ijonsabae.presentation.util.formatTDateFromLongKorea
 import com.ijonsabae.presentation.util.stringToTimeInMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -45,6 +46,7 @@ import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
+import kotlin.random.Random
 
 private const val TAG = "SwingRemoteDataProcesso 싸피"
 
@@ -63,6 +65,13 @@ class SwingRemoteDataProcessor @Inject constructor(
     private val  insertLocalSwingFeedbackUseCase: InsertLocalSwingFeedbackUseCase,
     private val  insertLocalSwingFeedbackCommentUseCase: InsertLocalSwingFeedbackCommentUseCase
 ) {
+    private fun sendProgressIntent(context: Context, progress: Int){
+        val intent = Intent().apply {
+            action = "progress_sync"
+            putExtra("progress", progress)
+        }
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
+    }
     suspend fun uploadLocalSwingData(context: Context) {
         val userID = getUserIdUseCase()
         Log.d(TAG, "showCustomPopup: $userID")
@@ -72,22 +81,39 @@ class SwingRemoteDataProcessor @Inject constructor(
             }
         } else {
             // 바꿔야 할 SwingFeedback 목록 추출
+            var progressStatus: Int = 0
             val changedSwingFeedbackList =
                 SwingFeedbackSyncRoomDataMapper.mapperToSwingFeedbackSyncList(
                     getChangedSwingFeedbackUseCase(userID)
                 )
+            val progress1 = Random.nextInt(4, 7) / 2
+            progressStatus += progress1
+            sendProgressIntent(context, progress1)
+
             // 서버에 업데이트 보냄
             getSwingFeedbackDataNeedSyncUseCase(changedSwingFeedbackList).getOrThrow()
+            val progress2 = Random.nextInt(6, 12) / 2
+            progressStatus += progress2
+            sendProgressIntent(context, progress2)
 
             // 이후 업데이트 보냈으니까 삭제된 것 제외 전부 업데이트 0으로 해서 업데이트 필요 없는 값으로 설정
             syncUpdateStatusUseCase(userID)
+            val progress3 = Random.nextInt(15, 25) / 2
+            progressStatus += progress3
+            sendProgressIntent(context, progress3)
 
             // 0인 목록들을 뽑아서 Upload 후보군을 생성
             val list = getLocalSwingFeedbackListNeedToUploadUseCase(userID)
+            val progress4 = Random.nextInt(8, 15) / 2
+            progressStatus += progress4
+            sendProgressIntent(context, progress4)
 
             // 업로드 후보군으로부터 진짜 업로드 대상을 추출
             val result =
                 getRemoteSwingFeedbackListNeedToUploadUseCase(SwingComparisonParam(list.map { it.swingCode })).getOrThrow()
+            val progress5 = Random.nextInt(8, 15) / 2
+            progressStatus += progress5
+            sendProgressIntent(context, progress5)
 
             // 진짜 업로드 대상에 대해서 반복적으로 각 대상마다 10개의 영상, 이미지를 업로드
             result.data.forEach { data ->
@@ -125,6 +151,8 @@ class SwingRemoteDataProcessor @Inject constructor(
                         }
                     }
                 }
+                progressStatus += 15 / result.data.size / 2
+                sendProgressIntent(context, 15 / result.data.size / 2)
             }
 
             // 업로드 대상에 대해서 돌아가면서 해당 업로드한 코드의 comment와 feedback을 가져와서 SwingExportParam 형성 및 Upload
@@ -176,17 +204,37 @@ class SwingRemoteDataProcessor @Inject constructor(
                                 )
                             }
                         )
-                    Log.d(TAG, "showCustomPopup 업로드 데이터: $data")
+                    val progress6 = Random.nextInt(5, 7) / 2
+                    progressStatus += progress6
+                    sendProgressIntent(context, progress6)
                     data
                 }
             ).getOrThrow()
+            sendProgressIntent(context, (50 - progressStatus))
         }
     }
     suspend fun downloadRemoteSwingData(context: Context){
+        var progressStatus = 0F
         val userID = getUserIdUseCase()
+
+        val progress1 = Random.nextInt(3, 6)/2
+        progressStatus += progress1
+        sendProgressIntent(context, progress1)
+
         val list = getLocalSwingFeedbackListUseCase(userID)
+
+        val progress2 = Random.nextInt(3, 6)/2
+        progressStatus += progress2
+        sendProgressIntent(context, progress2)
+
         val swingComparisonParamList = SwingComparisonParam(list.map { it.swingCode})
         val result = importSwingFeedbackListUseCase(swingComparisonParamList).getOrThrow()
+
+        val progress3 = Random.nextInt(5 ,8)/2
+        progressStatus += progress3
+        sendProgressIntent(context, progress3)
+
+        val progressRatio = (50 - progressStatus)/result.data.size
         result.data.forEach { swingFeedbackParam ->
             insertLocalSwingFeedbackUseCase(
                 SwingFeedback(
@@ -201,6 +249,7 @@ class SwingRemoteDataProcessor @Inject constructor(
                     solution = swingFeedbackParam.solution
                 )
             )
+
             swingFeedbackParam.downSwingComments.forEach { comment ->
                 insertLocalSwingFeedbackCommentUseCase(
                     SwingFeedbackComment(
@@ -214,6 +263,9 @@ class SwingRemoteDataProcessor @Inject constructor(
                     )
                 )
             }
+
+
+
             swingFeedbackParam.backSwingComments.forEach { comment ->
                 insertLocalSwingFeedbackCommentUseCase(
                     SwingFeedbackComment(
@@ -227,6 +279,11 @@ class SwingRemoteDataProcessor @Inject constructor(
                     )
                 )
             }
+
+            val progress5 = progressRatio * Random.nextDouble(0.2, 0.3).toInt()
+            progressStatus += progress5
+            sendProgressIntent(context, progress5.toInt())
+
             // DownloadManager에 요청 추가
             val downloadManager = context.getSystemService(DOWNLOAD_SERVICE) as DownloadManager
             val videoUri = Uri.parse(S3_URL + userID + VIDEO + swingFeedbackParam.code + ".mp4") // [파일 다운로드 주소 : 확장자명 포함되어야함]
@@ -236,14 +293,19 @@ class SwingRemoteDataProcessor @Inject constructor(
                 return Uri.parse(S3_URL + userID + IMAGE + swingFeedbackParam.code + "_" + idx + ".jpg") // [파일 다운로드 주소 : 확장자명 포함되어야함]
             }
 
-
             Log.d(TAG, "showCustomPopup: ${SwingLocalDataProcessor.getSwingVideoFile(context, userId = userID, swingCode = swingFeedbackParam.code).path}")
             CoroutineScope(Dispatchers.IO).launch {
                 launch {
                     downloadAndSaveFile(videoUri.toString(),  SwingLocalDataProcessor.getSwingVideoFile(context, userId = userID, swingCode = swingFeedbackParam.code).toString())
+                    val progress5 = progressRatio * Random.nextDouble(0.15, 0.25)
+                    progressStatus += progress5.toFloat()
+                    sendProgressIntent(context, progress5.toInt())
                 }
                 launch {
                     downloadAndSaveFile(thumbnailUri.toString(), SwingLocalDataProcessor.getSwingThumbnailFile(context, userId = userID, swingCode = swingFeedbackParam.code).toString())
+                    val progress5 = progressRatio * Random.nextDouble(0.05, 0.15).toInt()
+                    progressStatus += progress5
+                    sendProgressIntent(context, progress5.toInt())
                 }
                 launch {
                     val poseDestination = SwingLocalDataProcessor.getSwingPoseFiles(context, userId = userID, swingCode = swingFeedbackParam.code)
@@ -258,10 +320,15 @@ class SwingRemoteDataProcessor @Inject constructor(
                     }
                 }
             }
+            val progress6 = progressRatio * Random.nextDouble(0.5, 0.7).toInt()
+            progressStatus += progress6
+            sendProgressIntent(context, progress6.toInt())
         }
+
+        sendProgressIntent(context, (50 - progressStatus).toInt())
     }
 
-    suspend fun downloadAndSaveFile(presignedUrl: String, saveFilePath: String) {
+    private suspend fun downloadAndSaveFile(presignedUrl: String, saveFilePath: String) {
         withContext(Dispatchers.IO) {
             val client = OkHttpClient()
             val request = Request.Builder().url(presignedUrl).build()
