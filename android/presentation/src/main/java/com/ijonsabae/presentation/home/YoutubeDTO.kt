@@ -20,13 +20,13 @@ fun convertVideoItemToYoutubeDTO(videoItem: YouTubeResponse.VideoItem): YoutubeD
     )
 }
 
-//TODO 영민 : videoId로 video정보 가져오기 -> title에 들어가는 getVideoTitle main에서 실행안되게 고려 필요
-fun convertVideoIdToYoutubeDTO(videoId: String): YoutubeDTO{
-    return YoutubeDTO(
-        title = YouTubeUtils.getVideoTitle(videoId),
-        link = "https://www.youtube.com/watch?v=$videoId",
-        isVisible = false,
-        thumbnail = "https://img.youtube.com/vi/$videoId/maxresdefault.jpg",
-        alternativeThumbnail = "https://img.youtube.com/vi/$videoId/hqdefault.jpg"
-    )
-}
+////TODO 영민 : videoId로 video정보 가져오기 -> title에 들어가는 getVideoTitle main에서 실행안되게 고려 필요
+//fun convertVideoIdToYoutubeDTO(videoId: String): YoutubeDTO{
+//    return YoutubeDTO(
+//        title = YouTubeUtils.getYoutubeDto(videoId),
+//        link = "https://www.youtube.com/watch?v=$videoId",
+//        isVisible = false,
+//        thumbnail = "https://img.youtube.com/vi/$videoId/maxresdefault.jpg",
+//        alternativeThumbnail = "https://img.youtube.com/vi/$videoId/hqdefault.jpg"
+//    )
+//}

@@ -63,7 +63,7 @@ class HomeFragment :
             } else {
                 binding.layoutContentNotLogin.visibility = View.GONE
                 binding.layoutContentLogin.visibility = View.VISIBLE
-                initFlow()
+//                initFlow()
                 initNewsViewPager(binding.vpNews)
                 initYoutubeRecyclerView(binding.rvYoutube)
                 sendLoadingCompleteMessage()
@@ -72,19 +72,19 @@ class HomeFragment :
 
     }
 
-    private fun initFlow() {
-        lifecycleScope.launch(coroutineExceptionHandler) {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                homeViewModel.youtubeList.collectLatest {
-                    val list = it.getOrThrow().items.map { videoItem ->
-                        convertVideoItemToYoutubeDTO(videoItem)
-                    }
-                    youtubeRecyclerViewAdapter.submitList(list)
-                }
-            }
-        }
-//        Log.d(TAG, "onViewCreated: margin = $NEWS_MARGIN_PX")
-    }
+//    private fun initFlow() {
+//        lifecycleScope.launch(coroutineExceptionHandler) {
+//            repeatOnLifecycle(Lifecycle.State.STARTED) {
+//                homeViewModel.youtubeList.collectLatest {
+//                    val list = it.getOrThrow().items.map { videoItem ->
+//                        convertVideoItemToYoutubeDTO(videoItem)
+//                    }
+//                    youtubeRecyclerViewAdapter.submitList(list)
+//                }
+//            }
+//        }
+////        Log.d(TAG, "onViewCreated: margin = $NEWS_MARGIN_PX")
+//    }
 
     private fun sendLoadingCompleteMessage() {
         LocalBroadcastManager.getInstance(fragmentContext).sendBroadcast(Intent().apply {
@@ -145,6 +145,7 @@ class HomeFragment :
                         toggleYoutubeItems(item)
                     }
                 })
+                submitList(homeViewModel.youtubeList)
             }
 //        youtubeRecyclerViewAdapter.submitList(homeViewModel.youtubeList.v)
         recyclerView.adapter = youtubeRecyclerViewAdapter

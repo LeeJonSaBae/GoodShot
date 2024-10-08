@@ -45,7 +45,7 @@ class SwingFeedbackRepositoryImpl @Inject constructor(
     override fun getLikeSwingFeedbackList(userID: Long): Flow<PagingData<SwingFeedback>> {
         return Pager(
             config = PagingConfig(
-                pageSize = 15,
+                pageSize = 25,
                 enablePlaceholders = false
             ),
             pagingSourceFactory = { swingFeedbackLocalDataSource.getLikeSwingFeedbackList(userID = userID) }
