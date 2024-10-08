@@ -5,5 +5,5 @@ data class TotalReport(
     val name: String,
     val problems: List<String>,
     val score: Double,
-    val similarity: List<Int>
+    val similarity: List<Double>
 )

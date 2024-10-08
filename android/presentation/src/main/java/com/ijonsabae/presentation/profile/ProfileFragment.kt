@@ -26,9 +26,11 @@ import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.config.Const.Companion.GalleryPermission
 import com.ijonsabae.presentation.databinding.FragmentProfileBinding
 import com.ijonsabae.presentation.main.MainActivity
+import com.ijonsabae.presentation.shot.SwingRemoteDataProcessor
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 private const val TAG = "ProfileFragment 싸피"
 
@@ -37,6 +39,8 @@ class ProfileFragment :
     BaseFragment<FragmentProfileBinding>(FragmentProfileBinding::bind, R.layout.fragment_profile) {
     private val profileViewModel: ProfileViewModel by activityViewModels()
     private val totalReportViewModel: TotalReportViewModel by activityViewModels()
+    @Inject
+    lateinit var swingRemoteDataProcessor : SwingRemoteDataProcessor
 
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -94,17 +98,7 @@ class ProfileFragment :
         }
 
         binding.layoutGoTotalReport.setOnClickListener {
-            lifecycleScope.launch {
-                totalReportViewModel.totalReport.collect { totalReport ->
-                    if (totalReport == null) {
-                        navController.navigate(R.id.action_profile_to_forbidden_dialog)
-                    } else {
-                        showTotalReport()
-                    }
-
-                }
-            }
-
+            navController.navigate(R.id.action_profile_to_progress_dialog)
         }
 
         binding.layoutLogout.setOnClickListener {
@@ -173,7 +167,6 @@ class ProfileFragment :
                         } else {
                             showToastShort("프로필 수정에 실패했습니다!")
                         }
-
                     }
                 }
                 launch {
@@ -249,9 +242,9 @@ class ProfileFragment :
         binding.tvName.text = name
     }
 
-    private fun showTotalReport() {
-        findNavController().navigate(R.id.action_profile_to_totalReport)
-    }
+//    private fun showTotalReport() {
+//        findNavController().navigate(R.id.action_profile_to_totalReport)
+//    }
 
     private fun checkPermissionAndOpenGallery() {
         if (permissionChecker.checkPermission(fragmentContext, GalleryPermission)) {
