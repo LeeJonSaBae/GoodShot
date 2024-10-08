@@ -105,437 +105,524 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <!-- 로그인된 경우 -->
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/layout_content_login"
+                android:id="@+id/layout_login_content"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="visible">
-
-                <!-- 최근 스윙 - 타이틀 -->
-                <TextView
-                    android:id="@+id/tv_title_recent_nickname"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="44dp"
-                    android:layout_marginTop="10dp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toStartOf="@id/tv_title_recent"
-                    app:layout_constraintHorizontal_chainStyle="packed"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_chainStyle="packed"
-                    tools:text="밍깅이" />
-
-                <TextView
-                    android:id="@+id/tv_title_recent"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="@string/home_recent_swing"
-                    android:textStyle="bold"
-                    app:layout_constraintStart_toEndOf="@id/tv_title_recent_nickname"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_chainStyle="packed" />
-
-                <!-- 최근 스윙 썸네일 -->
-                <FrameLayout
-                    android:id="@+id/layout_recent"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintTop_toBottomOf="@id/tv_title_recent">
-
-                    <androidx.cardview.widget.CardView
-                        android:id="@+id/cv_recent_thumbnail"
-                        android:layout_width="match_parent"
-                        android:layout_height="250dp"
-                        android:layout_margin="20dp"
-                        app:cardCornerRadius="20dp"
-                        app:cardElevation="10dp"
-                        app:layout_constraintTop_toTopOf="parent">
-
-                        <ImageView
-                            android:id="@+id/iv_recent_thumbnail"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:scaleType="centerCrop"
-                            android:src="@drawable/golf_dummy_img" />
-                    </androidx.cardview.widget.CardView>
-                </FrameLayout>
-
-                <!-- 최근 스윙 점수 -->
+                android:layout_height="wrap_content"
+                android:visibility="visible"
+                app:layout_constraintBottom_toTopOf="@id/tv_title_news"
+                app:layout_constraintTop_toTopOf="parent">
+                <!-- 로그인 안된 경우 -->
                 <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/btn_recent_score"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="30dp"
-                    android:layout_marginEnd="15dp"
-                    android:layout_marginBottom="-30dp"
-                    android:background="@drawable/btn_rounded_white"
-                    android:elevation="10dp"
-                    android:padding="15dp"
-                    app:layout_constraintBottom_toBottomOf="@id/layout_recent"
-                    app:layout_constraintEnd_toStartOf="@id/btn_recent_tempo"
-                    app:layout_constraintStart_toStartOf="@id/layout_recent">
-
-                    <ImageView
-                        android:id="@+id/iv_recent_score_icon"
-                        android:layout_width="25dp"
-                        android:layout_height="25dp"
-                        android:src="@drawable/ic_recent_score"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
+                    android:id="@+id/layout_content_not_login"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="invisible">
 
                     <TextView
-                        android:id="@+id/tv_recent_score_title"
+                        android:id="@+id/tv_logout_title_recent_nickname"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:text="점수"
-                        android:textColor="@color/gray"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        app:layout_constraintBottom_toBottomOf="@id/iv_recent_score_icon"
-                        app:layout_constraintStart_toEndOf="@id/iv_recent_score_icon"
-                        app:layout_constraintTop_toTopOf="@id/iv_recent_score_icon" />
-
-                    <TextView
-                        android:id="@+id/tv_recent_score"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_marginStart="44dp"
                         android:layout_marginTop="10dp"
-                        android:textSize="22sp"
                         android:textStyle="bold"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="@id/iv_recent_score_icon"
-                        app:layout_constraintTop_toBottomOf="@id/iv_recent_score_icon"
-                        tools:text="82.5/100" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-                <!-- 최근 스윙 템포 -->
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/btn_recent_tempo"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="30dp"
-                    android:background="@drawable/btn_rounded_white"
-                    android:elevation="10dp"
-                    android:padding="15dp"
-                    app:layout_constraintBottom_toBottomOf="@id/btn_recent_score"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/btn_recent_score"
-                    app:layout_constraintTop_toTopOf="@id/btn_recent_score">
-
-                    <ImageView
-                        android:id="@+id/iv_recent_tempo_icon"
-                        android:layout_width="25dp"
-                        android:layout_height="25dp"
-                        android:src="@drawable/ic_recent_tempo"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <TextView
-                        android:id="@+id/tv_recent_tempo_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:text="템포"
-                        android:textColor="@color/gray"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        app:layout_constraintBottom_toBottomOf="@id/iv_recent_tempo_icon"
-                        app:layout_constraintStart_toEndOf="@id/iv_recent_tempo_icon"
-                        app:layout_constraintTop_toTopOf="@id/iv_recent_tempo_icon" />
-
-                    <TextView
-                        android:id="@+id/tv_tempo"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:textSize="22sp"
-                        android:textStyle="bold"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="@id/iv_recent_tempo_icon"
-                        app:layout_constraintTop_toBottomOf="@id/iv_recent_tempo_icon"
-                        tools:text="1.67" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-                <!-- 최근 스윙 영상 보러가기 버튼 -->
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/btn_go_recent_replay"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="30dp"
-                    android:layout_marginTop="20dp"
-                    android:background="@drawable/btn_rounded_green_25"
-                    android:elevation="10dp"
-                    app:layout_constraintBottom_toTopOf="@id/tv_title_total_swing_cnt1"
-                    app:layout_constraintTop_toBottomOf="@id/btn_recent_score">
-
-                    <TextView
-                        android:id="@+id/tv_go_recent_replay"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="20dp"
-                        android:text="최근 스윙 영상 보러가기"
-                        android:textColor="@color/white"
-                        android:textStyle="bold"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toStartOf="@id/iv_go_recent_replay"
+                        app:layout_constraintEnd_toStartOf="@id/tv_logout_title_recent"
                         app:layout_constraintHorizontal_chainStyle="packed"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <ImageView
-                        android:id="@+id/iv_go_recent_replay"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:src="@drawable/ic_home_go_recent_replay"
-                        app:layout_constraintBottom_toBottomOf="@id/tv_go_recent_replay"
-                        app:layout_constraintDimensionRatio="1:1"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toEndOf="@id/tv_go_recent_replay"
-                        app:layout_constraintTop_toTopOf="@id/tv_go_recent_replay" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-                <!-- 누적 스윙 횟수 - 타이틀 -->
-
-                <TextView
-                    android:id="@+id/tv_title_total_swing_cnt1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="44dp"
-                    android:layout_marginTop="20dp"
-                    android:text="지금까지 "
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toTopOf="@id/btn_go_total_report"
-                    app:layout_constraintEnd_toStartOf="@id/tv_title_total_swing_cnt2"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/btn_go_recent_replay" />
-
-                <TextView
-                    android:id="@+id/tv_title_total_swing_cnt2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="4"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="@id/tv_title_total_swing_cnt1"
-                    app:layout_constraintEnd_toStartOf="@id/tv_title_total_swing_cnt3"
-                    app:layout_constraintStart_toEndOf="@id/tv_title_total_swing_cnt1"
-                    app:layout_constraintTop_toTopOf="@id/tv_title_total_swing_cnt1" />
-
-                <TextView
-                    android:id="@+id/tv_title_total_swing_cnt3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="번의 스윙을 연습했습니다!"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="@id/tv_title_total_swing_cnt1"
-                    app:layout_constraintStart_toEndOf="@id/tv_title_total_swing_cnt2"
-                    app:layout_constraintTop_toTopOf="@id/tv_title_total_swing_cnt1" />
-
-                <!-- 종합 리포트 받아보기 버튼 -->
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/btn_go_total_report"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="30dp"
-                    android:layout_marginTop="20dp"
-                    android:background="@drawable/btn_rounded_green_25"
-                    android:elevation="10dp"
-                    app:layout_constraintBottom_toTopOf="@id/tv_title_news"
-                    app:layout_constraintTop_toBottomOf="@id/tv_title_total_swing_cnt1">
-
-                    <TextView
-                        android:id="@+id/tv_go_total_report"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="20dp"
-                        android:text="종합 분석 리포트 받아보기"
-                        android:textColor="@color/white"
-                        android:textStyle="bold"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toStartOf="@id/iv_go_total_report"
-                        app:layout_constraintHorizontal_chainStyle="packed"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <ImageView
-                        android:id="@+id/iv_go_total_report"
-                        android:layout_width="25dp"
-                        android:layout_height="25dp"
-                        android:src="@drawable/ic_home_go_total_report"
-                        app:layout_constraintBottom_toBottomOf="@id/tv_go_total_report"
-                        app:layout_constraintDimensionRatio="1:1"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toEndOf="@id/tv_go_total_report"
-                        app:layout_constraintTop_toTopOf="@id/tv_go_total_report" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-                <!-- 골프 추천 기사 - 타이틀 -->
-                <TextView
-                    android:id="@+id/tv_title_news"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="44dp"
-                    android:layout_marginTop="30dp"
-                    android:text="@string/home_recommendation_news"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toTopOf="@id/vp_news"
-                    app:layout_constraintTop_toBottomOf="@id/btn_go_total_report"
-                    app:layout_constraintVertical_chainStyle="packed" />
-
-                <!-- 골프 추천 기사 - ViewPager -->
-                <androidx.viewpager2.widget.ViewPager2
-                    android:id="@+id/vp_news"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:clipChildren="false"
-                    app:layout_constraintBottom_toTopOf="@id/tv_title_youtube"
-                    app:layout_constraintTop_toBottomOf="@id/tv_title_news" />
-
-                <!-- 골프 추천 영상 - 타이틀 -->
-                <TextView
-                    android:id="@+id/tv_title_youtube"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="44dp"
-                    android:layout_marginTop="20dp"
-                    android:text="@string/home_recommendation_youtube"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toTopOf="@id/rv_youtube"
-                    app:layout_constraintTop_toBottomOf="@id/vp_news" />
-
-                <!-- 골프 추천 영상 - ViewPager -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rv_youtube"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="10dp"
-                    android:layout_marginTop="10dp"
-                    android:nestedScrollingEnabled="false"
-                    android:orientation="horizontal"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/tv_title_youtube"
-                    tools:listitem="@layout/item_home_youtube" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- 로그인 안된 경우 -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/layout_content_not_login"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="gone">
-
-                <!-- 골프 추천 기사 - 타이틀 -->
-                <TextView
-                    android:id="@+id/tv_title_news_not_login"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="44dp"
-                    android:layout_marginTop="20dp"
-                    android:text="@string/home_recommendation_news"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toTopOf="@id/view_news_not_login"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_chainStyle="packed" />
-
-                <!-- 네트워크 없음 화면 -->
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/view_news_not_login"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:background="@drawable/btn_rounded_light_green"
-                    android:paddingVertical="20dp"
-                    app:layout_constraintBottom_toTopOf="@id/tv_title_youtube_not_login"
-                    app:layout_constraintEnd_toEndOf="@id/tv_title_news_not_login"
-                    app:layout_constraintStart_toStartOf="@id/tv_title_news_not_login"
-                    app:layout_constraintTop_toBottomOf="@id/tv_title_news_not_login">
-
-                    <androidx.appcompat.widget.AppCompatImageView
-                        android:id="@+id/iv_wireless"
-                        android:layout_width="120dp"
-                        android:layout_height="120dp"
-                        android:adjustViewBounds="true"
-                        android:src="@drawable/ic_wireless"
-                        app:layout_constraintBottom_toTopOf="@id/tv_wireless"
-                        app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:tint="@color/white" />
+                        app:layout_constraintVertical_chainStyle="packed"
+                        tools:text="밍깅이" />
 
                     <TextView
-                        android:id="@+id/tv_wireless"
+                        android:id="@+id/tv_logout_title_recent"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:text="네트워크를 연결해야 이용 가능합니다."
-                        android:textColor="@color/white"
-                        android:textSize="16sp"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/home_recent_swing"
                         android:textStyle="bold"
-                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/tv_logout_title_recent_nickname"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_chainStyle="packed" />
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/view_news_not_login"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="44dp"
+                        android:layout_marginTop="20dp"
+                        android:background="@drawable/btn_rounded_light_green"
+                        android:paddingVertical="20dp"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/iv_wireless" />
+                        app:layout_constraintTop_toBottomOf="@id/tv_logout_title_recent_nickname">
 
+                        <TextView
+                            android:id="@+id/tv_recent_swing"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:fontFamily="@font/pretendard_bold"
+                            android:gravity="center_horizontal"
+                            android:text="최근 스윙이 없습니다!"
+                            android:textColor="@color/white"
+                            android:textSize="16sp" />
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/iv_guest_go_swing"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginVertical="15dp"
+                            android:adjustViewBounds="true"
+                            android:src="@drawable/guest_swing_icon"
+                            app:layout_constraintBottom_toTopOf="@id/tv_guest_go_swing"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/tv_recent_swing"
+                            app:tint="@color/white" />
+
+                        <TextView
+                            android:id="@+id/tv_guest_go_swing"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:drawableEnd="@drawable/arrow_import"
+                            android:drawablePadding="10dp"
+                            android:fontFamily="@font/pretendard_bold"
+                            android:text="바로 스윙하러 가볼까요?"
+                            android:textColor="@color/white"
+                            android:textSize="16sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/iv_guest_go_swing" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <!-- 골프 추천 영상 - 타이틀 -->
-                <TextView
-                    android:id="@+id/tv_title_youtube_not_login"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="44dp"
-                    android:layout_marginTop="20dp"
-                    android:text="@string/home_recommendation_youtube"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toTopOf="@id/view_youtube_not_login"
-                    app:layout_constraintTop_toBottomOf="@id/view_news_not_login" />
 
-                <!-- 네트워크 없음 화면 -->
+                <!-- 로그인된 경우 -->
                 <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/view_youtube_not_login"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:background="@drawable/btn_rounded_light_green"
-                    android:paddingVertical="20dp"
-                    app:layout_constraintEnd_toEndOf="@id/tv_title_news_not_login"
-                    app:layout_constraintStart_toStartOf="@id/tv_title_news_not_login"
-                    app:layout_constraintTop_toBottomOf="@id/tv_title_youtube_not_login">
+                    android:id="@+id/layout_content_login"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="visible">
 
-                    <androidx.appcompat.widget.AppCompatImageView
-                        android:id="@+id/iv_wireless2"
-                        android:layout_width="120dp"
-                        android:layout_height="120dp"
-                        android:adjustViewBounds="true"
-                        android:src="@drawable/ic_wireless"
-                        android:tint="@color/white"
-                        app:layout_constraintBottom_toTopOf="@id/tv_wireless2"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
+                    <!-- 최근 스윙 - 타이틀 -->
                     <TextView
-                        android:id="@+id/tv_wireless2"
+                        android:id="@+id/tv_title_recent_nickname"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:text="네트워크를 연결해야 이용 가능합니다."
-                        android:textColor="@color/white"
-                        android:textSize="16sp"
+                        android:layout_marginStart="44dp"
+                        android:layout_marginTop="10dp"
                         android:textStyle="bold"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/tv_title_recent"
+                        app:layout_constraintHorizontal_chainStyle="packed"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/iv_wireless2" />
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        tools:text="밍깅이" />
 
+                    <TextView
+                        android:id="@+id/tv_title_recent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/home_recent_swing"
+                        android:textStyle="bold"
+                        app:layout_constraintStart_toEndOf="@id/tv_title_recent_nickname"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_chainStyle="packed" />
+
+                    <!-- 최근 스윙 썸네일 -->
+                    <FrameLayout
+                        android:id="@+id/layout_recent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintTop_toBottomOf="@id/tv_title_recent">
+
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cv_recent_thumbnail"
+                            android:layout_width="match_parent"
+                            android:layout_height="250dp"
+                            android:layout_margin="20dp"
+                            app:cardCornerRadius="20dp"
+                            app:cardElevation="10dp"
+                            app:layout_constraintTop_toTopOf="parent">
+
+                            <ImageView
+                                android:id="@+id/iv_recent_thumbnail"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/golf_dummy_img" />
+                        </androidx.cardview.widget.CardView>
+                    </FrameLayout>
+
+                    <!-- 최근 스윙 점수 -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/btn_recent_score"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="30dp"
+                        android:layout_marginEnd="15dp"
+                        android:layout_marginBottom="-30dp"
+                        android:background="@drawable/btn_rounded_white"
+                        android:elevation="10dp"
+                        android:padding="15dp"
+                        app:layout_constraintBottom_toBottomOf="@id/layout_recent"
+                        app:layout_constraintEnd_toStartOf="@id/btn_recent_tempo"
+                        app:layout_constraintStart_toStartOf="@id/layout_recent">
+
+                        <ImageView
+                            android:id="@+id/iv_recent_score_icon"
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:src="@drawable/ic_recent_score"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <TextView
+                            android:id="@+id/tv_recent_score_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="점수"
+                            android:textColor="@color/gray"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            app:layout_constraintBottom_toBottomOf="@id/iv_recent_score_icon"
+                            app:layout_constraintStart_toEndOf="@id/iv_recent_score_icon"
+                            app:layout_constraintTop_toTopOf="@id/iv_recent_score_icon" />
+
+                        <TextView
+                            android:id="@+id/tv_recent_score"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="@id/iv_recent_score_icon"
+                            app:layout_constraintTop_toBottomOf="@id/iv_recent_score_icon"
+                            tools:text="82.5/100" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- 최근 스윙 템포 -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/btn_recent_tempo"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="30dp"
+                        android:background="@drawable/btn_rounded_white"
+                        android:elevation="10dp"
+                        android:padding="15dp"
+                        app:layout_constraintBottom_toBottomOf="@id/btn_recent_score"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/btn_recent_score"
+                        app:layout_constraintTop_toTopOf="@id/btn_recent_score">
+
+                        <ImageView
+                            android:id="@+id/iv_recent_tempo_icon"
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:src="@drawable/ic_recent_tempo"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <TextView
+                            android:id="@+id/tv_recent_tempo_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="템포"
+                            android:textColor="@color/gray"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            app:layout_constraintBottom_toBottomOf="@id/iv_recent_tempo_icon"
+                            app:layout_constraintStart_toEndOf="@id/iv_recent_tempo_icon"
+                            app:layout_constraintTop_toTopOf="@id/iv_recent_tempo_icon" />
+
+                        <TextView
+                            android:id="@+id/tv_tempo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="@id/iv_recent_tempo_icon"
+                            app:layout_constraintTop_toBottomOf="@id/iv_recent_tempo_icon"
+                            tools:text="1.67" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- 최근 스윙 영상 보러가기 버튼 -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/btn_go_recent_replay"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="30dp"
+                        android:layout_marginTop="20dp"
+                        android:background="@drawable/btn_rounded_green_25"
+                        android:elevation="10dp"
+                        app:layout_constraintBottom_toTopOf="@id/tv_title_total_swing_cnt1"
+                        app:layout_constraintTop_toBottomOf="@id/btn_recent_score">
+
+                        <TextView
+                            android:id="@+id/tv_go_recent_replay"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="20dp"
+                            android:text="최근 스윙 영상 보러가기"
+                            android:textColor="@color/white"
+                            android:textStyle="bold"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@id/iv_go_recent_replay"
+                            app:layout_constraintHorizontal_chainStyle="packed"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <ImageView
+                            android:id="@+id/iv_go_recent_replay"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:src="@drawable/ic_home_go_recent_replay"
+                            app:layout_constraintBottom_toBottomOf="@id/tv_go_recent_replay"
+                            app:layout_constraintDimensionRatio="1:1"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toEndOf="@id/tv_go_recent_replay"
+                            app:layout_constraintTop_toTopOf="@id/tv_go_recent_replay" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- 누적 스윙 횟수 - 타이틀 -->
+
+                    <TextView
+                        android:id="@+id/tv_title_total_swing_cnt1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="44dp"
+                        android:layout_marginTop="20dp"
+                        android:text="지금까지 "
+                        android:textStyle="bold"
+                        app:layout_constraintBottom_toTopOf="@id/btn_go_total_report"
+                        app:layout_constraintEnd_toStartOf="@id/tv_title_total_swing_cnt2"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/btn_go_recent_replay" />
+
+                    <TextView
+                        android:id="@+id/tv_title_total_swing_cnt2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="4"
+                        android:textStyle="bold"
+                        app:layout_constraintBottom_toBottomOf="@id/tv_title_total_swing_cnt1"
+                        app:layout_constraintEnd_toStartOf="@id/tv_title_total_swing_cnt3"
+                        app:layout_constraintStart_toEndOf="@id/tv_title_total_swing_cnt1"
+                        app:layout_constraintTop_toTopOf="@id/tv_title_total_swing_cnt1" />
+
+                    <TextView
+                        android:id="@+id/tv_title_total_swing_cnt3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="번의 스윙을 연습했습니다!"
+                        android:textStyle="bold"
+                        app:layout_constraintBottom_toBottomOf="@id/tv_title_total_swing_cnt1"
+                        app:layout_constraintStart_toEndOf="@id/tv_title_total_swing_cnt2"
+                        app:layout_constraintTop_toTopOf="@id/tv_title_total_swing_cnt1" />
+
+                    <!-- 종합 리포트 받아보기 버튼 -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/btn_go_total_report"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="30dp"
+                        android:layout_marginTop="20dp"
+                        android:background="@drawable/btn_rounded_green_25"
+                        android:elevation="10dp"
+                        app:layout_constraintBottom_toTopOf="@id/tv_title_news"
+                        app:layout_constraintTop_toBottomOf="@id/tv_title_total_swing_cnt1">
+
+                        <TextView
+                            android:id="@+id/tv_go_total_report"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="20dp"
+                            android:text="종합 분석 리포트 받아보기"
+                            android:textColor="@color/white"
+                            android:textStyle="bold"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@id/iv_go_total_report"
+                            app:layout_constraintHorizontal_chainStyle="packed"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <ImageView
+                            android:id="@+id/iv_go_total_report"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:src="@drawable/ic_home_go_total_report"
+                            app:layout_constraintBottom_toBottomOf="@id/tv_go_total_report"
+                            app:layout_constraintDimensionRatio="1:1"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toEndOf="@id/tv_go_total_report"
+                            app:layout_constraintTop_toTopOf="@id/tv_go_total_report" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
                 </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+                <!--                &lt;!&ndash; 골프 추천 기사 - 타이틀 &ndash;&gt;-->
+                <!--                <TextView-->
+                <!--                    android:id="@+id/tv_title_news_not_login"-->
+                <!--                    android:layout_width="match_parent"-->
+                <!--                    android:layout_height="wrap_content"-->
+                <!--                    android:layout_marginHorizontal="44dp"-->
+                <!--                    android:layout_marginTop="20dp"-->
+                <!--                    android:text="@string/home_recommendation_news"-->
+                <!--                    android:textStyle="bold"-->
+                <!--                    app:layout_constraintBottom_toTopOf="@id/view_news_not_login"-->
+                <!--                    app:layout_constraintTop_toTopOf="parent"-->
+                <!--                    app:layout_constraintVertical_chainStyle="packed" />-->
+
+                <!--                &lt;!&ndash; 네트워크 없음 화면 &ndash;&gt;-->
+                <!--                <androidx.constraintlayout.widget.ConstraintLayout-->
+                <!--                    android:id="@+id/view_news_not_login"-->
+                <!--                    android:layout_width="0dp"-->
+                <!--                    android:layout_height="wrap_content"-->
+                <!--                    android:layout_marginTop="20dp"-->
+                <!--                    android:background="@drawable/btn_rounded_light_green"-->
+                <!--                    android:paddingVertical="20dp"-->
+                <!--                    app:layout_constraintBottom_toTopOf="@id/tv_title_youtube_not_login"-->
+                <!--                    app:layout_constraintEnd_toEndOf="@id/tv_title_news_not_login"-->
+                <!--                    app:layout_constraintStart_toStartOf="@id/tv_title_news_not_login"-->
+                <!--                    app:layout_constraintTop_toBottomOf="@id/tv_title_news_not_login">-->
+
+                <!--                    <androidx.appcompat.widget.AppCompatImageView-->
+                <!--                        android:id="@+id/iv_wireless"-->
+                <!--                        android:layout_width="120dp"-->
+                <!--                        android:layout_height="120dp"-->
+                <!--                        android:adjustViewBounds="true"-->
+                <!--                        android:src="@drawable/ic_wireless"-->
+                <!--                        app:layout_constraintBottom_toTopOf="@id/tv_wireless"-->
+                <!--                        app:layout_constraintEnd_toEndOf="parent"-->
+                <!--                        app:layout_constraintStart_toStartOf="parent"-->
+                <!--                        app:layout_constraintTop_toTopOf="parent"-->
+                <!--                        app:tint="@color/white" />-->
+
+                <!--                    <TextView-->
+                <!--                        android:id="@+id/tv_wireless"-->
+                <!--                        android:layout_width="wrap_content"-->
+                <!--                        android:layout_height="wrap_content"-->
+                <!--                        android:layout_marginTop="20dp"-->
+                <!--                        android:text="네트워크를 연결해야 이용 가능합니다."-->
+                <!--                        android:textColor="@color/white"-->
+                <!--                        android:textSize="16sp"-->
+                <!--                        android:textStyle="bold"-->
+                <!--                        app:layout_constraintBottom_toBottomOf="parent"-->
+                <!--                        app:layout_constraintEnd_toEndOf="parent"-->
+                <!--                        app:layout_constraintStart_toStartOf="parent"-->
+                <!--                        app:layout_constraintTop_toBottomOf="@+id/iv_wireless" />-->
+
+                <!--                </androidx.constraintlayout.widget.ConstraintLayout>-->
+
+                <!--                &lt;!&ndash; 골프 추천 영상 - 타이틀 &ndash;&gt;-->
+                <!--                <TextView-->
+                <!--                    android:id="@+id/tv_title_youtube_not_login"-->
+                <!--                    android:layout_width="match_parent"-->
+                <!--                    android:layout_height="wrap_content"-->
+                <!--                    android:layout_marginHorizontal="44dp"-->
+                <!--                    android:layout_marginTop="20dp"-->
+                <!--                    android:text="@string/home_recommendation_youtube"-->
+                <!--                    android:textStyle="bold"-->
+                <!--                    app:layout_constraintBottom_toTopOf="@id/view_youtube_not_login"-->
+                <!--                    app:layout_constraintTop_toBottomOf="@id/view_news_not_login" />-->
+
+                <!--                &lt;!&ndash; 네트워크 없음 화면 &ndash;&gt;-->
+                <!--                <androidx.constraintlayout.widget.ConstraintLayout-->
+                <!--                    android:id="@+id/view_youtube_not_login"-->
+                <!--                    android:layout_width="0dp"-->
+                <!--                    android:layout_height="wrap_content"-->
+                <!--                    android:layout_marginTop="20dp"-->
+                <!--                    android:background="@drawable/btn_rounded_light_green"-->
+                <!--                    android:paddingVertical="20dp"-->
+                <!--                    app:layout_constraintEnd_toEndOf="@id/tv_title_news_not_login"-->
+                <!--                    app:layout_constraintStart_toStartOf="@id/tv_title_news_not_login"-->
+                <!--                    app:layout_constraintTop_toBottomOf="@id/tv_title_youtube_not_login">-->
+
+                <!--                    <androidx.appcompat.widget.AppCompatImageView-->
+                <!--                        android:id="@+id/iv_wireless2"-->
+                <!--                        android:layout_width="120dp"-->
+                <!--                        android:layout_height="120dp"-->
+                <!--                        android:adjustViewBounds="true"-->
+                <!--                        android:src="@drawable/ic_wireless"-->
+                <!--                        android:tint="@color/white"-->
+                <!--                        app:layout_constraintBottom_toTopOf="@id/tv_wireless2"-->
+                <!--                        app:layout_constraintEnd_toEndOf="parent"-->
+                <!--                        app:layout_constraintStart_toStartOf="parent"-->
+                <!--                        app:layout_constraintTop_toTopOf="parent" />-->
+
+                <!--                    <TextView-->
+                <!--                        android:id="@+id/tv_wireless2"-->
+                <!--                        android:layout_width="wrap_content"-->
+                <!--                        android:layout_height="wrap_content"-->
+                <!--                        android:layout_marginTop="20dp"-->
+                <!--                        android:text="네트워크를 연결해야 이용 가능합니다."-->
+                <!--                        android:textColor="@color/white"-->
+                <!--                        android:textSize="16sp"-->
+                <!--                        android:textStyle="bold"-->
+                <!--                        app:layout_constraintBottom_toBottomOf="parent"-->
+                <!--                        app:layout_constraintEnd_toEndOf="parent"-->
+                <!--                        app:layout_constraintStart_toStartOf="parent"-->
+                <!--                        app:layout_constraintTop_toBottomOf="@+id/iv_wireless2" />-->
+
             </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- 골프 추천 기사 - 타이틀 -->
+            <TextView
+                android:id="@+id/tv_title_news"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="44dp"
+                android:layout_marginTop="30dp"
+                android:text="@string/home_recommendation_news"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toTopOf="@id/vp_news"
+                app:layout_constraintTop_toBottomOf="@id/layout_login_content"
+                app:layout_constraintVertical_chainStyle="packed" />
+
+            <!-- 골프 추천 기사 - ViewPager -->
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/vp_news"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:clipChildren="false"
+                app:layout_constraintBottom_toTopOf="@id/tv_title_youtube"
+                app:layout_constraintTop_toBottomOf="@id/tv_title_news" />
+
+            <!-- 골프 추천 영상 - 타이틀 -->
+            <TextView
+                android:id="@+id/tv_title_youtube"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="44dp"
+                android:layout_marginTop="20dp"
+                android:text="@string/home_recommendation_youtube"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toTopOf="@id/rv_youtube"
+                app:layout_constraintTop_toBottomOf="@id/vp_news" />
+
+            <!-- 골프 추천 영상 - ViewPager -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_youtube"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginTop="10dp"
+                android:nestedScrollingEnabled="false"
+                android:orientation="horizontal"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_title_youtube"
+                tools:listitem="@layout/item_home_youtube" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
