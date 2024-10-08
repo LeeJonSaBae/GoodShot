@@ -139,7 +139,7 @@
             android:id="@+id/replay_report"
             android:name="com.ijonsabae.presentation.replay.ReplayReportFragment"
             tools:label="replay report"
-            tools:layout="@layout/fragment_replay_report" >
+            tools:layout="@layout/fragment_replay_report">
             <argument
                 android:name="Swing_Feedback_Comment_List"
                 app:argType="com.ijonsabae.presentation.model.SwingFeedbackCommentParcelable[]" />
@@ -169,6 +169,9 @@
             <action
                 android:id="@+id/action_profile_to_login_dialog"
                 app:destination="@id/login_dialog" />
+            <action
+                android:id="@+id/action_profile_to_forbidden_dialog"
+                app:destination="@id/forbidden_dialog" />
         </fragment>
 
         <fragment
@@ -194,6 +197,12 @@
             android:name="com.ijonsabae.presentation.profile.ChangePasswordDialog"
             tools:label="change_password_dialog"
             tools:layout="@layout/dialog_change_password" />
+
+        <dialog
+            android:id="@+id/forbidden_dialog"
+            android:name="com.ijonsabae.presentation.profile.ForbiddenDialog"
+            tools:label="forbidden_dialog"
+            tools:layout="@layout/dialog_forbidden" />
     </navigation>
 
 
