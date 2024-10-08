@@ -4,6 +4,7 @@ import com.d201.goodshot.expert.domain.Expert;
 import com.d201.goodshot.expert.dto.ExpertResponse.ExpertDetailItem;
 import com.d201.goodshot.expert.dto.ExpertResponse.ExpertItem;
 import com.d201.goodshot.expert.dto.ExpertResponse.ExpertItemResponse;
+import com.d201.goodshot.expert.exception.NotFoundExpertException;
 import com.d201.goodshot.expert.repository.ExpertRepository;
 import com.d201.goodshot.user.exception.NotFoundUserException;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +50,7 @@ public class ExpertService {
     }
 
     public ExpertDetailItem getExpertDetail(int id) {
-        Expert expert = expertRepository.findById(id).orElseThrow(NotFoundUserException::new);
+        Expert expert = expertRepository.findById(id).orElseThrow(NotFoundExpertException::new);
 
         List<String> certificates = Arrays.asList(expert.getCertificate().split(", "));
 

@@ -1,6 +1,5 @@
 package com.d201.goodshot.expert.controller;
 
-import com.d201.goodshot.expert.dto.ExpertResponse;
 import com.d201.goodshot.expert.dto.ExpertResponse.ExpertDetailItem;
 import com.d201.goodshot.expert.dto.ExpertResponse.ExpertItemResponse;
 import com.d201.goodshot.expert.service.ExpertService;

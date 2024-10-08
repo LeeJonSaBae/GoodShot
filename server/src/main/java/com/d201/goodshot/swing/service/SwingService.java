@@ -47,9 +47,6 @@ public class SwingService {
     private final UserRepository userRepository;
     private final ReportRepository reportRepository;
 
-    @Value("${image.prefix}")
-    private String prefix;
-
     @Value("${image.folder}")
     private String folder;
 
