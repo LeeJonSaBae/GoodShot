@@ -13,6 +13,7 @@ glideTransformations = "4.3.0"
 gravitysnaphelper = "2.2.2"
 hiltAndroid = "2.48.1"
 hokoBlurVersion = "1.5.3"
+jsoup = "1.14.3"
 kotlin = "1.9.22"
 coreKtx = "1.13.1"
 junit = "4.13.2"
@@ -80,6 +81,7 @@ gravitysnaphelper = { module = "com.github.rubensousa:gravitysnaphelper", versio
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltAndroid" }
 hokofly-hoko-blur = { module = "io.github.hokofly:hoko-blur", version.ref = "hokoBlurVersion" }
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
