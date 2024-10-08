@@ -60,7 +60,7 @@ public class SwingService {
         List<Swing> swings = swingRepository.findByUser(user); // swing 전부 찾기
 
         int swingCount = swings.size();
-        if(swingCount <= 15) { // swing 횟수가 부족하면 종합 리포트 조회 불가능 (15회)
+        if(swingCount < 15) { // swing 횟수가 부족하면 종합 리포트 조회 불가능 (15회)
             throw new InsufficientAttemptsException();
         }
 
