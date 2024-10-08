@@ -8,11 +8,9 @@ import androidx.paging.cachedIn
 import com.ijonsabae.domain.model.SwingFeedback
 import com.ijonsabae.domain.usecase.login.GetUserIdUseCase
 import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackLikeListUseCase
-import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackListUseCase
+import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackPagingDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.cache
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
@@ -20,7 +18,7 @@ import javax.inject.Inject
 private const val TAG = "ReplayFragmentViewModel_싸피"
 @HiltViewModel
 class ReplayFragmentViewModel @Inject constructor(
-    private val getLocalSwingFeedbackListUseCase: GetLocalSwingFeedbackListUseCase,
+    private val getLocalSwingFeedbackListUseCase: GetLocalSwingFeedbackPagingDataUseCase,
     private val getUserIdUseCase: GetUserIdUseCase,
     private val getLocalSwingFeedbackLikeListUseCase: GetLocalSwingFeedbackLikeListUseCase
 ): ViewModel() {

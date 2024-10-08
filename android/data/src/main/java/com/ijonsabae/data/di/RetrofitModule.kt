@@ -40,8 +40,8 @@ class RetrofitModule {
     @Named("default_okhttp_client")
     fun provideDefaultOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor, tokenInterceptor: TokenInterceptor): OkHttpClient {
         return OkHttpClient.Builder()
-            .readTimeout(5000, TimeUnit.MILLISECONDS)
-            .connectTimeout(5000, TimeUnit.MILLISECONDS)
+            .readTimeout(150000, TimeUnit.MILLISECONDS)
+            .connectTimeout(150000, TimeUnit.MILLISECONDS)
             .addInterceptor(httpLoggingInterceptor)
             .addInterceptor(tokenInterceptor)
             .build()

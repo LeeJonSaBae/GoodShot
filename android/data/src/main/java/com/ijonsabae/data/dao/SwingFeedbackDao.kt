@@ -21,6 +21,9 @@ interface SwingFeedbackDao {
     @Query("SELECT * FROM swing_feedback WHERE isUpdated == 0 and userID = :userID")
     fun getAllSwingFeedbackNeedToUpload(userID:Long): List<SwingFeedback>
 
+    @Query("SELECT * FROM swing_feedback WHERE isUpdated != 2 and userID = :userID")
+    fun getAllSwingFeedbackList(userID:Long): List<SwingFeedback>
+
     @Query("SELECT likeStatus, title, swingCode, date, isUpdated FROM swing_feedback WHERE userID = :userID and isUpdated != 0")
     fun getChangedSwingFeedback(userID: Long): List<SwingFeedbackSyncRoomData>
 

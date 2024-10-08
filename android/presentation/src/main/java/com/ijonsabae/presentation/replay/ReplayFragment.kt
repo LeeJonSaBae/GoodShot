@@ -7,40 +7,37 @@ import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.ijonsabae.domain.model.SwingCommentExportParam
-import com.ijonsabae.domain.model.SwingComparisonParam
 import com.ijonsabae.domain.model.SwingFeedback
-import com.ijonsabae.domain.model.SwingFeedbackExportParam
 import com.ijonsabae.domain.usecase.profile.UploadPresignedDataUseCase
 import com.ijonsabae.domain.usecase.replay.DeleteLocalSwingFeedbackUseCase
 import com.ijonsabae.domain.usecase.replay.ExportSwingFeedbackListUseCase
 import com.ijonsabae.domain.usecase.replay.GetLocalChangedSwingFeedbackListUseCase
 import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackCommentUseCase
-import com.ijonsabae.domain.usecase.replay.HideSwingFeedbackUseCase
 import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackDataNeedSyncUseCase
 import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackListNeedToUploadUseCase
+import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackListUseCase
 import com.ijonsabae.domain.usecase.replay.GetRemoteSwingFeedbackListNeedToUploadUseCase
+import com.ijonsabae.domain.usecase.replay.HideSwingFeedbackUseCase
+import com.ijonsabae.domain.usecase.replay.ImportSwingFeedbackListUseCase
 import com.ijonsabae.domain.usecase.replay.SyncUpdateStatusUseCase
 import com.ijonsabae.domain.usecase.replay.UpdateClampStatusUseCase
 import com.ijonsabae.domain.usecase.replay.UpdateLikeStatusUseCase
 import com.ijonsabae.domain.usecase.replay.UpdateTitleUseCase
+import com.ijonsabae.domain.usecase.shot.InsertLocalSwingFeedbackCommentUseCase
+import com.ijonsabae.domain.usecase.shot.InsertLocalSwingFeedbackUseCase
+import com.ijonsabae.presentation.BuildConfig
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
-import com.ijonsabae.presentation.config.Const.Companion.BACKSWING
-import com.ijonsabae.presentation.config.Const.Companion.DOWNSWING
-import com.ijonsabae.presentation.config.Const.Companion.NICE
 import com.ijonsabae.presentation.databinding.FragmentReplayBinding
 import com.ijonsabae.presentation.main.MainActivity
 import com.ijonsabae.presentation.mapper.SwingFeedbackCommentMapper
 import com.ijonsabae.presentation.mapper.SwingFeedbackMapper
-import com.ijonsabae.presentation.mapper.SwingFeedbackSyncRoomDataMapper
 import com.ijonsabae.presentation.shot.SwingLocalDataProcessor
-import com.ijonsabae.presentation.util.formatTDateFromLongKorea
+import com.ijonsabae.presentation.shot.SwingRemoteDataProcessor
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.last
@@ -51,47 +48,25 @@ import javax.inject.Inject
 
 private const val TAG = "ReplayFragment_싸피"
 
+const val S3_URL = BuildConfig.S3_URL
+const val IMAGE = BuildConfig.IMAGE
+const val THUMBNAIL = BuildConfig.THUMBNAIL
+const val VIDEO = BuildConfig.VIDEO
 @AndroidEntryPoint
 class ReplayFragment :
     BaseFragment<FragmentReplayBinding>(FragmentReplayBinding::bind, R.layout.fragment_replay) {
     @Inject
     lateinit var updateTitleUseCase: UpdateTitleUseCase
-
     @Inject
     lateinit var updateClampStatusUseCase: UpdateClampStatusUseCase
-
     @Inject
     lateinit var updateLikeStatusUseCase: UpdateLikeStatusUseCase
-
-    @Inject
-    lateinit var deleteLocalSwingFeedbackUseCase: DeleteLocalSwingFeedbackUseCase
-
     @Inject
     lateinit var hideSwingFeedbackUseCase: HideSwingFeedbackUseCase
-
     @Inject
     lateinit var getLocalSwingFeedbackCommentUseCase: GetLocalSwingFeedbackCommentUseCase
-
     @Inject
-    lateinit var getChangedSwingFeedbackUseCase: GetLocalChangedSwingFeedbackListUseCase
-    
-    @Inject
-    lateinit var getSwingFeedbackDataNeedSyncUseCase: GetLocalSwingFeedbackDataNeedSyncUseCase
-
-    @Inject
-    lateinit var getLocalSwingFeedbackListNeedToUploadUseCase: GetLocalSwingFeedbackListNeedToUploadUseCase
-
-    @Inject
-    lateinit var syncUpdateStatusUseCase: SyncUpdateStatusUseCase
-
-    @Inject
-    lateinit var getRemoteSwingFeedbackListNeedToUploadUseCase: GetRemoteSwingFeedbackListNeedToUploadUseCase
-
-    @Inject
-    lateinit var uploadPresignedDataUseCase: UploadPresignedDataUseCase
-
-    @Inject
-    lateinit var exportSwingFeedbackListUseCase: ExportSwingFeedbackListUseCase
+    lateinit var swingRemoteDataProcessor: SwingRemoteDataProcessor
 
     private val viewModel: ReplayFragmentViewModel by viewModels()
 
@@ -202,81 +177,7 @@ class ReplayFragment :
 
         dialogView.findViewById<View>(R.id.menu_export).setOnClickListener {
             lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
-                val userID = viewModel.getUserID()
-                Log.d(TAG, "showCustomPopup: $userID")
-                if(userID == -1L){
-                    launch(Dispatchers.Main) {
-                        showToastShort("비회원은 동기화를 진행하실 수 없습니다!")
-                    }
-                }else{
-                    // 바꿔야 할 SwingFeedback 목록 추출
-                    val changedSwingFeedbackList = SwingFeedbackSyncRoomDataMapper.mapperToSwingFeedbackSyncList(getChangedSwingFeedbackUseCase(userID))
-                    // 서버에 업데이트 보냄
-                    getSwingFeedbackDataNeedSyncUseCase(changedSwingFeedbackList).getOrThrow()
-
-                    // 이후 업데이트 보냈으니까 삭제된 것 제외 전부 업데이트 0으로 해서 업데이트 필요 없는 값으로 설정
-                    syncUpdateStatusUseCase(userID)
-
-                    // 0인 목록들을 뽑아서 Upload 후보군을 생성
-                    val list = getLocalSwingFeedbackListNeedToUploadUseCase(userID)
-
-                    // 업로드 후보군으로부터 진짜 업로드 대상을 추출
-                    val result = getRemoteSwingFeedbackListNeedToUploadUseCase(SwingComparisonParam(list.map { it.swingCode})).getOrThrow()
-
-                    // 진짜 업로드 대상에 대해서 반복적으로 각 대상마다 10개의 영상, 이미지를 업로드
-                    result.data.forEach { data ->
-                        val poseList = SwingLocalDataProcessor.getSwingPoseFiles(fragmentContext, data.code, userID)
-                        data.presignedUrls.forEachIndexed { index, url ->
-                            when (index) {
-                                0 -> {
-                                    uploadPresignedDataUseCase(url, SwingLocalDataProcessor.getSwingVideoFile(fragmentContext,data.code, userID).toURI()).getOrThrow()
-                                }
-                                1 -> {
-                                    uploadPresignedDataUseCase(url, SwingLocalDataProcessor.getSwingThumbnailFile(fragmentContext,data.code, userID).toURI()).getOrThrow()
-                                }
-                                else -> {
-                                    uploadPresignedDataUseCase(url, poseList[index-2].toURI()).getOrThrow()
-                                }
-                            }
-                        }
-                    }
-
-                    // 업로드 대상에 대해서 돌아가면서 해당 업로드한 코드의 comment와 feedback을 가져와서 SwingExportParam 형성 및 Upload
-                    val codeSet = result.data.map { it.code }.toHashSet()
-
-                    exportSwingFeedbackListUseCase(
-                        list.filter {
-                            it.swingCode in codeSet
-                        }.map { it ->
-                            val data =
-                                SwingFeedbackExportParam(
-                                    score = it.score,
-                                    title = it.title,
-                                    similarity = it.similarity,
-                                    likeStatus = it.likeStatus,
-                                    tempo = it.tempo,
-                                    solution = it.solution,
-                                    id = userID,
-                                    code = it.swingCode,
-                                    time = formatTDateFromLongKorea(it.date),
-                                    backSwingComments = getLocalSwingFeedbackCommentUseCase(userID,it.swingCode).filter { comment ->
-                                        comment.poseType == BACKSWING
-                                    }.map { SwingCommentExportParam(
-                                        commentType = if(it.commentType == NICE){"NICE"} else{"BAD"},
-                                        content = it.content
-                                    ) },
-                                    downSwingComments = getLocalSwingFeedbackCommentUseCase(userID,it.swingCode).filter {
-                                        it.poseType == DOWNSWING
-                                    }.map { SwingCommentExportParam(
-                                        commentType = if(it.commentType == NICE){"NICE"} else{"BAD"},
-                                        content = it.content
-                                    ) }
-                                )
-                            Log.d(TAG, "showCustomPopup 업로드 데이터: $data")
-                            data
-                        }
-                    ).getOrThrow()
-                }
+                swingRemoteDataProcessor.uploadLocalSwingData(fragmentContext)
                 withContext(Dispatchers.Main) {
                     showToastShort("내보내기가 완료됐습니다!")
                 }
@@ -285,7 +186,24 @@ class ReplayFragment :
             dialog.dismiss()
         }
         dialogView.findViewById<View>(R.id.menu_import).setOnClickListener {
-            Toast.makeText(requireContext(), "가져오기 클릭", Toast.LENGTH_SHORT).show()
+            lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
+               swingRemoteDataProcessor.downloadRemoteSwingData(fragmentContext)
+                if(binding.cbFilter.isChecked){
+                    viewModel.getLocalSwingFeedbackLikeList()
+                    lifecycleScope.launch {
+                        replayAdapter.submitData(viewModel.swingFeedbackList.value)
+                    }
+                }else{
+                    viewModel.getLocalSwingFeedbackList()
+                    lifecycleScope.launch {
+                        replayAdapter.submitData(viewModel.swingFeedbackList.value)
+                        Log.d(TAG, "onViewCreated: ${replayAdapter.itemCount}")
+                    }
+                }
+                withContext(Dispatchers.Main){
+                    showToastShort("가져오기가 완료됐습니다!")
+                }
+            }
             dialog.dismiss()
         }
 

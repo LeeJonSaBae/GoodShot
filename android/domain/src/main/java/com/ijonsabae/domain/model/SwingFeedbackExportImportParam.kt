@@ -1,9 +1,9 @@
 package com.ijonsabae.domain.model
 
-data class SwingFeedbackExportParam(
+data class SwingFeedbackExportImportParam(
     val id: Long,
-    val backSwingComments: List<SwingCommentExportParam>,
-    val downSwingComments: List<SwingCommentExportParam>,
+    val backSwingComments: List<SwingCommentExportImportParam>,
+    val downSwingComments: List<SwingCommentExportImportParam>,
     val similarity: Similarity,
     val solution: String,
     val score: Int,

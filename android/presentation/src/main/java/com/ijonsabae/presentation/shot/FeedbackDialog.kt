@@ -24,8 +24,6 @@ import com.ijonsabae.presentation.config.BaseDialog
 import com.ijonsabae.presentation.databinding.DialogFeedbackBinding
 import dagger.hilt.android.AndroidEntryPoint
 
-private const val TAG = "FeedbackDialog 싸피"
-
 @AndroidEntryPoint
 class FeedbackDialog :
     BaseDialog<DialogFeedbackBinding>(DialogFeedbackBinding::bind, R.layout.dialog_feedback) {
@@ -53,6 +51,7 @@ class FeedbackDialog :
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        dialog?.setCancelable(false)
         dialog?.window?.setBackgroundDrawableResource(R.drawable.rounded_dialog_background)
         return super.onCreateView(inflater, container, savedInstanceState)
     }
@@ -72,9 +71,13 @@ class FeedbackDialog :
         setScreenHeightPercentage(0.8F)
     }
 
+    override fun onDestroyView() {
+        swingViewModel.setCurrentState(CameraState.POSITIONING)
+        super.onDestroyView()
+    }
+
     private fun initButtons() {
         binding.btnClose.setOnClickListener {
-            swingViewModel.setCurrentState(CameraState.POSITIONING)
             checkSwingCompletionAndNavigate()
             dismiss()
         }
@@ -83,7 +86,6 @@ class FeedbackDialog :
     private fun initBackPress() {
         dialog?.setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
-                swingViewModel.setCurrentState(CameraState.POSITIONING)
                 checkSwingCompletionAndNavigate()
                 dismiss()
                 true
@@ -94,7 +96,7 @@ class FeedbackDialog :
     }
 
     private fun checkSwingCompletionAndNavigate() {
-        if (args.swingCnt == args.totalSwingCnt) {
+        if (args.swingCnt >= args.totalSwingCnt) {
             if (navController.currentDestination?.id == R.id.feedback_dialog) {
                 navController.navigate(R.id.action_feedback_dialog_to_shot)
                 showToastLong("스윙 촬영 횟수를 모두 채워 분석이 종료되었습니다.")
