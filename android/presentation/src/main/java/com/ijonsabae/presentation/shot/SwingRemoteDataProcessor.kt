@@ -35,7 +35,10 @@ import com.ijonsabae.presentation.replay.THUMBNAIL
 import com.ijonsabae.presentation.replay.VIDEO
 import com.ijonsabae.presentation.util.formatTDateFromLongKorea
 import com.ijonsabae.presentation.util.stringToTimeInMillis
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -235,13 +238,24 @@ class SwingRemoteDataProcessor @Inject constructor(
 
 
             Log.d(TAG, "showCustomPopup: ${SwingLocalDataProcessor.getSwingVideoFile(context, userId = userID, swingCode = swingFeedbackParam.code).path}")
-            downloadAndSaveFile(videoUri.toString(),  SwingLocalDataProcessor.getSwingVideoFile(context, userId = userID, swingCode = swingFeedbackParam.code).toString())
-            downloadAndSaveFile(thumbnailUri.toString(), SwingLocalDataProcessor.getSwingThumbnailFile(context, userId = userID, swingCode = swingFeedbackParam.code).toString())
-            val poseDestination = SwingLocalDataProcessor.getSwingPoseFiles(context, userId = userID, swingCode = swingFeedbackParam.code)
-            for(i in 0 until 8){
-                downloadManager.apply {
-                    val imageUrl = returnImageUri(i)
-                    downloadAndSaveFile(imageUrl.toString(), poseDestination[i].toPath().toString())
+            CoroutineScope(Dispatchers.IO).launch {
+                launch {
+                    downloadAndSaveFile(videoUri.toString(),  SwingLocalDataProcessor.getSwingVideoFile(context, userId = userID, swingCode = swingFeedbackParam.code).toString())
+                }
+                launch {
+                    downloadAndSaveFile(thumbnailUri.toString(), SwingLocalDataProcessor.getSwingThumbnailFile(context, userId = userID, swingCode = swingFeedbackParam.code).toString())
+                }
+                launch {
+                    val poseDestination = SwingLocalDataProcessor.getSwingPoseFiles(context, userId = userID, swingCode = swingFeedbackParam.code)
+
+                    for(i in 0 until 8){
+                        downloadManager.apply {
+                            val imageUrl = returnImageUri(i)
+                            launch {
+                                downloadAndSaveFile(imageUrl.toString(), poseDestination[i].toPath().toString())
+                            }
+                        }
+                    }
                 }
             }
         }
