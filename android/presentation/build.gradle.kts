@@ -159,4 +159,7 @@ dependencies {
     // viewpager indicator
     implementation(libs.dotsindicator)
 
+    // youtube parsing
+    implementation (libs.jsoup)
+
 }

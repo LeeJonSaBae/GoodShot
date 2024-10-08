@@ -15,7 +15,7 @@ fun convertVideoItemToYoutubeDTO(videoItem: YouTubeResponse.VideoItem): YoutubeD
         title = videoItem.snippet.title,
         link = "https://www.youtube.com/watch?v="+videoItem.id.videoId,
         isVisible = false,
-        thumbnail = "https://img.youtube.com/vi/" + videoItem.id.videoId + "/maxresdefault.jpg",
+            thumbnail = "https://img.youtube.com/vi/" + videoItem.id.videoId + "/maxresdefault.jpg",
         alternativeThumbnail = videoItem.snippet.thumbnails.high.url
     )
 }
