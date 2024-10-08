@@ -1,6 +1,7 @@
 package com.ijonsabae.presentation.profile
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
+private const val TAG = "LoginDialog 싸피"
 @AndroidEntryPoint
 class LoginDialog : BaseDialog<DialogLoginBinding>(
     DialogLoginBinding::bind,
@@ -58,7 +60,7 @@ class LoginDialog : BaseDialog<DialogLoginBinding>(
             if(checkValidation()){
                 lifecycleScope.launch (coroutineExceptionHandler){
                     val result = loginDialogViewModel.login().getOrThrow()
-                    withContext(Dispatchers.IO) {
+                    runBlocking {
                         loginDialogViewModel.setToken(result.data)
                         loginDialogViewModel.saveToken(result.data)
                     }
@@ -81,6 +83,7 @@ class LoginDialog : BaseDialog<DialogLoginBinding>(
             repeatOnLifecycle(Lifecycle.State.STARTED){
                 loginDialogViewModel.token.collect{
                     if(it != Token.EMPTY){
+                        Log.d(TAG, "initFlow: Token Collect setLoginStatusTrue")
                         profileViewModel.setLoginStatus(true)
                     }
                 }

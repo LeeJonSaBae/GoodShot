@@ -1,6 +1,7 @@
 package com.ijonsabae.data.datasource.local
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -21,7 +22,7 @@ import java.util.TimeZone
 import javax.inject.Inject
 
 private val Context.tokenDataStore: DataStore<Preferences> by preferencesDataStore(name="token_datastore")
-
+private const val TAG = "TokenLocalDataSource 싸피"
 class TokenLocalDataSource @Inject constructor(@ApplicationContext private val context: Context) {
     companion object{
         private val ACCESS_TOKEN = stringPreferencesKey("access_token")
@@ -36,6 +37,7 @@ class TokenLocalDataSource @Inject constructor(@ApplicationContext private val c
             pref[REFRESH_TOKEN] = token.refreshToken
             pref[USER_ID] = token.userId
         }
+        Log.d(TAG, "setToken: 로그인 토큰 설정 완료")
     }
 
     suspend fun setLocalTokenCreatedTime() {

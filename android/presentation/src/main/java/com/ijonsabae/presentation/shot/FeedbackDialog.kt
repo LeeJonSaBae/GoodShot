@@ -53,6 +53,7 @@ class FeedbackDialog :
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        dialog?.setCancelable(false)
         dialog?.window?.setBackgroundDrawableResource(R.drawable.rounded_dialog_background)
         return super.onCreateView(inflater, container, savedInstanceState)
     }

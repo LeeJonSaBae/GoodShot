@@ -32,7 +32,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
-private const val TAG = "굿샷_ProfileFragment"
+private const val TAG = "ProfileFragment 싸피"
 
 @AndroidEntryPoint
 class ProfileFragment :
