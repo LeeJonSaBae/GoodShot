@@ -5,4 +5,5 @@
     <dimen name="replay_report_title_margin_horizontal">30dp</dimen>
 
     <dimen name="home_news_margin_dp_between_items">3dp</dimen>
+    <dimen name="replay_report_margin_dp_between_items">3dp</dimen>
 </resources>
