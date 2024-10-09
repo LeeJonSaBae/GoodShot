@@ -8,9 +8,7 @@ import android.util.Log
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -23,7 +21,6 @@ import com.ijonsabae.presentation.main.MainActivity
 import com.ijonsabae.presentation.replay.HorizontalMarginItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.math.abs
@@ -45,7 +42,6 @@ class HomeFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         initView()
         initClickListener()
         initAppBarMotionLayout()
@@ -54,8 +50,6 @@ class HomeFragment :
     private fun initView() {
         (fragmentContext as MainActivity).hideAppBar()
 
-//        initAnimation()
-
         lifecycleScope.launch {
             if (getLocalAccessTokenUseCase() == null) {
                 binding.layoutContentNotLogin.visibility = View.VISIBLE
@@ -63,7 +57,6 @@ class HomeFragment :
             } else {
                 binding.layoutContentNotLogin.visibility = View.GONE
                 binding.layoutContentLogin.visibility = View.VISIBLE
-//                initFlow()
                 initNewsViewPager(binding.vpNews)
                 initYoutubeRecyclerView(binding.rvYoutube)
                 sendLoadingCompleteMessage()
@@ -71,20 +64,6 @@ class HomeFragment :
         }
 
     }
-
-//    private fun initFlow() {
-//        lifecycleScope.launch(coroutineExceptionHandler) {
-//            repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                homeViewModel.youtubeList.collectLatest {
-//                    val list = it.getOrThrow().items.map { videoItem ->
-//                        convertVideoItemToYoutubeDTO(videoItem)
-//                    }
-//                    youtubeRecyclerViewAdapter.submitList(list)
-//                }
-//            }
-//        }
-////        Log.d(TAG, "onViewCreated: margin = $NEWS_MARGIN_PX")
-//    }
 
     private fun sendLoadingCompleteMessage() {
         LocalBroadcastManager.getInstance(fragmentContext).sendBroadcast(Intent().apply {
@@ -96,6 +75,12 @@ class HomeFragment :
     private fun initClickListener() {
         binding.btnConsult.setOnClickListener {
             navController.navigate(R.id.action_home_to_consult)
+        }
+        binding.btnGoRecentReplay.setOnClickListener {
+            (requireActivity() as MainActivity).changeBottomNavbarSelectedItemId(R.id.replay_tab)
+        }
+        binding.btnGoTotalReport.setOnClickListener {
+            (requireActivity() as MainActivity).changeBottomNavbarSelectedItemId(R.id.profile_tab)
         }
     }
 

@@ -46,7 +46,7 @@ class TokenInterceptor @Inject constructor(
         val currentTimeMillis = System.currentTimeMillis()
         val timeDifference = currentTimeMillis - accessTokenCreatedTime
         val baseTime = 3600000L // 60분
-        Log.i("isAccessTokenValid", (timeDifference >= baseTime).toString())
+        Log.i("isAccessTokenWillInValid", (timeDifference >= baseTime).toString())
         return timeDifference >= baseTime
     }
 
@@ -74,6 +74,7 @@ class TokenInterceptor @Inject constructor(
     private suspend fun refreshToken() {
         val refreshResponse = tokenRepository.reissueRemoteToken()
         refreshResponse.onSuccess {
+            Log.d(TAG, "refreshToken: 갱신 success")
             tokenRepository.setLocalToken(it.data)
         }.onFailure {throwable ->
             //다른 기기로 로그인 기존 token 변경됐거나 refresh Token마저 유효기간이 끝난 경우
