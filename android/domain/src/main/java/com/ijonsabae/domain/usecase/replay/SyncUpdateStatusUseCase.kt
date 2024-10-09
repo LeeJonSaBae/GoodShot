@@ -1,5 +1,5 @@
 package com.ijonsabae.domain.usecase.replay
 
 interface SyncUpdateStatusUseCase {
-    operator fun invoke(userID: Long): Int
+    suspend operator fun invoke(userID: Long): Int
 }

@@ -7,7 +7,7 @@ import javax.inject.Inject
 class SyncUpdateStatusUseCaseImpl @Inject constructor(
     private val swingFeedbackRepository: SwingFeedbackRepository
 ): SyncUpdateStatusUseCase {
-    override fun invoke(userID: Long): Int {
+    override suspend fun invoke(userID: Long): Int {
         return swingFeedbackRepository.syncUpdateStatus(userID)
     }
 

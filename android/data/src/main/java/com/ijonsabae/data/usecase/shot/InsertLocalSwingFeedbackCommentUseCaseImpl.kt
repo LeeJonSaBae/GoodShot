@@ -8,7 +8,7 @@ import javax.inject.Inject
 class InsertLocalSwingFeedbackCommentUseCaseImpl @Inject constructor(
     private val swingFeedbackRepository: SwingFeedbackRepository
 ) : InsertLocalSwingFeedbackCommentUseCase {
-    override operator fun invoke(swingFeedbackCommentEntity: SwingFeedbackComment){
+    override suspend operator fun invoke(swingFeedbackCommentEntity: SwingFeedbackComment){
         return swingFeedbackRepository.insertSwingFeedbackComment(swingFeedbackCommentEntity)
     }
 }

@@ -8,7 +8,7 @@ import javax.inject.Inject
 class GetLocalSwingFeedbackListUseCaseImpl@Inject constructor(
     private val swingFeedbackRepository: SwingFeedbackRepository
 ): GetLocalSwingFeedbackListUseCase{
-    override operator fun invoke(userID: Long): List<SwingFeedback>{
+    override suspend operator fun invoke(userID: Long): List<SwingFeedback>{
         return swingFeedbackRepository.getAllSwingFeedbackList(userID)
     }
 }

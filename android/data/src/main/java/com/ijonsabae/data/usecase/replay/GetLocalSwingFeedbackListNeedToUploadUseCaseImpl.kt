@@ -8,7 +8,7 @@ import javax.inject.Inject
 class GetLocalSwingFeedbackListNeedToUploadUseCaseImpl @Inject constructor(
     private val swingFeedbackRepository: SwingFeedbackRepository
 ): GetLocalSwingFeedbackListNeedToUploadUseCase{
-    override fun invoke(userID:Long): List<SwingFeedback> {
+    override suspend fun invoke(userID:Long): List<SwingFeedback> {
         return swingFeedbackRepository.getSwingFeedbackListNeedToUpload(userID)
     }
 }

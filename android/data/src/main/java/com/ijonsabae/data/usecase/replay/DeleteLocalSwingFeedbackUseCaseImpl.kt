@@ -7,7 +7,7 @@ import javax.inject.Inject
 class DeleteLocalSwingFeedbackUseCaseImpl @Inject constructor(
     private val swingFeedbackRepository: SwingFeedbackRepository
 ): DeleteLocalSwingFeedbackUseCase{
-    override operator fun invoke(userId: Long, videoName: String): Int {
+    override suspend operator fun invoke(userId: Long, videoName: String): Int {
         return swingFeedbackRepository.deleteFeedback(userId, videoName)
     }
 }

@@ -48,6 +48,7 @@ import com.ijonsabae.presentation.shot.ai.camera.CameraSource
 import com.ijonsabae.presentation.shot.flex.FoldingStateActor
 import com.ijonsabae.presentation.util.PermissionChecker
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Locale
 import java.util.concurrent.Executors
@@ -520,8 +521,8 @@ class CameraFragment :
                 { cameraState -> swingViewModel.setCurrentState(cameraState) },
                 { feedback -> swingViewModel.setFeedBack(feedback) },
                 { swingViewModel.getUserId() },
-                { swingFeedback -> swingViewModel.insertSwingFeedback(swingFeedback) },
-                { swingFeedbackComment -> swingViewModel.insertSwingFeedbackComment(swingFeedbackComment) },
+                { swingFeedback -> lifecycleScope.launch(Dispatchers.IO) {swingViewModel.insertSwingFeedback(swingFeedback)}},
+                { swingFeedbackComment -> lifecycleScope.launch(Dispatchers.IO) {swingViewModel.insertSwingFeedbackComment(swingFeedbackComment)} },
                 swingViewModel::initializeSwingCnt,
                 swingViewModel::increaseSwingCnt,
             )

@@ -44,10 +44,13 @@ class TotalReportFragment : BaseFragment<FragmentTotalReportBinding>(
 
             totalReportViewModel.totalReport.collect { totalReport ->
                 totalReport?.let {
-                    initTotalScore(totalReport)
-                    initChart(totalReport)
-                    initTotalReportCommentsRecyclerView(totalReport)
-                    initTip(totalReport)
+                    safeCall {
+
+                        initTotalScore(totalReport)
+                        initChart(totalReport)
+                        initTotalReportCommentsRecyclerView(totalReport)
+                        initTip(totalReport)
+                    }
                 }
 
             }
@@ -68,7 +71,7 @@ class TotalReportFragment : BaseFragment<FragmentTotalReportBinding>(
 
     private fun initTotalScore(totalReport: TotalReport) {
         binding.tvTotalScoreName.text = totalReport.name
-        binding.tvTotalScore.text = "${totalReport.score}점"
+        binding.tvTotalScore.text = "${Math.round(totalReport.score * 10) / 10.0}점"
     }
 
     private fun initChart(totalReport: TotalReport) {

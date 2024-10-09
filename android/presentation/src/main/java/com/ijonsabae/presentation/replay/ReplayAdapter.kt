@@ -23,7 +23,7 @@ import com.ijonsabae.presentation.databinding.ItemReplayBinding
 import com.ijonsabae.presentation.shot.SwingLocalDataProcessor
 import com.ijonsabae.presentation.util.formatDateFromLongKorea
 
-private const val TAG = "SearchResultOfMountainListAdapter_싸피"
+private const val TAG = "ReplayAdapter_싸피"
 
 class ReplayAdapter(private val context: Context) :
     PagingDataAdapter<SwingFeedback, ReplayAdapter.ReplayViewHolder>(
@@ -118,6 +118,7 @@ class ReplayAdapter(private val context: Context) :
         fun getClamped(): Boolean {
             Log.d(TAG, "getClamped: $bindingAdapterPosition")
             if(this.bindingAdapterPosition != NO_POSITION){
+                Log.d(TAG, "getClamped: ${getItem(this.bindingAdapterPosition)!!.isClamped}")
                 return getItem(this.bindingAdapterPosition)!!.isClamped
             }
             return false

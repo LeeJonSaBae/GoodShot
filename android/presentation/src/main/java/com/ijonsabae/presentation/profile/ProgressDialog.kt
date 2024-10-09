@@ -82,7 +82,7 @@ class ProgressDialog:
         }
         binding.indicatorDeterminateProgress.apply {
             show()
-            visibility = View.VISIBLE
+            visibility = View.GONE
         }
         registerLocalBroadCastReceiver()
         setScreenWidthPercentage(0.9F)
