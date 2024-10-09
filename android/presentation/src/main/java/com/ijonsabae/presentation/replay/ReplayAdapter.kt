@@ -35,7 +35,7 @@ class ReplayAdapter(private val context: Context) :
             oldItem: SwingFeedback,
             newItem: SwingFeedback
         ): Boolean {
-            return System.identityHashCode(oldItem) == System.identityHashCode(newItem)
+            return oldItem.swingCode == newItem.swingCode
         }
 
         override fun areContentsTheSame(
@@ -104,10 +104,6 @@ class ReplayAdapter(private val context: Context) :
                 else {
                     Log.d(TAG, "bindInfo: 클램프 안됨")
                     binding.cvReplayItem.translationX = 0f
-                }
-                binding.root.setOnTouchListener { v, event ->
-                    itemClickListener.onTouchListener(position)
-                    return@setOnTouchListener true
                 }
 
                 binding.btnDelete.setOnClickListener {

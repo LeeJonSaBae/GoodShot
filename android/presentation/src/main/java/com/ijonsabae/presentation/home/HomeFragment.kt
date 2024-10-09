@@ -59,13 +59,18 @@ class HomeFragment :
         }
         lifecycleScope.launch(Dispatchers.IO) {
             val lastItem = getLastSwingDataUseCase(userID)
-            launch(Dispatchers.Main) {
-                Glide.with(binding.root).load(SwingLocalDataProcessor.getSwingThumbnailFile(fragmentContext, lastItem.swingCode, userID)).into(binding.ivRecentThumbnail)
+            if(lastItem == null){
+                binding.tvTitleTotalSwingCnt2.text = "0"
+                binding.tvRecentScore.text = "0/100"
+                binding.tvTempo.text = 0.toString()
+            }else{
+                launch(Dispatchers.Main) {
+                    Glide.with(binding.root).load(SwingLocalDataProcessor.getSwingThumbnailFile(fragmentContext, lastItem.swingCode, userID)).into(binding.ivRecentThumbnail)
+                }
+                binding.tvTitleTotalSwingCnt2.text = getSwingDataSizeUseCase(userID).toString()
+                binding.tvRecentScore.text = "${lastItem.score}/100"
+                binding.tvTempo.text = lastItem.tempo.toString()
             }
-            binding.tvTitleTotalSwingCnt2.text = getSwingDataSizeUseCase(userID).toString()
-            binding.tvRecentScore.text = "${lastItem.score}/100"
-            binding.tvTempo.text = lastItem.tempo.toString()
-            getSwingDataSizeUseCase(userID)
         }
         initView()
         initClickListener()

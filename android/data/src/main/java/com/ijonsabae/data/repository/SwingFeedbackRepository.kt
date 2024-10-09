@@ -23,7 +23,7 @@ interface SwingFeedbackRepository {
     suspend fun deleteFeedbackComment(userID: Long, swingCode: String): Int
     suspend fun updateUserId(oldUserId: Long, newUserId: Long): Int
     suspend fun updateLikeStatus(userID: Long, swingCode: String, likeStatus: Boolean, currentTime: Long): Int
-    suspend fun updateClampStatus(userID: Long, swingCode: String, clampStatus: Boolean): Int
+    fun updateClampStatus(userID: Long, swingCode: String, clampStatus: Boolean): Int
     suspend fun updateTitle(userID: Long, swingCode: String, title: String, currentTime: Long): Int
     suspend fun syncUpdateStatus(userID: Long): Int
     suspend fun hideSwingFeedback(userID: Long, swingCode: String, currentTime: Long): Int

@@ -8,7 +8,7 @@ import javax.inject.Inject
 class UpdateClampStatusUseCaseImpl @Inject constructor(
     private val swingFeedbackRepository: SwingFeedbackRepository
 ): UpdateClampStatusUseCase {
-    override suspend fun invoke(userID: Long, swingCode: String, clampStatus: Boolean): Int {
+    override fun invoke(userID: Long, swingCode: String, clampStatus: Boolean): Int {
         return swingFeedbackRepository.updateClampStatus(userID, swingCode, clampStatus)
     }
 }

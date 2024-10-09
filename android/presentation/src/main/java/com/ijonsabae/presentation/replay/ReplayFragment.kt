@@ -7,6 +7,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -34,6 +35,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import okhttp3.Dispatcher
 import javax.inject.Inject
 
 private const val TAG = "ReplayFragment_싸피"
@@ -80,13 +82,6 @@ class ReplayFragment :
                     override fun onLikeClick(item: SwingFeedback) {
                         lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
                             updateLikeStatusUseCase(item.userID, item.swingCode, !item.likeStatus, System.currentTimeMillis())
-
-                            if(binding.cbFilter.isChecked){
-                                viewModel.getLocalSwingFeedbackLikeList()
-                            }else{
-                                viewModel.getLocalSwingFeedbackList()
-                            }
-                            submitData(viewModel.swingFeedbackList.value)
                         }
                     }
 
@@ -95,47 +90,25 @@ class ReplayFragment :
                             SwingLocalDataProcessor.deleteLocalSwingData(fragmentContext, item.swingCode, item.userID)
                             // 이건 Room에서 지우는 것
                             hideSwingFeedbackUseCase(item.userID, item.swingCode, System.currentTimeMillis())
-//                            deleteLocalSwingFeedbackUseCase(item.userID, item.swingCode)
-                            if(binding.cbFilter.isChecked){
-                                viewModel.getLocalSwingFeedbackLikeList()
-                            }else{
-                                viewModel.getLocalSwingFeedbackList()
-                            }
-                            submitData(viewModel.swingFeedbackList.value)
                         }
                     }
 
                     override fun onTitleChange(item: SwingFeedback, title: String) {
                         lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
                             updateTitleUseCase(item.userID, item.swingCode, title, System.currentTimeMillis())
-
-                            if(binding.cbFilter.isChecked){
-                                viewModel.getLocalSwingFeedbackLikeList()
-                            }else{
-                                viewModel.getLocalSwingFeedbackList()
-                            }
-                            submitData(viewModel.swingFeedbackList.value)
                         }
                     }
 
                     override fun changeClampStatus(item: SwingFeedback, clampStatus: Boolean) {
-                        lifecycleScope.launch {
-                            launch(Dispatchers.IO) {
                                 Log.d(TAG, "changeClampStatus: $clampStatus")
-                                updateClampStatusUseCase(item.userID, item.swingCode, clampStatus)
-                                if(binding.cbFilter.isChecked){
-                                    viewModel.getLocalSwingFeedbackLikeList()
-                                }else{
-                                    viewModel.getLocalSwingFeedbackList()
-                                }
-                                submitData(viewModel.swingFeedbackList.value)
-                            }
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            updateClampStatusUseCase(item.userID, item.swingCode, clampStatus)
                         }
                     }
 
                     override fun onTouchListener(position: Int) {
                         Log.d(TAG, "onTouchListener: 터치 리스너 작동 $position")
-                        binding.rvReplay.scrollToPosition(position)
+                        //binding.rvReplay.scrollToPosition(position)
                     }
                 }
             )
@@ -155,7 +128,7 @@ class ReplayFragment :
                 }else{
                     viewModel.getLocalSwingFeedbackList()
                 }
-                replayAdapter.submitData(viewModel.swingFeedbackList.value)
+                initFlow()
             }
 
         }

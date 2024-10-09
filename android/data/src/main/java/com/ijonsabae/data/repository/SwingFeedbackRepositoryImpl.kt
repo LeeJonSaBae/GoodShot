@@ -1,11 +1,9 @@
 package com.ijonsabae.data.repository
 
-import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import com.ijonsabae.data.datasource.local.ReplayLocalAllSwingFeedbackPagingSource
-import com.ijonsabae.data.datasource.local.ReplayLocalLikeSwingFeedbackPagingSource
+//import com.ijonsabae.data.datasource.local.ReplayLocalAllSwingFeedbackPagingSource
 import com.ijonsabae.data.datasource.local.SwingFeedbackLocalDataSource
 import com.ijonsabae.data.datasource.remote.SwingFeedbackRemoteDataSource
 import com.ijonsabae.domain.model.CommonResponse
@@ -23,8 +21,6 @@ private const val TAG = "SwingFeedbackRepositoryImpl_싸피"
 class SwingFeedbackRepositoryImpl @Inject constructor(
     private val swingFeedbackLocalDataSource: SwingFeedbackLocalDataSource,
     private val swingFeedbackRemoteDataSource: SwingFeedbackRemoteDataSource,
-    private val replayLocalAllSwingFeedbackPagingSource: ReplayLocalAllSwingFeedbackPagingSource,
-    private val replayLocalLikeSwingFeedbackPagingSource: ReplayLocalLikeSwingFeedbackPagingSource
 ) : SwingFeedbackRepository {
     override suspend fun insertSwingFeedback(swingFeedback: SwingFeedback) {
         return swingFeedbackLocalDataSource.insertSwingFeedback(swingFeedback)
@@ -40,7 +36,7 @@ class SwingFeedbackRepositoryImpl @Inject constructor(
                 pageSize = 25,
                 enablePlaceholders = false
             ),
-            pagingSourceFactory = { replayLocalAllSwingFeedbackPagingSource }
+            pagingSourceFactory = {swingFeedbackLocalDataSource.getAllSwingFeedback(userID)}
         ).flow
     }
 
@@ -54,7 +50,7 @@ class SwingFeedbackRepositoryImpl @Inject constructor(
                 pageSize = 25,
                 enablePlaceholders = false
             ),
-            pagingSourceFactory = { replayLocalLikeSwingFeedbackPagingSource }
+            pagingSourceFactory = { swingFeedbackLocalDataSource.getLikeSwingFeedbackList(userID) }
         ).flow
     }
 
@@ -85,7 +81,7 @@ class SwingFeedbackRepositoryImpl @Inject constructor(
         return swingFeedbackLocalDataSource.updateLikeStatus(userID, swingCode, likeStatus, currentTime)
     }
 
-    override suspend fun updateClampStatus(userID: Long, swingCode: String, clampStatus: Boolean): Int {
+    override fun updateClampStatus(userID: Long, swingCode: String, clampStatus: Boolean): Int {
         return swingFeedbackLocalDataSource.updateClampStatus(userID, swingCode, clampStatus)
     }
 

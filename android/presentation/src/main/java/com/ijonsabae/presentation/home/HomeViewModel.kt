@@ -1,6 +1,7 @@
 package com.ijonsabae.presentation.home
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.ijonsabae.domain.model.Profile
 import com.ijonsabae.domain.usecase.home.GetSearchVideosUseCase
 import com.ijonsabae.domain.usecase.profile.GetProfileInfoUseCase
@@ -9,7 +10,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.jsoup.Jsoup
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,10 +43,26 @@ class HomeViewModel @Inject constructor(
         _youtubeList = youtubeList
     }
 
-    suspend fun getYoutubeList(): List<YoutubeDTO> {
-        return _youtubeIdList.map {
-            YouTubeUtils.getYoutubeDto(it)
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            _youtubeList =_youtubeIdList.map {videoId ->
+                val url = "https://www.youtube.com/watch?v=$videoId"
+                val doc = Jsoup.connect(url).get()
+                val title = doc.select("meta[name=title]").first()?.attr("content") ?: "제목을 찾을 수 없습니다."
+                YoutubeDTO(
+                    title = title,
+                    isVisible = false,
+                    link = "https://www.youtube.com/watch?v=$videoId",
+                    thumbnail = "https://img.youtube.com/vi/$videoId/maxresdefault.jpg",
+                    alternativeThumbnail = "https://img.youtube.com/vi/$videoId/maxresdefault.jpg",
+                )
+            }
         }
+
+    }
+
+    suspend fun getYoutubeList(): List<YoutubeDTO> {
+        return youtubeList
     }
 
     suspend fun getProfileInfo() {
