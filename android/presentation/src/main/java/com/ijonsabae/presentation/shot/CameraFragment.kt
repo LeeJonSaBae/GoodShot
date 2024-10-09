@@ -146,12 +146,6 @@ class CameraFragment :
         }
     }
 
-    private fun stopTts() {
-        if (tts?.isSpeaking == true) {
-            tts?.stop()
-        }
-    }
-
     private fun startCamera() {
         // 1. CameraProvider 요청
         // ProcessCameraProvider는 Camera의 생명주기를 LifeCycleOwner의 생명주기에 Binding 함
@@ -244,7 +238,6 @@ class CameraFragment :
     }
 
     override fun onPause() {
-        stopTts()
         cameraSource.pause()
         super.onPause()
     }
@@ -252,7 +245,7 @@ class CameraFragment :
     override fun onDestroyView() {
         (fragmentContext as MainActivity).showBottomNavBar()
         requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        if(::cameraProvider.isInitialized){
+        if (::cameraProvider.isInitialized) {
             cameraProvider.unbindAll()
         }
         super.onDestroyView()
@@ -521,8 +514,20 @@ class CameraFragment :
                 { cameraState -> swingViewModel.setCurrentState(cameraState) },
                 { feedback -> swingViewModel.setFeedBack(feedback) },
                 { swingViewModel.getUserId() },
-                { swingFeedback -> lifecycleScope.launch(Dispatchers.IO) {swingViewModel.insertSwingFeedback(swingFeedback)}},
-                { swingFeedbackComment -> lifecycleScope.launch(Dispatchers.IO) {swingViewModel.insertSwingFeedbackComment(swingFeedbackComment)} },
+                { swingFeedback ->
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        swingViewModel.insertSwingFeedback(
+                            swingFeedback
+                        )
+                    }
+                },
+                { swingFeedbackComment ->
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        swingViewModel.insertSwingFeedbackComment(
+                            swingFeedbackComment
+                        )
+                    }
+                },
                 swingViewModel::initializeSwingCnt,
                 swingViewModel::increaseSwingCnt,
             )
