@@ -16,7 +16,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
@@ -39,8 +38,9 @@ class ProfileFragment :
     BaseFragment<FragmentProfileBinding>(FragmentProfileBinding::bind, R.layout.fragment_profile) {
     private val profileViewModel: ProfileViewModel by activityViewModels()
     private val totalReportViewModel: TotalReportViewModel by activityViewModels()
+
     @Inject
-    lateinit var swingRemoteDataProcessor : SwingRemoteDataProcessor
+    lateinit var swingRemoteDataProcessor: SwingRemoteDataProcessor
 
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -82,6 +82,8 @@ class ProfileFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (fragmentContext as MainActivity).showAppBar("마이 페이지")
+        val isGoTotalReport = arguments?.getBoolean("GoTotalReport")
+        if (isGoTotalReport == true) navController.navigate(R.id.action_profile_to_total_report)
         init()
         initFlow()
         permissionChecker.setOnGrantedListener {
