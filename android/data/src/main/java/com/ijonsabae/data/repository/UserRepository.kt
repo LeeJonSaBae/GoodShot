@@ -1,4 +1,4 @@
-package com.ijonsabae.domain.repository
+package com.ijonsabae.data.repository
 
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.LoginParam
@@ -17,4 +17,8 @@ interface UserRepository {
     suspend fun changePassword(oldPassword: String, newPassword: String): Result<CommonResponse<Unit>>
     suspend fun getAutoLoginStatus(): Boolean
     suspend fun setAutoLoginStatus(autoLogin: Boolean)
+    suspend fun getRemoteUsername(): Result<CommonResponse<String>>
+    suspend fun getLocalUsername(): String?
+    suspend fun setLocalUserName(name: String)
+    suspend fun clearUserName()
 }

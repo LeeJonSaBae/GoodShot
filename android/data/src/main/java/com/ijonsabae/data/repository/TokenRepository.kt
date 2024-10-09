@@ -1,4 +1,4 @@
-package com.ijonsabae.domain.repository
+package com.ijonsabae.data.repository
 
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.Token

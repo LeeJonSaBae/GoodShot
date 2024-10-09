@@ -1,7 +1,8 @@
 package com.ijonsabae.data.retrofit
 
 import android.util.Log
-import com.ijonsabae.domain.repository.TokenRepository
+import com.ijonsabae.data.datasource.local.UserLocalDataSource
+import com.ijonsabae.data.repository.TokenRepository
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -11,6 +12,7 @@ private const val TAG = "TokenInterceptor_싸피"
 
 class TokenInterceptor @Inject constructor(
     private val tokenRepository: TokenRepository,
+    private val userLocalDataSource: UserLocalDataSource
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val response: Response
@@ -86,5 +88,6 @@ class TokenInterceptor @Inject constructor(
 
     private suspend fun logout(){
         tokenRepository.clearToken()
+        userLocalDataSource.clearUserName()
     }
 }

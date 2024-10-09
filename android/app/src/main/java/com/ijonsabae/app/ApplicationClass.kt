@@ -44,6 +44,7 @@ class ApplicationClass: Application(), LifecycleObserver {
 
     override fun onTerminate() {
         super.onTerminate()
+        stopService(Intent(this, DetectDestroyService::class.java))
         unbindService(serviceConnection)
     }
 

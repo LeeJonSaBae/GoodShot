@@ -13,6 +13,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.ijonsabae.domain.model.Token
+import com.ijonsabae.domain.usecase.login.GetRemoteUserNameUseCase
+import com.ijonsabae.domain.usecase.login.SetLocalUserNameUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseDialog
 import com.ijonsabae.presentation.databinding.DialogLoginBinding
@@ -21,6 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 private const val TAG = "LoginDialog 싸피"
 @AndroidEntryPoint
@@ -30,6 +33,10 @@ class LoginDialog : BaseDialog<DialogLoginBinding>(
 ) {
     private val loginDialogViewModel: LoginDialogViewModel by viewModels()
     private val profileViewModel: ProfileViewModel by activityViewModels()
+    @Inject
+    lateinit var getRemoteUserNameUseCase: GetRemoteUserNameUseCase
+    @Inject
+    lateinit var setLocalUserNameUseCase: SetLocalUserNameUseCase
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -60,7 +67,8 @@ class LoginDialog : BaseDialog<DialogLoginBinding>(
             if(checkValidation()){
                 lifecycleScope.launch (coroutineExceptionHandler){
                     val result = loginDialogViewModel.login().getOrThrow()
-                    runBlocking {
+                    setLocalUserNameUseCase(getRemoteUserNameUseCase().getOrThrow().data)
+                    withContext(Dispatchers.IO) {
                         loginDialogViewModel.setToken(result.data)
                         loginDialogViewModel.saveToken(result.data)
                     }

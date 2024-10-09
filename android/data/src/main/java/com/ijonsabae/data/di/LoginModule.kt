@@ -17,8 +17,11 @@ import com.ijonsabae.data.usecase.login.RequestEmailAuthCodeUseCaseImpl
 import com.ijonsabae.data.usecase.login.SetAutoLoginStatusUseCaseImpl
 import com.ijonsabae.data.usecase.login.SetLocalTokenUseCaseImpl
 import com.ijonsabae.data.usecase.login.VerifyEmailAuthCodeUseCaseImpl
-import com.ijonsabae.domain.repository.TokenRepository
-import com.ijonsabae.domain.repository.UserRepository
+import com.ijonsabae.data.repository.TokenRepository
+import com.ijonsabae.data.repository.UserRepository
+import com.ijonsabae.data.usecase.login.GetLocalUserNameUseCaseImpl
+import com.ijonsabae.data.usecase.login.GetRemoteUserNameUseCaseImpl
+import com.ijonsabae.data.usecase.login.SetLocalUserNameUseCaseImpl
 import com.ijonsabae.domain.usecase.login.CheckEmailDuplicatedUseCase
 import com.ijonsabae.domain.usecase.login.ClearLocalTokenUseCase
 import com.ijonsabae.domain.usecase.login.GenerateTemporaryPassWordUseCase
@@ -26,6 +29,8 @@ import com.ijonsabae.domain.usecase.login.GetAutoLoginStatusUseCase
 import com.ijonsabae.domain.usecase.login.GetLocalAccessTokenCreatedTimeUseCase
 import com.ijonsabae.domain.usecase.login.GetLocalAccessTokenUseCase
 import com.ijonsabae.domain.usecase.login.GetLocalRefreshTokenUseCase
+import com.ijonsabae.domain.usecase.login.GetLocalUserNameUseCase
+import com.ijonsabae.domain.usecase.login.GetRemoteUserNameUseCase
 import com.ijonsabae.domain.usecase.login.GetUserIdUseCase
 import com.ijonsabae.domain.usecase.login.LoginUseCase
 import com.ijonsabae.domain.usecase.login.RegisterUseCase
@@ -33,6 +38,7 @@ import com.ijonsabae.domain.usecase.login.ReissueTokenUseCase
 import com.ijonsabae.domain.usecase.login.RequestEmailAuthCodeUseCase
 import com.ijonsabae.domain.usecase.login.SetAutoLoginStatusUseCase
 import com.ijonsabae.domain.usecase.login.SetLocalTokenUseCase
+import com.ijonsabae.domain.usecase.login.SetLocalUserNameUseCase
 import com.ijonsabae.domain.usecase.login.VerifyEmailAuthCodeUseCase
 import dagger.Binds
 import dagger.Module
@@ -86,6 +92,15 @@ abstract class LoginModule {
 
     @Binds
     abstract fun bindSetAutoLoginStatusUseCase(uc: SetAutoLoginStatusUseCaseImpl): SetAutoLoginStatusUseCase
+
+    @Binds
+    abstract fun bindGetRemoteUserNameUseCase(uc: GetRemoteUserNameUseCaseImpl): GetRemoteUserNameUseCase
+
+    @Binds
+    abstract fun bindGetLocalUserNameUseCase(uc: GetLocalUserNameUseCaseImpl): GetLocalUserNameUseCase
+
+    @Binds
+    abstract fun bindSetLocalUserNameUseCase(uc: SetLocalUserNameUseCaseImpl): SetLocalUserNameUseCase
 
     @Binds
     abstract fun bindUserRepository(uc: UserRepositoryImpl): UserRepository

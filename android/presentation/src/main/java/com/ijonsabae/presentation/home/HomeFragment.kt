@@ -1,13 +1,19 @@
 package com.ijonsabae.presentation.home
 
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,6 +23,7 @@ import com.bumptech.glide.Glide
 import com.ijonsabae.domain.usecase.home.GetLastSwingDataUseCase
 import com.ijonsabae.domain.usecase.home.GetSwingDataSizeUseCase
 import com.ijonsabae.domain.usecase.login.GetLocalAccessTokenUseCase
+import com.ijonsabae.domain.usecase.login.GetLocalUserNameUseCase
 import com.ijonsabae.domain.usecase.login.GetUserIdUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
@@ -45,6 +52,8 @@ class HomeFragment :
     lateinit var getSwingDataSizeUseCase: GetSwingDataSizeUseCase
     @Inject
     lateinit var getUserIdUseCase: GetUserIdUseCase
+    @Inject
+    lateinit var getLocalUserNameUseCase: GetLocalUserNameUseCase
 
     private val homeViewModel: HomeViewModel by viewModels()
     private var newsList = mutableListOf<NewsDTO>()
@@ -76,13 +85,41 @@ class HomeFragment :
                 binding.tvTempo.text = lastItem.tempo.toString()
             }
         }
+        initFlow()
         initView()
         initClickListener()
         initAppBarMotionLayout()
     }
 
+    private fun isInternetAvailable(context: Context): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkCapabilities = connectivityManager.activeNetwork?.let { network ->
+            connectivityManager.getNetworkCapabilities(network)
+        }
+        return networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+
+    }
+
     private fun initView() {
         (fragmentContext as MainActivity).hideAppBar()
+        if(isInternetAvailable(fragmentContext)){
+            lifecycleScope.launch(coroutineExceptionHandler) {
+                homeViewModel.load()
+            }
+
+            binding.viewNewsNotLogin.visibility = View.GONE
+            binding.vpNews.visibility = View.VISIBLE
+            binding.viewYoutubeNotLogin.visibility = View.GONE
+            binding.rvYoutube.visibility = View.VISIBLE
+        }else{
+            binding.homeProgress.visibility = View.GONE
+            binding.homeProgressTitle.visibility = View.GONE
+            binding.viewNewsNotLogin.visibility = View.VISIBLE
+            binding.vpNews.visibility = View.GONE
+            binding.viewYoutubeNotLogin.visibility = View.VISIBLE
+            binding.rvYoutube.visibility = View.GONE
+        }
+
 
         lifecycleScope.launch {
 //            if (getLocalAccessTokenUseCase() == null) {
@@ -95,19 +132,14 @@ class HomeFragment :
             initNewsViewPager(binding.vpNews)
             initYoutubeRecyclerView(binding.rvYoutube)
             sendLoadingCompleteMessage()
-        }
-
-        lifecycleScope.launch {
-            homeViewModel.getProfileInfo()
-            homeViewModel.profileInfo.collect { user ->
-                user?.let {
-                    binding.tvBannerNickname.text = "${user.name}님"
-                    binding.tvTitleRecentNickname.text = "${user.name} "
-//                    binding.tvNoSwingDataTitleRecent.text = "${user.name}님"
-                    binding.tvNoSwingDataTitleRecentNickname.text = "${user.name} "
-                }
-
+            val userName = runBlocking {
+                getLocalUserNameUseCase() ?: "Guest"
             }
+            Log.d(TAG, "initView: $userName")
+            binding.tvBannerNickname.text = "${userName}님"
+            binding.tvTitleRecentNickname.text = "${userName} "
+            binding.tvNoSwingDataTitleRecentNickname.text = "${userName} "
+
         }
 
         binding.btnGoRecentReplay.setOnClickListener {
@@ -120,6 +152,20 @@ class HomeFragment :
             }
             findNavController().navigate(R.id.action_home_to_total_report, bundle)
 
+        }
+    }
+
+    private fun initFlow(){
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED){
+                homeViewModel.youtubeList.collect{
+                    if(it != emptyList<YoutubeDTO>()){
+                        binding.homeProgress.visibility = View.GONE
+                        binding.homeProgressTitle.visibility = View.GONE
+                    }
+                    youtubeRecyclerViewAdapter.submitList(it)
+                }
+            }
         }
     }
 
@@ -188,11 +234,10 @@ class HomeFragment :
                         toggleYoutubeItems(item)
                     }
                 })
-                submitList(homeViewModel.youtubeList)
             }
-        lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
-            youtubeRecyclerViewAdapter.submitList(homeViewModel.getYoutubeList())
-        }
+//        lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
+//            youtubeRecyclerViewAdapter.submitList(homeViewModel.getYoutubeList())
+//        }
 //        youtubeRecyclerViewAdapter.submitList(homeViewModel.youtubeList.v)
         recyclerView.adapter = youtubeRecyclerViewAdapter
         recyclerView.layoutManager =
