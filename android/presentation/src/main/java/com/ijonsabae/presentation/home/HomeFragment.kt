@@ -42,7 +42,6 @@ class HomeFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         initView()
         initClickListener()
         initAppBarMotionLayout()
@@ -58,7 +57,6 @@ class HomeFragment :
             } else {
                 binding.layoutContentNotLogin.visibility = View.GONE
                 binding.layoutContentLogin.visibility = View.VISIBLE
-//                initFlow()
                 initNewsViewPager(binding.vpNews)
                 initYoutubeRecyclerView(binding.rvYoutube)
                 sendLoadingCompleteMessage()
@@ -89,20 +87,6 @@ class HomeFragment :
         }
     }
 
-//    private fun initFlow() {
-//        lifecycleScope.launch(coroutineExceptionHandler) {
-//            repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                homeViewModel.youtubeList.collectLatest {
-//                    val list = it.getOrThrow().items.map { videoItem ->
-//                        convertVideoItemToYoutubeDTO(videoItem)
-//                    }
-//                    youtubeRecyclerViewAdapter.submitList(list)
-//                }
-//            }
-//        }
-////        Log.d(TAG, "onViewCreated: margin = $NEWS_MARGIN_PX")
-//    }
-
     private fun sendLoadingCompleteMessage() {
         LocalBroadcastManager.getInstance(fragmentContext).sendBroadcast(Intent().apply {
             action = "loading"
@@ -113,6 +97,12 @@ class HomeFragment :
     private fun initClickListener() {
         binding.btnConsult.setOnClickListener {
             navController.navigate(R.id.action_home_to_consult)
+        }
+        binding.btnGoRecentReplay.setOnClickListener {
+            (requireActivity() as MainActivity).changeBottomNavbarSelectedItemId(R.id.replay_tab)
+        }
+        binding.btnGoTotalReport.setOnClickListener {
+            (requireActivity() as MainActivity).changeBottomNavbarSelectedItemId(R.id.profile_tab)
         }
     }
 

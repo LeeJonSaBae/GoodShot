@@ -27,6 +27,32 @@ class MainActivity: BaseActivity<ActivityMainBinding>(ActivityMainBinding::infla
         super.onStart()
         val navController = findNavController(binding.mainFragmentView.id)
         binding.navigation.setupWithNavController(navController)
+//        binding.navigation.setOnItemSelectedListener {item ->
+//            val navOptions = NavOptions.Builder()
+//                .setPopUpTo(navController.graph.startDestinationId, true) // 백스택을 초기화
+//                .build()
+//            when(item.itemId){
+//                R.id.home_tab -> {
+//                    navController.navigate(R.id.home, null, navOptions)
+//                    true
+//                }
+//                R.id.shot_tab -> {
+//                    navController.navigate(R.id.shot, null, navOptions)
+//                    true
+//                }
+//                R.id.replay_tab -> {
+//                    navController.navigate(R.id.replay, null, navOptions)
+//                    true
+//                }
+//                R.id.profile_tab -> {
+//                    navController.navigate(R.id.profile, null, navOptions)
+//                    true
+//                }
+//                else -> {
+//                    false
+//                }
+//            }
+//        }
         val appBarConfiguration = AppBarConfiguration(navController.graph)
         binding.mainToolbar.setupWithNavController(navController, appBarConfiguration)
 
@@ -34,6 +60,7 @@ class MainActivity: BaseActivity<ActivityMainBinding>(ActivityMainBinding::infla
         // HomeasUp Icon이 계속 적용이 안되고 초기화됨
         // 그래서 이 리스너로 계속해서 뒤로가기 버튼 커스텀된 것 적용
         navController.addOnDestinationChangedListener { controller, destination, arguments ->
+
             binding.mainToolbar.navigationIcon =
                 ContextCompat.getDrawable(this@MainActivity, R.drawable.back)
         }
@@ -52,6 +79,10 @@ class MainActivity: BaseActivity<ActivityMainBinding>(ActivityMainBinding::infla
     }
     fun hideBottomNavBar(){
         binding.navigation.visibility = View.GONE
+    }
+
+    fun changeBottomNavbarSelectedItemId(id: Int){
+        binding.navigation.selectedItemId = id
     }
 
 }
