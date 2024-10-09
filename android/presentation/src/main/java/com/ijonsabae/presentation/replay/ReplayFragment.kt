@@ -80,6 +80,12 @@ class ReplayFragment :
                     override fun onLikeClick(item: SwingFeedback) {
                         lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
                             updateLikeStatusUseCase(item.userID, item.swingCode, !item.likeStatus, System.currentTimeMillis())
+                            if(binding.cbFilter.isChecked){
+                                viewModel.getLocalSwingFeedbackLikeList()
+                            }else{
+                                viewModel.getLocalSwingFeedbackList()
+                            }
+                            submitData(viewModel.swingFeedbackList.value)
                         }
                     }
 
@@ -89,12 +95,24 @@ class ReplayFragment :
                             // 이건 Room에서 지우는 것
                             hideSwingFeedbackUseCase(item.userID, item.swingCode, System.currentTimeMillis())
 //                            deleteLocalSwingFeedbackUseCase(item.userID, item.swingCode)
+                            if(binding.cbFilter.isChecked){
+                                viewModel.getLocalSwingFeedbackLikeList()
+                            }else{
+                                viewModel.getLocalSwingFeedbackList()
+                            }
+                            submitData(viewModel.swingFeedbackList.value)
                         }
                     }
 
                     override fun onTitleChange(item: SwingFeedback, title: String) {
                         lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
                             updateTitleUseCase(item.userID, item.swingCode, title, System.currentTimeMillis())
+                            if(binding.cbFilter.isChecked){
+                                viewModel.getLocalSwingFeedbackLikeList()
+                            }else{
+                                viewModel.getLocalSwingFeedbackList()
+                            }
+                            submitData(viewModel.swingFeedbackList.value)
                         }
                     }
 
@@ -103,6 +121,12 @@ class ReplayFragment :
                             launch(Dispatchers.IO) {
                                 Log.d(TAG, "changeClampStatus: $clampStatus")
                                 updateClampStatusUseCase(item.userID, item.swingCode, clampStatus)
+                                if(binding.cbFilter.isChecked){
+                                    viewModel.getLocalSwingFeedbackLikeList()
+                                }else{
+                                    viewModel.getLocalSwingFeedbackList()
+                                }
+                                submitData(viewModel.swingFeedbackList.value)
                             }
                         }
                     }
