@@ -60,10 +60,14 @@ class HomeFragment :
         lifecycleScope.launch(Dispatchers.IO) {
             val lastItem = getLastSwingDataUseCase(userID)
             if(lastItem == null){
+                binding.layoutExistSwingData.visibility = View.GONE
+                binding.layoutNoSwingData.visibility = View.VISIBLE
                 binding.tvTitleTotalSwingCnt2.text = "0"
                 binding.tvRecentScore.text = "0/100"
                 binding.tvTempo.text = 0.toString()
             }else{
+                binding.layoutExistSwingData.visibility = View.VISIBLE
+                binding.layoutNoSwingData.visibility = View.GONE
                 launch(Dispatchers.Main) {
                     Glide.with(binding.root).load(SwingLocalDataProcessor.getSwingThumbnailFile(fragmentContext, lastItem.swingCode, userID)).into(binding.ivRecentThumbnail)
                 }
@@ -81,16 +85,16 @@ class HomeFragment :
         (fragmentContext as MainActivity).hideAppBar()
 
         lifecycleScope.launch {
-            if (getLocalAccessTokenUseCase() == null) {
-                binding.layoutContentNotLogin.visibility = View.VISIBLE
-                binding.layoutContentLogin.visibility = View.GONE
-            } else {
-                binding.layoutContentNotLogin.visibility = View.GONE
-                binding.layoutContentLogin.visibility = View.VISIBLE
-                initNewsViewPager(binding.vpNews)
-                initYoutubeRecyclerView(binding.rvYoutube)
-                sendLoadingCompleteMessage()
-            }
+//            if (getLocalAccessTokenUseCase() == null) {
+//                binding.layoutContentNotLogin.visibility = View.VISIBLE
+//                binding.layoutContentLogin.visibility = View.GONE
+//            } else {
+//                binding.layoutContentNotLogin.visibility = View.GONE
+//                binding.layoutContentLogin.visibility = View.VISIBLE
+//            }
+            initNewsViewPager(binding.vpNews)
+            initYoutubeRecyclerView(binding.rvYoutube)
+            sendLoadingCompleteMessage()
         }
 
         lifecycleScope.launch {
@@ -99,6 +103,8 @@ class HomeFragment :
                 user?.let {
                     binding.tvBannerNickname.text = "${user.name}님"
                     binding.tvTitleRecentNickname.text = "${user.name} "
+//                    binding.tvNoSwingDataTitleRecent.text = "${user.name}님"
+                    binding.tvNoSwingDataTitleRecentNickname.text = "${user.name} "
                 }
 
             }
