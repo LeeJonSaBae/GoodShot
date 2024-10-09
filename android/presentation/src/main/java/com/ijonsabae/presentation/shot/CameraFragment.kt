@@ -515,18 +515,14 @@ class CameraFragment :
                 { feedback -> swingViewModel.setFeedBack(feedback) },
                 { swingViewModel.getUserId() },
                 { swingFeedback ->
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        swingViewModel.insertSwingFeedback(
-                            swingFeedback
-                        )
-                    }
+                    swingViewModel.insertSwingFeedback(
+                        swingFeedback
+                    )
                 },
                 { swingFeedbackComment ->
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        swingViewModel.insertSwingFeedbackComment(
-                            swingFeedbackComment
-                        )
-                    }
+                    swingViewModel.insertSwingFeedbackComment(
+                        swingFeedbackComment
+                    )
                 },
                 swingViewModel::initializeSwingCnt,
                 swingViewModel::increaseSwingCnt,

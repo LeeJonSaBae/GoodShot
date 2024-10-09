@@ -87,8 +87,8 @@ class CameraSource(
     private val setCurrentCameraState: (cameraState: CameraState) -> Unit,
     private val setFeedback: (FeedBack) -> Unit,
     private val getUserId: () -> Long,
-    private val insertLocalSwingFeedback: (SwingFeedback) -> Unit,
-    private val insertLocalSwingFeedbackComment: (SwingFeedbackComment) -> Unit,
+    private val insertLocalSwingFeedback: suspend (SwingFeedback) -> Unit,
+    private val insertLocalSwingFeedbackComment: suspend (SwingFeedbackComment) -> Unit,
     // TODO (
     //  문현
     //  insertLocalSwingFeedBackComment를 이용해서 스윙에 대한 코멘트를 아래에 해당하는 SwingFeedbackComment 객체를 만들어서 넣어줘야 함!
@@ -859,39 +859,41 @@ class CameraSource(
 
     private fun saveSwingFeedbackAndComment(swingSaveResult: Pair<String, Long>, tempoRatio: String, poseAnalysisResults: PoseAnalysisResult) {
         val swingScore = calculateScore(PostureExtractor.manualPoseIndexArray)
-        insertLocalSwingFeedback(SwingFeedback(
-            userID = userId,
-            swingCode = swingSaveResult.first,
-            similarity = swingSimilarity,
-            solution = poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
-            score = swingScore, //TODO 문현 : SCORE 기준 회의 후 정하기
-            tempo = tempoRatio.toDouble(),
-            title = swingScore.toString() + "점 스윙",
-            date = swingSaveResult.second
-        ))
+        CoroutineScope(Dispatchers.IO).launch{
+            insertLocalSwingFeedback(SwingFeedback(
+                userID = userId,
+                swingCode = swingSaveResult.first,
+                similarity = swingSimilarity,
+                solution = poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
+                score = swingScore, //TODO 문현 : SCORE 기준 회의 후 정하기
+                tempo = tempoRatio.toDouble(),
+                title = swingScore.toString() + "점 스윙",
+                date = swingSaveResult.second
+            ))
 
-        val swingCommentList: MutableList<SwingFeedbackComment> = mutableListOf()
-        // down swing이 1 backswing이 0
-        poseAnalysisResults.backSwingProblems.forEachIndexed { index, comment ->
-            swingCommentList.add(SwingFeedbackComment(
-                userID = userId,
-                swingCode = swingSaveResult.first,
-                poseType = BACKSWING, //TODO : backswing downswing 매크로 상수로 지정하기
-                content = comment.content,
-                commentType = if (comment.type == "BAD") 0 else 1 //TODO : BAD GOOD 매크로 상수로 지정하기
-            ))
-        }
-        poseAnalysisResults.downSwingProblems.forEachIndexed { index, comment ->
-            swingCommentList.add(SwingFeedbackComment(
-                userID = userId,
-                swingCode = swingSaveResult.first,
-                poseType = DOWNSWING,
-                content = comment.content,
-                commentType = if (comment.type == "BAD") BAD else NICE
-            ))
-        }
-        swingCommentList.forEach { swingFeedbackComment ->
-            insertLocalSwingFeedbackComment(swingFeedbackComment)
+            val swingCommentList: MutableList<SwingFeedbackComment> = mutableListOf()
+            // down swing이 1 backswing이 0
+            poseAnalysisResults.backSwingProblems.forEachIndexed { index, comment ->
+                swingCommentList.add(SwingFeedbackComment(
+                    userID = userId,
+                    swingCode = swingSaveResult.first,
+                    poseType = BACKSWING, //TODO : backswing downswing 매크로 상수로 지정하기
+                    content = comment.content,
+                    commentType = if (comment.type == "BAD") 0 else 1 //TODO : BAD GOOD 매크로 상수로 지정하기
+                ))
+            }
+            poseAnalysisResults.downSwingProblems.forEachIndexed { index, comment ->
+                swingCommentList.add(SwingFeedbackComment(
+                    userID = userId,
+                    swingCode = swingSaveResult.first,
+                    poseType = DOWNSWING,
+                    content = comment.content,
+                    commentType = if (comment.type == "BAD") BAD else NICE
+                ))
+            }
+            swingCommentList.forEach { swingFeedbackComment ->
+                insertLocalSwingFeedbackComment(swingFeedbackComment)
+            }
         }
 
     }
