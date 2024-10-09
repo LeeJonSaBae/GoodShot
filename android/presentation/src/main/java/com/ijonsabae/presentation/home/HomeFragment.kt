@@ -13,15 +13,21 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import com.bumptech.glide.Glide
+import com.ijonsabae.domain.usecase.home.GetLastSwingDataUseCase
+import com.ijonsabae.domain.usecase.home.GetSwingDataSizeUseCase
 import com.ijonsabae.domain.usecase.login.GetLocalAccessTokenUseCase
+import com.ijonsabae.domain.usecase.login.GetUserIdUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentHomeBinding
 import com.ijonsabae.presentation.main.MainActivity
 import com.ijonsabae.presentation.replay.HorizontalMarginItemDecoration
+import com.ijonsabae.presentation.shot.SwingLocalDataProcessor
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import kotlin.math.abs
 
@@ -33,15 +39,34 @@ class HomeFragment :
     BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::bind, R.layout.fragment_home) {
     @Inject
     lateinit var getLocalAccessTokenUseCase: GetLocalAccessTokenUseCase
+    @Inject
+    lateinit var getLastSwingDataUseCase: GetLastSwingDataUseCase
+    @Inject
+    lateinit var getSwingDataSizeUseCase: GetSwingDataSizeUseCase
+    @Inject
+    lateinit var getUserIdUseCase: GetUserIdUseCase
 
     private val homeViewModel: HomeViewModel by viewModels()
     private var newsList = mutableListOf<NewsDTO>()
     private val NEWS_MARGIN_PX by lazy { resources.getDimension(R.dimen.home_news_margin_dp_between_items) }
     private lateinit var newsViewPagAdapter: NewsViewPagerAdapter
     private lateinit var youtubeRecyclerViewAdapter: YoutubeRecyclerViewAdapter
-
+    private var userID = -1L
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        userID = runBlocking {
+            getUserIdUseCase()
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            val lastItem = getLastSwingDataUseCase(userID)
+            launch(Dispatchers.Main) {
+                Glide.with(binding.root).load(SwingLocalDataProcessor.getSwingThumbnailFile(fragmentContext, lastItem.swingCode, userID)).into(binding.ivRecentThumbnail)
+            }
+            binding.tvTitleTotalSwingCnt2.text = getSwingDataSizeUseCase(userID).toString()
+            binding.tvRecentScore.text = "${lastItem.score}/100"
+            binding.tvTempo.text = lastItem.tempo.toString()
+            getSwingDataSizeUseCase(userID)
+        }
         initView()
         initClickListener()
         initAppBarMotionLayout()

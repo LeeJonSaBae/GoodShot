@@ -33,4 +33,6 @@ interface SwingFeedbackRepository {
     suspend fun comparisonSwingFeedback(swingComparisonParam: SwingComparisonParam): Result<CommonResponse<List<SwingFeedbackDataNeedToUpload>>>
     suspend fun exportSwingFeedback(swingFeedbackExportParamList: List<SwingFeedbackExportImportParam>): Result<CommonResponse<Unit>>
     suspend fun importSwingFeedback(swingComparisonParam: SwingComparisonParam): Result<CommonResponse<List<SwingFeedbackExportImportParam>>>
+    suspend fun getLastItem(userID: Long): SwingFeedback
+    suspend fun getSwingDataSize(userID: Long): Int
 }

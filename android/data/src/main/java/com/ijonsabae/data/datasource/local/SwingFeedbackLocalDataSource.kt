@@ -28,6 +28,14 @@ class SwingFeedbackLocalDataSource @Inject constructor(
     suspend fun getSwingFeedbackListNeedToUpload(userID:Long): List<SwingFeedback>{
         return swingFeedbackDao.getAllSwingFeedbackNeedToUpload(userID)
     }
+    suspend fun getSwingDataSize(userID: Long): Int{
+        return swingFeedbackDao.getSwingDataSize(userID)
+    }
+
+    suspend fun getLastItem(userID: Long): SwingFeedback{
+        return swingFeedbackDao.getLastItem(userID)
+    }
+
     suspend fun getAllSwingFeedbackList(userID:Long): List<SwingFeedback>{
         return swingFeedbackDao.getAllSwingFeedbackList(userID)
     }

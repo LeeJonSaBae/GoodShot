@@ -55,6 +55,7 @@ class ReplayAdapter(private val context: Context) :
         fun onItemDelete(item: SwingFeedback)
         fun onTitleChange(item: SwingFeedback, title: String)
         fun changeClampStatus(item: SwingFeedback, clampStatus: Boolean)
+        fun onTouchListener(position: Int)
     }
 
     fun setItemClickListener(onItemClickListener: OnItemClickListener) {
@@ -63,7 +64,7 @@ class ReplayAdapter(private val context: Context) :
 
     inner class ReplayViewHolder(private val binding: ItemReplayBinding) :
         RecyclerView.ViewHolder(binding.root) {
-
+        val clamp = binding.root.width.toFloat() / 10 * 3
         fun bindInfo(position: Int) {
             val replayItem = getItem(position)
             Log.d(TAG, "bindInfo: $replayItem")
@@ -95,9 +96,19 @@ class ReplayAdapter(private val context: Context) :
                 binding.ivEditTitle.setOnClickListener {
                     showEditCustomDialog(replayItem)
                 }
-                if (replayItem.isClamped) binding.cvReplayItem.translationX =
-                    binding.root.width * -1f / 10 * 3
-                else binding.cvReplayItem.translationX = 0f
+                if (it.isClamped) {
+                    Log.d(TAG, "bindInfo: 클램프")
+                    binding.cvReplayItem.translationX =
+                        binding.root.width * -1f / 10 * 3
+                }
+                else {
+                    Log.d(TAG, "bindInfo: 클램프 안됨")
+                    binding.cvReplayItem.translationX = 0f
+                }
+                binding.root.setOnTouchListener { v, event ->
+                    itemClickListener.onTouchListener(position)
+                    return@setOnTouchListener true
+                }
 
                 binding.btnDelete.setOnClickListener {
                     if (getClamped())
@@ -143,6 +154,7 @@ class ReplayAdapter(private val context: Context) :
         // 애니메이션 설정
         setAnimation(holder.itemView, position)
     }
+
 
     private fun setAnimation(viewToAnimate: View, position: Int) {
         // 애니메이션 딜레이 설정

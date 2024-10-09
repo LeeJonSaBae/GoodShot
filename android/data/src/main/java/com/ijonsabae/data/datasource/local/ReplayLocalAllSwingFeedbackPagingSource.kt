@@ -23,7 +23,7 @@ class ReplayLocalAllSwingFeedbackPagingSource @Inject constructor(
         val userID = runBlocking { tokenLocalDataSource.getUserId() }
         return try {
             val currentPage = params.key ?: 0
-            val response = swingFeedbackLocalDataSource.getAllSwingFeedback(1, params.loadSize, currentPage)
+            val response = swingFeedbackLocalDataSource.getAllSwingFeedback(userID, params.loadSize, currentPage)
             LoadResult.Page(
                 data = response,
                 prevKey = if (currentPage == 0) null else currentPage - 1,

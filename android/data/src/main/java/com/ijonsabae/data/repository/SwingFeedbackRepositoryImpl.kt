@@ -124,4 +124,12 @@ class SwingFeedbackRepositoryImpl @Inject constructor(
     override suspend fun importSwingFeedback(swingComparisonParam: SwingComparisonParam): Result<CommonResponse<List<SwingFeedbackExportImportParam>>> {
         return swingFeedbackRemoteDataSource.importSwingFeedback(swingComparisonParam)
     }
+
+    override suspend fun getLastItem(userID: Long): SwingFeedback{
+        return swingFeedbackLocalDataSource.getLastItem(userID)
+    }
+
+    override suspend fun getSwingDataSize(userID: Long): Int {
+        return swingFeedbackLocalDataSource.getSwingDataSize(userID)
+    }
 }

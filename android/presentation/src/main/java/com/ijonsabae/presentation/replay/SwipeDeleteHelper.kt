@@ -32,7 +32,7 @@ class SwipeDeleteHelper @Inject constructor() : ItemTouchHelper.Callback() {
         viewHolder: RecyclerView.ViewHolder,
         target: RecyclerView.ViewHolder
     ): Boolean {
-        return false
+        return true
     }
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
@@ -40,12 +40,12 @@ class SwipeDeleteHelper @Inject constructor() : ItemTouchHelper.Callback() {
     override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
         currentDx = 0f
         getDefaultUIUtil().`clearView`(getView(viewHolder))
-        previousPosition = viewHolder.bindingAdapterPosition
+        previousPosition = viewHolder.layoutPosition
     }
 
     override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
         viewHolder?.let {
-            currentPosition = viewHolder.bindingAdapterPosition
+            currentPosition = viewHolder.layoutPosition
             getDefaultUIUtil().onSelected(getView(it))
         }
     }

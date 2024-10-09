@@ -80,6 +80,7 @@ class ReplayFragment :
                     override fun onLikeClick(item: SwingFeedback) {
                         lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
                             updateLikeStatusUseCase(item.userID, item.swingCode, !item.likeStatus, System.currentTimeMillis())
+
                             if(binding.cbFilter.isChecked){
                                 viewModel.getLocalSwingFeedbackLikeList()
                             }else{
@@ -107,6 +108,7 @@ class ReplayFragment :
                     override fun onTitleChange(item: SwingFeedback, title: String) {
                         lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
                             updateTitleUseCase(item.userID, item.swingCode, title, System.currentTimeMillis())
+
                             if(binding.cbFilter.isChecked){
                                 viewModel.getLocalSwingFeedbackLikeList()
                             }else{
@@ -129,6 +131,11 @@ class ReplayFragment :
                                 submitData(viewModel.swingFeedbackList.value)
                             }
                         }
+                    }
+
+                    override fun onTouchListener(position: Int) {
+                        Log.d(TAG, "onTouchListener: 터치 리스너 작동 $position")
+                        binding.rvReplay.scrollToPosition(position)
                     }
                 }
             )
@@ -258,7 +265,7 @@ class ReplayFragment :
         val itemTouchHelper = ItemTouchHelper(swipeHelper)
         itemTouchHelper.attachToRecyclerView(binding.rvReplay)
 
-        // 여러 아이템이 한 번에 삭제 버튼이 보이는 경우 없도록 처리
+//         여러 아이템이 한 번에 삭제 버튼이 보이는 경우 없도록 처리
         binding.rvReplay.apply {
             setOnTouchListener { v, event ->
                 swipeHelper.removePreviousClamp(this)
