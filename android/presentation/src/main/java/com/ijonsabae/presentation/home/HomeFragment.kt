@@ -4,14 +4,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
@@ -23,7 +21,6 @@ import com.ijonsabae.presentation.main.MainActivity
 import com.ijonsabae.presentation.replay.HorizontalMarginItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.math.abs
@@ -54,8 +51,6 @@ class HomeFragment :
     private fun initView() {
         (fragmentContext as MainActivity).hideAppBar()
 
-//        initAnimation()
-
         lifecycleScope.launch {
             if (getLocalAccessTokenUseCase() == null) {
                 binding.layoutContentNotLogin.visibility = View.VISIBLE
@@ -70,6 +65,28 @@ class HomeFragment :
             }
         }
 
+        lifecycleScope.launch {
+            homeViewModel.getProfileInfo()
+            homeViewModel.profileInfo.collect { user ->
+                user?.let {
+                    binding.tvBannerNickname.text = "${user.name}님"
+                    binding.tvTitleRecentNickname.text = "${user.name} "
+                }
+
+            }
+        }
+
+        binding.btnGoRecentReplay.setOnClickListener {
+            navController.navigate(R.id.action_home_to_replay)
+        }
+
+        binding.btnGoTotalReport.setOnClickListener {
+            val bundle = Bundle().apply {
+                putBoolean("GoTotalReport", true)
+            }
+            findNavController().navigate(R.id.action_home_to_total_report, bundle)
+
+        }
     }
 
 //    private fun initFlow() {

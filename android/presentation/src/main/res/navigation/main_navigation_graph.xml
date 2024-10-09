@@ -7,6 +7,7 @@
     <navigation
         android:id="@+id/home_tab"
         app:startDestination="@id/home">
+
         <fragment
             android:id="@+id/home"
             android:name="com.ijonsabae.presentation.home.HomeFragment"
@@ -15,6 +16,12 @@
             <action
                 android:id="@+id/action_home_to_consult"
                 app:destination="@id/consult" />
+            <action
+                android:id="@+id/action_home_to_replay"
+                app:destination="@id/replay_tab" />
+            <action
+                android:id="@+id/action_home_to_total_report"
+                app:destination="@id/profile_tab" />
         </fragment>
         <fragment
             android:id="@+id/consult"
@@ -159,8 +166,7 @@
             tools:layout="@layout/fragment_profile">
             <action
                 android:id="@+id/action_profile_to_resign_dialog"
-                app:destination="@id/resign_dialog"
-                />
+                app:destination="@id/resign_dialog" />
             <action
                 android:id="@+id/action_profile_to_change_password_dialog"
                 app:destination="@id/change_password_dialog" />
@@ -170,36 +176,38 @@
             <action
                 android:id="@+id/action_profile_to_progress_dialog"
                 app:destination="@id/progress_dialog" />
+            <action
+                android:id="@+id/action_profile_to_total_report"
+                app:destination="@id/profile_total_report" />
         </fragment>
 
         <fragment
             android:id="@+id/profile_total_report"
             android:name="com.ijonsabae.presentation.profile.TotalReportFragment"
             tools:label="total report"
-            tools:layout="@layout/fragment_total_report" >
+            tools:layout="@layout/fragment_total_report">
             <argument
                 android:name="total_report_parcelable"
                 app:argType="com.ijonsabae.presentation.model.TotalReportParcelable" />
             <action
                 android:id="@+id/action_profile_total_report_to_profile"
                 app:destination="@id/profile"
-                app:popUpToInclusive="true"/>
+                app:popUpToInclusive="true" />
         </fragment>
 
         <dialog
             android:id="@+id/progress_dialog"
             android:name="com.ijonsabae.presentation.profile.ProgressDialog"
             tools:label="progress_dialog"
-            tools:layout="@layout/dialog_progress"
-            >
+            tools:layout="@layout/dialog_progress">
             <action
                 android:id="@+id/action_progress_dialog_to_profile_total_report"
                 app:destination="@id/profile_total_report"
-                app:popUpToInclusive="true"/>
+                app:popUpToInclusive="true" />
             <action
                 android:id="@+id/action_progress_dialog_to_forbidden_dialog"
                 app:destination="@id/forbidden_dialog"
-                app:popUpToInclusive="true"/>
+                app:popUpToInclusive="true" />
         </dialog>
 
         <dialog
