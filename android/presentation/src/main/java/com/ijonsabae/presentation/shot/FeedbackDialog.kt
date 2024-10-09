@@ -4,11 +4,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.media.AudioAttributes
-import android.media.SoundPool
 import android.net.Uri
 import android.os.Bundle
-import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -26,18 +23,10 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseDialog
 import com.ijonsabae.presentation.databinding.DialogFeedbackBinding
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.Locale
-
-private const val TAG = "FeedbackDialog"
 
 @AndroidEntryPoint
 class FeedbackDialog :
     BaseDialog<DialogFeedbackBinding>(DialogFeedbackBinding::bind, R.layout.dialog_feedback) {
-    private lateinit var soundPool: SoundPool
-    private var soundId: Int = 0
-    private var tts: TextToSpeech? = null
-    private var TTS_ID = "TTS"
-
     private val args: FeedbackDialogArgs by navArgs()
     private val checkListAdapter: CheckListAdapter by lazy {
         CheckListAdapter()
@@ -70,58 +59,10 @@ class FeedbackDialog :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         registerLocalBroadCastReceiver()
         super.onViewCreated(view, savedInstanceState)
-        initSoundPool()
-        initTts()
         initBackPress()
         initButtons()
         initRecyclerView()
         setFeedback()
-    }
-
-    private fun executeTts() {
-        Log.d(TAG, "executeTts: $tts")
-        if (swingViewModel.currentState.value == CameraState.AGAIN) {
-            tts?.speak("분석을 위해 다시 스윙해주세요!", TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
-        } else {
-            val feedback = swingViewModel.getFeedBack()
-            Log.d(TAG, "feedback: $feedback")
-            feedback?.let {
-                Log.d(TAG, "solution: ${it.feedBackSolution}")
-                if (it.goodShot) soundPool.play(soundId, 0.8f, 0.8f, 1, 0, 1.0f)
-                tts?.speak(it.feedBackSolution, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
-            }
-        }
-    }
-
-    private fun initSoundPool() {
-        val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_MEDIA)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
-
-        soundPool = SoundPool.Builder()
-            .setMaxStreams(1)
-            .setAudioAttributes(audioAttributes)
-            .build()
-
-        // 오디오 파일 로드
-        soundId = soundPool.load(fragmentContext, R.raw.applause, 1)
-    }
-
-    private fun initTts() {
-        tts = TextToSpeech(requireContext()) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                val result = tts?.setLanguage(Locale.KOREAN)
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Log.e(TAG, "The Language is not supported!")
-                } else {
-                    Log.i(TAG, "TTS Initialization successful")
-                    executeTts()
-                }
-            } else {
-                Log.e(TAG, "TTS Initialization failed!")
-            }
-        }
     }
 
     override fun onStart() {
@@ -133,15 +74,6 @@ class FeedbackDialog :
     override fun onDestroyView() {
         swingViewModel.setCurrentState(CameraState.POSITIONING)
         super.onDestroyView()
-    }
-
-    override fun onDestroy() {
-        tts?.let { t ->
-            t.stop()
-            t.shutdown()
-        }
-        soundPool.release()
-        super.onDestroy()
     }
 
     private fun initButtons() {
