@@ -4,10 +4,7 @@ import android.Manifest
 import android.graphics.LinearGradient
 import android.graphics.Shader
 import android.graphics.Typeface
-import android.media.AudioAttributes
-import android.media.SoundPool
 import android.os.Bundle
-import android.speech.tts.TextToSpeech
 import android.text.SpannableString
 import android.text.style.CharacterStyle
 import android.text.style.StyleSpan
@@ -73,10 +70,6 @@ class CameraFragment :
     private var camera: Camera? = null
     private var cameraController: CameraControl? = null
     private val lastAnalysisTimestamp = AtomicLong(0L)
-    private lateinit var soundPool: SoundPool
-    private var soundId: Int = 0
-    private var tts: TextToSpeech? = null
-    private var TTS_ID = "TTS"
 
     private val swingViewModel by activityViewModels<SwingViewModel>()
     private val shotSettingViewModel by activityViewModels<ShotSettingViewModel>()
@@ -100,8 +93,6 @@ class CameraFragment :
         navController = Navigation.findNavController(binding.root)
         (fragmentContext as MainActivity).hideAppBar()
         initObservers()
-        initTts()
-        initSoundPool()
         surfaceView = binding.camera
         permissionChecker = PermissionChecker(this)
         permissionChecker.setOnGrantedListener { //퍼미션 획득 성공일때
@@ -113,42 +104,6 @@ class CameraFragment :
         } else {
             Log.d(TAG, "onViewCreated: 권한 부족")
             permissionChecker.requestPermissionLauncher.launch(permissionList) // 권한없으면 창 띄움
-        }
-    }
-
-    private fun initSoundPool() {
-        val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_MEDIA)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
-
-        soundPool = SoundPool.Builder()
-            .setMaxStreams(1)
-            .setAudioAttributes(audioAttributes)
-            .build()
-
-        // 오디오 파일 로드
-        soundId = soundPool.load(fragmentContext, R.raw.applause, 1)
-    }
-
-    private fun initTts() {
-        tts = TextToSpeech(requireContext()) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                val result = tts?.setLanguage(Locale.KOREAN)
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Log.e(TAG, "The Language is not supported!")
-                } else {
-                    Log.i(TAG, "TTS Initialization successful")
-                }
-            } else {
-                Log.e(TAG, "TTS Initialization failed!")
-            }
-        }
-    }
-
-    private fun stopTts() {
-        if (tts?.isSpeaking == true) {
-            tts?.stop()
         }
     }
 
@@ -244,7 +199,6 @@ class CameraFragment :
     }
 
     override fun onPause() {
-        stopTts()
         cameraSource.pause()
         super.onPause()
     }
@@ -259,12 +213,7 @@ class CameraFragment :
     }
 
     override fun onDestroy() {
-        tts?.let { t ->
-            t.stop()
-            t.shutdown()
-        }
         cameraSource.destroy()
-        soundPool.release()
         super.onDestroy()
     }
 
@@ -457,7 +406,6 @@ class CameraFragment :
                     )
                     text = "분석을 위해 다시 스윙해주세요!"
                     binding.tvAlert.text = text
-                    tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
                     color = ContextCompat.getColor(fragmentContext, R.color.like_yellow)
                 }
 
@@ -486,11 +434,6 @@ class CameraFragment :
                             shotSettingViewModel.totalSwingCnt.value
                         )
                     )
-                    val feedback = swingViewModel.getFeedBack()
-                    feedback?.let {
-                        if (it.goodShot) soundPool.play(soundId, 0.8f, 0.8f, 1, 0, 1.0f)
-                        tts?.speak(it.feedBackSolution, TextToSpeech.QUEUE_FLUSH, null, TTS_ID)
-                    }
 
                     text = "스윙 분석 결과"
                     color = ContextCompat.getColor(fragmentContext, R.color.black)
