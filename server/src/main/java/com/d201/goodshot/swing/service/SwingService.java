@@ -104,6 +104,7 @@ public class SwingService {
             // 8가지 자세 각 value 값 뽑아서 더하기
             // 유사도 처리 (JSON 형식 파싱)
             String similarityJson = swing.getSimilarity(); // JSON 형식 문자열
+
             try {
                 // JSON 문자열을 Map<String, Double> 형식으로 파싱
                 Map<String, Double> similarityMap = objectMapper.readValue(similarityJson, new TypeReference<Map<String, Double>>() {});
@@ -138,9 +139,11 @@ public class SwingService {
         // 3. Comment
         String totalComment = generateComment(top3Comments.get(0), top3Comments.get(1));
 
+        List<String> poseOrder = List.of("address", "toeUp", "midBackSwing", "top",
+                "midDownSwing", "impact", "midFollowThrough", "finish");
         // 8가지 자세에 대한 평균 유사도 계산
-        List<Double> averageSimilarity = cumulativeSimilarity.values().stream()
-                .map(aDouble -> aDouble / swingCount) // 누적된 값을 스윙 개수로 나눔
+        List<Double> averageSimilarity = poseOrder.stream()
+                .map(poseType -> cumulativeSimilarity.getOrDefault(poseType, 0.0) / swingCount)
                 .toList();
 
         return ReportResponse.builder()

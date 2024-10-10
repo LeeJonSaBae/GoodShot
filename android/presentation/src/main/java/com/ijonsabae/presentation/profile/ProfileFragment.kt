@@ -2,8 +2,11 @@ package com.ijonsabae.presentation.profile
 
 import android.app.Activity
 import android.content.ContentResolver
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -90,7 +93,14 @@ class ProfileFragment :
             openGallery()
         }
     }
+    private fun isInternetAvailable(context: Context): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkCapabilities = connectivityManager.activeNetwork?.let { network ->
+            connectivityManager.getNetworkCapabilities(network)
+        }
+        return networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
 
+    }
     private fun init() {
         binding.btnEditProfileImg.setOnClickListener {
             checkPermissionAndOpenGallery()
@@ -100,7 +110,11 @@ class ProfileFragment :
         }
 
         binding.layoutGoTotalReport.setOnClickListener {
-            navController.navigate(R.id.action_profile_to_progress_dialog)
+            if(isInternetAvailable(fragmentContext)){
+                navController.navigate(R.id.action_profile_to_progress_dialog)
+            }else{
+                showToastShort("인터넷이 연결되어 있지 않습니다!")
+            }
         }
 
         binding.layoutLogout.setOnClickListener {

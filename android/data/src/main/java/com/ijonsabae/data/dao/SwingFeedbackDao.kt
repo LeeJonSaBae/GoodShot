@@ -15,7 +15,7 @@ interface SwingFeedbackDao {
     @Query("SELECT * FROM swing_feedback WHERE userID == :userId AND swingCode == :swingCode")
     suspend fun getSwingFeedback(userId: Long, swingCode: String): SwingFeedback
 
-    @Query("SELECT * FROM swing_feedback WHERE userID == :userID and isUpdated != 2" )
+    @Query("SELECT * FROM swing_feedback WHERE userID == :userID and isUpdated != 2 order by createdAt DESC" )
     fun getAllSwingFeedback(userID: Long): PagingSource<Int,SwingFeedback>
 
     @Query("SELECT * FROM swing_feedback WHERE isUpdated == 0 and userID == :userID")
@@ -27,13 +27,13 @@ interface SwingFeedbackDao {
     @Query("SELECT likeStatus, title, swingCode, date, isUpdated FROM swing_feedback WHERE userID == :userID and isUpdated != 0")
     suspend fun getChangedSwingFeedback(userID: Long): List<SwingFeedbackSyncRoomData>
 
-    @Query("SELECT * FROM swing_feedback where userID=:userID and likeStatus== 1 and isUpdated != 2")
+    @Query("SELECT * FROM swing_feedback where userID=:userID and likeStatus== 1 and isUpdated != 2 order by createdAt DESC")
     fun getLikeSwingFeedback(userID: Long): PagingSource<Int,SwingFeedback>
 
     @Query("SELECT COUNT(*) FROM swing_feedback where userID==:userID and isUpdated != 2")
     suspend fun getSwingDataSize(userID: Long): Int
 
-    @Query("SELECT * FROM swing_feedback where userID==:userID and isUpdated!= 2 LIMIT 1")
+    @Query("SELECT * FROM swing_feedback where userID==:userID and isUpdated!= 2 order by createdAt DESC  LIMIT 1")
     suspend fun getLastItem(userID: Long): SwingFeedback
 
     @Query("DELETE FROM swing_feedback WHERE userID == :userId AND swingCode == :swingCode")
