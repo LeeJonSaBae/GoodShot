@@ -1,5 +1,7 @@
 
-![001.png](./readmeFile/001.png)
+![001_1.png](./readmeFile/001_1.png)
+
+![002_2.gif](./readmeFile/002_2.gif)
 
 ![003.png](./readmeFile/003.png)
 
