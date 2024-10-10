@@ -148,7 +148,7 @@
                         android:id="@+id/view_news"
                         android:layout_width="0dp"
                         android:layout_height="0dp"
-                        android:layout_marginHorizontal="44dp"
+                        android:layout_marginHorizontal="20dp"
                         android:layout_marginTop="20dp"
                         android:background="@drawable/btn_rounded_light_green"
                         android:paddingVertical="20dp"
@@ -206,7 +206,7 @@
                     android:id="@+id/layout_exist_swing_data"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:visibility="invisible">
+                    android:visibility="gone">
 
                     <!-- 최근 스윙 - 타이틀 -->
                     <TextView
@@ -481,61 +481,74 @@
                 android:layout_marginTop="30dp"
                 android:text="@string/home_recommendation_news"
                 android:textStyle="bold"
-                app:layout_constraintBottom_toTopOf="@id/vp_news"
+                app:layout_constraintBottom_toTopOf="@id/layout_news"
                 app:layout_constraintTop_toBottomOf="@id/layout_login_content"
                 app:layout_constraintVertical_chainStyle="packed" />
-
-            <!--                &lt;!&ndash; 네트워크 없음 화면 &ndash;&gt;-->
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/view_news_not_login"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:background="@drawable/btn_rounded_light_green"
-                android:layout_marginHorizontal="10dp"
-                android:paddingVertical="20dp"
-                app:layout_constraintBottom_toTopOf="@id/tv_title_youtube"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_title_news">
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/iv_wireless"
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
-                    android:adjustViewBounds="true"
-                    android:src="@drawable/ic_wireless"
-                    app:layout_constraintBottom_toTopOf="@id/tv_wireless"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:tint="@color/white" />
-
-                <TextView
-                    android:id="@+id/tv_wireless"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:text="네트워크를 연결해야 이용 가능합니다."
-                    android:textColor="@color/white"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/iv_wireless" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- 골프 추천 기사 - ViewPager -->
-            <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/vp_news"
+                android:id="@+id/layout_news"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:clipChildren="false"
                 app:layout_constraintBottom_toTopOf="@id/tv_title_youtube"
-                app:layout_constraintTop_toBottomOf="@id/tv_title_news" />
+                app:layout_constraintTop_toBottomOf="@id/tv_title_news"
+                app:layout_constraintEnd_toEndOf="@id/tv_title_news"
+                app:layout_constraintStart_toStartOf="@id/tv_title_news"
+                >
+
+                <!--                &lt;!&ndash; 네트워크 없음 화면 &ndash;&gt;-->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/view_news_no_internet"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/btn_rounded_light_green"
+                    android:layout_marginHorizontal="20dp"
+                    android:paddingVertical="20dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    >
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/iv_wireless"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:adjustViewBounds="true"
+                        android:src="@drawable/ic_wireless"
+                        app:layout_constraintBottom_toTopOf="@id/tv_wireless"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:tint="@color/white" />
+
+                    <TextView
+                        android:id="@+id/tv_wireless"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:text="네트워크를 연결해야 이용 가능합니다."
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/iv_wireless" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <!-- 골프 추천 기사 - ViewPager -->
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/vp_news"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:clipChildren="false"
+                    android:visibility="gone"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- 골프 추천 영상 - 타이틀 -->
             <TextView
@@ -546,83 +559,98 @@
                 android:layout_marginTop="20dp"
                 android:text="@string/home_recommendation_youtube"
                 android:textStyle="bold"
-                app:layout_constraintBottom_toTopOf="@id/rv_youtube"
-                app:layout_constraintTop_toBottomOf="@id/vp_news" />
+                app:layout_constraintBottom_toTopOf="@id/layout_youtube"
+                app:layout_constraintTop_toBottomOf="@id/layout_news" />
 
-            <!-- 네트워크 없음 화면 -->
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/view_youtube_not_login"
-                android:layout_width="0dp"
+                android:id="@+id/layout_youtube"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:background="@drawable/btn_rounded_light_green"
-                android:paddingVertical="20dp"
-                android:layout_marginHorizontal="10dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_title_youtube">
+                android:layout_marginHorizontal="20dp"
+                app:layout_constraintTop_toBottomOf="@id/tv_title_youtube"
+                app:layout_constraintEnd_toEndOf="@id/tv_title_youtube"
+                app:layout_constraintStart_toStartOf="@id/tv_title_youtube">
 
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/iv_wireless2"
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
-                    android:adjustViewBounds="true"
-                    android:src="@drawable/ic_wireless"
-                    android:tint="@color/white"
-                    app:layout_constraintBottom_toTopOf="@id/tv_wireless2"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/tv_wireless2"
-                    android:layout_width="wrap_content"
+                <!-- 네트워크 없음 화면 -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/view_youtube_no_internet"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
-                    android:text="네트워크를 연결해야 이용 가능합니다."
-                    android:textColor="@color/white"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
+                    android:background="@drawable/btn_rounded_light_green"
+                    android:paddingVertical="20dp"
+                    app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/iv_wireless2" />
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintVertical_bias="0">
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/iv_wireless2"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:adjustViewBounds="true"
+                        android:src="@drawable/ic_wireless"
+                        android:tint="@color/white"
+                        app:layout_constraintBottom_toTopOf="@id/tv_wireless2"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/tv_wireless2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:text="네트워크를 연결해야 이용 가능합니다."
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/iv_wireless2" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/home_progress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:indeterminate="true"
+                    android:layout_marginTop="20dp"
+                    app:layout_constraintVertical_chainStyle="packed"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toTopOf="@id/home_progress_title"
+                    app:layout_constraintTop_toTopOf="parent"
+                    />
+                <TextView
+                    android:id="@+id/home_progress_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:layout_marginBottom="20dp"
+                    android:text="추천 영상 리스트를 불러오는 중입니다!"
+                    app:layout_constraintTop_toBottomOf="@id/home_progress"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    />
+
+                <!-- 골프 추천 영상 - ViewPager -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_youtube"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:nestedScrollingEnabled="false"
+                    android:orientation="horizontal"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:listitem="@layout/item_home_youtube" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:id="@+id/home_progress"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:indeterminate="true"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/home_progress_title"
-                app:layout_constraintTop_toBottomOf="@id/tv_title_youtube"
-                />
-            <TextView
-                android:id="@+id/home_progress_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:text="추천 영상 리스트를 불러오는 중입니다!"
-                app:layout_constraintTop_toBottomOf="@id/home_progress"
-                app:layout_constraintBottom_toBottomOf="parent"
-                />
 
-            <!-- 골프 추천 영상 - ViewPager -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_youtube"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="10dp"
-                android:layout_marginTop="10dp"
-                android:nestedScrollingEnabled="false"
-                android:orientation="horizontal"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_title_youtube"
-                tools:listitem="@layout/item_home_youtube" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -280,9 +280,9 @@ class SwingRemoteDataProcessor @Inject constructor(
                 )
             }
 
-            val progress5 = progressRatio * Random.nextDouble(0.2, 0.3).toInt()
+            val progress5 = (progressRatio * Random.nextDouble(0.2, 0.3)).toInt()
             progressStatus += progress5
-            sendProgressIntent(context, progress5.toInt())
+            sendProgressIntent(context, progress5)
 
             // DownloadManager에 요청 추가
             val downloadManager = context.getSystemService(DOWNLOAD_SERVICE) as DownloadManager
@@ -297,15 +297,15 @@ class SwingRemoteDataProcessor @Inject constructor(
             CoroutineScope(Dispatchers.IO).launch {
                 launch {
                     downloadAndSaveFile(videoUri.toString(),  SwingLocalDataProcessor.getSwingVideoFile(context, userId = userID, swingCode = swingFeedbackParam.code).toString())
-                    val progress5 = progressRatio * Random.nextDouble(0.15, 0.25)
-                    progressStatus += progress5.toFloat()
-                    sendProgressIntent(context, progress5.toInt())
+                    val progress6 = (progressRatio * Random.nextDouble(0.15, 0.25)).toInt()
+                    progressStatus += progress6
+                    sendProgressIntent(context, progress6)
                 }
                 launch {
                     downloadAndSaveFile(thumbnailUri.toString(), SwingLocalDataProcessor.getSwingThumbnailFile(context, userId = userID, swingCode = swingFeedbackParam.code).toString())
-                    val progress5 = progressRatio * Random.nextDouble(0.05, 0.15).toInt()
-                    progressStatus += progress5
-                    sendProgressIntent(context, progress5.toInt())
+                    val progress6 = (progressRatio * Random.nextDouble(0.05, 0.15)).toInt()
+                    progressStatus += progress6
+                    sendProgressIntent(context, progress6)
                 }
                 launch {
                     val poseDestination = SwingLocalDataProcessor.getSwingPoseFiles(context, userId = userID, swingCode = swingFeedbackParam.code)
@@ -320,12 +320,12 @@ class SwingRemoteDataProcessor @Inject constructor(
                     }
                 }
             }
-            val progress6 = progressRatio * Random.nextDouble(0.5, 0.7).toInt()
+            val progress6 = (progressRatio * Random.nextDouble(0.5, 0.7)).toInt()
             progressStatus += progress6
-            sendProgressIntent(context, progress6.toInt())
+            sendProgressIntent(context, progress6)
         }
 
-        sendProgressIntent(context, (50 - progressStatus).toInt())
+        sendProgressIntent(context, (50 - progressStatus.toInt()))
     }
 
     private suspend fun downloadAndSaveFile(presignedUrl: String, saveFilePath: String) {

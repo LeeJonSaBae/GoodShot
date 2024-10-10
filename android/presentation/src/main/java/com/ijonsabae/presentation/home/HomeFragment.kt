@@ -107,16 +107,16 @@ class HomeFragment :
                 homeViewModel.load()
             }
 
-            binding.viewNewsNotLogin.visibility = View.GONE
+            binding.viewNewsNoInternet.visibility = View.GONE
             binding.vpNews.visibility = View.VISIBLE
-            binding.viewYoutubeNotLogin.visibility = View.GONE
-            binding.rvYoutube.visibility = View.VISIBLE
+            binding.viewYoutubeNoInternet.visibility = View.GONE
+
         }else{
             binding.homeProgress.visibility = View.GONE
             binding.homeProgressTitle.visibility = View.GONE
-            binding.viewNewsNotLogin.visibility = View.VISIBLE
+            binding.viewNewsNoInternet.visibility = View.VISIBLE
             binding.vpNews.visibility = View.GONE
-            binding.viewYoutubeNotLogin.visibility = View.VISIBLE
+            binding.viewYoutubeNoInternet.visibility = View.VISIBLE
             binding.rvYoutube.visibility = View.GONE
         }
 

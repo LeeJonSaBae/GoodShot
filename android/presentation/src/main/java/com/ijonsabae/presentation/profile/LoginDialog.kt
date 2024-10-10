@@ -67,10 +67,10 @@ class LoginDialog : BaseDialog<DialogLoginBinding>(
             if(checkValidation()){
                 lifecycleScope.launch (coroutineExceptionHandler){
                     val result = loginDialogViewModel.login().getOrThrow()
-                    setLocalUserNameUseCase(getRemoteUserNameUseCase().getOrThrow().data)
                     withContext(Dispatchers.IO) {
-                        loginDialogViewModel.setToken(result.data)
                         loginDialogViewModel.saveToken(result.data)
+                        setLocalUserNameUseCase(getRemoteUserNameUseCase().getOrThrow().data)
+                        loginDialogViewModel.setToken(result.data)
                     }
 
                     if(binding.checkboxAutoLogin.isChecked){

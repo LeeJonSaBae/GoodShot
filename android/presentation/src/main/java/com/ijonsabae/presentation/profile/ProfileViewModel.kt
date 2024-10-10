@@ -13,7 +13,9 @@ import com.ijonsabae.domain.usecase.profile.UpdateProfileUseCase
 import com.ijonsabae.domain.usecase.profile.UploadPresignedDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.runBlocking
@@ -48,8 +50,8 @@ class ProfileViewModel @Inject constructor(
     private val _cropUri = MutableStateFlow<Uri>(Uri.EMPTY)
     val croppedUri: StateFlow<Uri> = _cropUri.asStateFlow()
 
-    private val _isLogoutSucceed = MutableStateFlow<Int?>(null)
-    val isLogoutSucceed: StateFlow<Int?> = _isLogoutSucceed.asStateFlow()
+    private val _isLogoutSucceed = MutableSharedFlow<Int>()
+    val isLogoutSucceed: SharedFlow<Int> = _isLogoutSucceed
 
 //    private val _updateProfileResult = MutableStateFlow<Result<CommonResponse<Unit>>>(null)
 //    val isUpdateProfileSucceed: StateFlow<Int?> = _updateProfileResult.asStateFlow()
@@ -80,8 +82,10 @@ class ProfileViewModel @Inject constructor(
 
     suspend fun logout() {
         val result = logoutUseCase().getOrThrow()
-        _isLogoutSucceed.value = result.code
-        _isLogin.emit(false)
+        _isLogoutSucceed.emit(result.code)
+        if(result.code==200){
+            _isLogin.emit(false)
+        }
     }
 
     suspend fun updateProfile(image: String?): Result<CommonResponse<Unit>>{

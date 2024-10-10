@@ -118,6 +118,15 @@ class ReplayFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (fragmentContext as MainActivity).showAppBar("영상 다시보기")
+        if(binding.cbFilter.isChecked){
+            viewModel.getLocalSwingFeedbackLikeList()
+
+        }else{
+            viewModel.getLocalSwingFeedbackList()
+        }
+        lifecycleScope.launch {
+            replayAdapter.submitData(viewModel.swingFeedbackList.value)
+        }
         binding.cbFilter.setOnCheckedChangeListener { buttonView, isChecked ->
             Log.d(TAG, "onViewCreated: checkChangedListeener")
             // room에서 Flow를 받아서 갱신하는데, Flow의 내부 값을 갱신하는게 아니라 Flow 값 자체를 바꾸는 거니까 emit 같은거로 감지하는게 무용지물
@@ -230,7 +239,6 @@ class ReplayFragment :
         val mountainRecyclerView = binding.rvReplay
         mountainRecyclerView.layoutManager = LinearLayoutManager(context)
         mountainRecyclerView.adapter = replayAdapter
-
         // 스와이프로 삭제
         val swipeHelper = SwipeDeleteHelper().apply {
             setClamp(200f)
