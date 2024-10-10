@@ -71,7 +71,7 @@ class HomeFragment :
         }
         lifecycleScope.launch(Dispatchers.IO) {
             val lastItem = getLastSwingDataUseCase(userID)
-
+            // 가장 최신 데이터를 가져옴, 만약 데이터가 없으면 null 반환됨
             if(lastItem == null){
                 launch(Dispatchers.Main) {
                     binding.layoutExistSwingData.visibility = View.GONE
@@ -82,15 +82,14 @@ class HomeFragment :
                 }
             }else{
                 launch(Dispatchers.Main) {
-                    val list = getLocalSwingFeedbackListUseCase(userID)
                     binding.layoutExistSwingData.visibility = View.VISIBLE
                     binding.layoutNoSwingData.visibility = View.GONE
                     launch(Dispatchers.Main) {
-                        Glide.with(binding.root).load(SwingLocalDataProcessor.getSwingThumbnailFile(fragmentContext, list.last().swingCode, userID)).into(binding.ivRecentThumbnail)
+                        Glide.with(binding.root).load(SwingLocalDataProcessor.getSwingThumbnailFile(fragmentContext, lastItem.swingCode, userID)).into(binding.ivRecentThumbnail)
                     }
-                    binding.tvTitleTotalSwingCnt2.text = list.size.toString()
-                    binding.tvRecentScore.text = "${list.last().score}/100"
-                    binding.tvTempo.text = list.last().tempo.toString()
+                    binding.tvTitleTotalSwingCnt2.text = getSwingDataSizeUseCase(userID).toString()
+                    binding.tvRecentScore.text = "${lastItem.score}/100"
+                    binding.tvTempo.text = lastItem.tempo.toString()
                 }
             }
         }

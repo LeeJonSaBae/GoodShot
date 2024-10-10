@@ -884,6 +884,7 @@ class CameraSource(
     private fun saveSwingFeedbackAndComment(swingSaveResult: Pair<String, Long>, tempoRatio: String, poseAnalysisResults: PoseAnalysisResult) {
         val swingScore = calculateScore(PostureExtractor.manualPoseIndexArray)
         CoroutineScope(Dispatchers.IO).launch{
+            // TODO(이쪽에도 createdTime을 추가해줘야 함)
             insertLocalSwingFeedback(SwingFeedback(
                 userID = userId,
                 swingCode = swingSaveResult.first,
@@ -892,7 +893,8 @@ class CameraSource(
                 score = swingScore, //TODO 문현 : SCORE 기준 회의 후 정하기
                 tempo = tempoRatio.toDouble(),
                 title = swingScore.toString() + "점 스윙",
-                date = swingSaveResult.second
+                date = swingSaveResult.second,
+                createdAt = swingSaveResult.second
             ))
 
             val swingCommentList: MutableList<SwingFeedbackComment> = mutableListOf()
