@@ -359,6 +359,7 @@ public class SwingService {
                     .tempo(swingData.getTempo())
                     .title(swingData.getTitle())
                     .time(swingData.getTime())
+                    .createdAt(swingData.getCreatedAt())
                     .build();
 
             swingRepository.save(swing);

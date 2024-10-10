@@ -47,6 +47,8 @@ public class Swing {
 
     private String title;
 
+    private long createdAt;
+
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime time;

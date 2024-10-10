@@ -26,6 +26,7 @@ public class SwingData {
     private Boolean likeStatus;
     private String title;
     private String code;
+    private long createdAt;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
