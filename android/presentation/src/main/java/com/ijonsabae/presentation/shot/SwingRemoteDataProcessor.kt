@@ -1,8 +1,6 @@
 package com.ijonsabae.presentation.shot
 
-import android.app.DownloadManager
 import android.content.Context
-import android.content.Context.DOWNLOAD_SERVICE
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
@@ -37,10 +35,7 @@ import com.ijonsabae.presentation.replay.THUMBNAIL
 import com.ijonsabae.presentation.replay.VIDEO
 import com.ijonsabae.presentation.util.formatTDateFromLongKorea
 import com.ijonsabae.presentation.util.stringToTimeInMillis
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -176,6 +171,7 @@ class SwingRemoteDataProcessor @Inject constructor(
                             id = userID,
                             code = it.swingCode,
                             time = formatTDateFromLongKorea(it.date),
+                            createdAt = it.createdAt,
                             backSwingComments = getLocalSwingFeedbackCommentUseCase(
                                 userID,
                                 it.swingCode
@@ -280,7 +276,7 @@ class SwingRemoteDataProcessor @Inject constructor(
                         val progress6 = (progressRatio * Random.nextDouble(0.5, 0.7)).toInt()
                         progressStatus += progress6
                         sendProgressIntent(context, progress6)
-
+                        //TODO(이쪽에 createdTime 추가해줘야 함)
                         insertLocalSwingFeedbackUseCase(
                             SwingFeedback(
                                 userID = userID,
@@ -291,7 +287,8 @@ class SwingRemoteDataProcessor @Inject constructor(
                                 score = swingFeedbackParam.score,
                                 likeStatus = swingFeedbackParam.likeStatus,
                                 similarity = swingFeedbackParam.similarity,
-                                solution = swingFeedbackParam.solution
+                                solution = swingFeedbackParam.solution,
+                                createdAt = swingFeedbackParam.createdAt
                             )
                         )
 
