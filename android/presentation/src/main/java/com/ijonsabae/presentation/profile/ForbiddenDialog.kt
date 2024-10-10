@@ -1,6 +1,7 @@
 package com.ijonsabae.presentation.profile
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import com.ijonsabae.presentation.R
@@ -8,6 +9,7 @@ import com.ijonsabae.presentation.config.BaseDialog
 import com.ijonsabae.presentation.databinding.DialogForbiddenBinding
 import dagger.hilt.android.AndroidEntryPoint
 
+private const val TAG = "ForbiddenDialog 싸피"
 @AndroidEntryPoint
 class ForbiddenDialog :
     BaseDialog<DialogForbiddenBinding>(DialogForbiddenBinding::bind, R.layout.dialog_forbidden) {
@@ -15,7 +17,7 @@ class ForbiddenDialog :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        Log.d(TAG, "onViewCreated: ㄴ이ㅏ런")
         setScreenWidthPercentage(0.9F)
         setScreenHeightConstraint(WRAP_CONTENT)
 

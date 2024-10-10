@@ -25,6 +25,7 @@ import com.ijonsabae.domain.usecase.home.GetSwingDataSizeUseCase
 import com.ijonsabae.domain.usecase.login.GetLocalAccessTokenUseCase
 import com.ijonsabae.domain.usecase.login.GetLocalUserNameUseCase
 import com.ijonsabae.domain.usecase.login.GetUserIdUseCase
+import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackListUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentHomeBinding
@@ -54,6 +55,8 @@ class HomeFragment :
     lateinit var getUserIdUseCase: GetUserIdUseCase
     @Inject
     lateinit var getLocalUserNameUseCase: GetLocalUserNameUseCase
+    @Inject
+    lateinit var getLocalSwingFeedbackListUseCase : GetLocalSwingFeedbackListUseCase
 
     private val homeViewModel: HomeViewModel by viewModels()
     private var newsList = mutableListOf<NewsDTO>()
@@ -68,21 +71,27 @@ class HomeFragment :
         }
         lifecycleScope.launch(Dispatchers.IO) {
             val lastItem = getLastSwingDataUseCase(userID)
+
             if(lastItem == null){
-                binding.layoutExistSwingData.visibility = View.GONE
-                binding.layoutNoSwingData.visibility = View.VISIBLE
-                binding.tvTitleTotalSwingCnt2.text = "0"
-                binding.tvRecentScore.text = "0/100"
-                binding.tvTempo.text = 0.toString()
-            }else{
-                binding.layoutExistSwingData.visibility = View.VISIBLE
-                binding.layoutNoSwingData.visibility = View.GONE
                 launch(Dispatchers.Main) {
-                    Glide.with(binding.root).load(SwingLocalDataProcessor.getSwingThumbnailFile(fragmentContext, lastItem.swingCode, userID)).into(binding.ivRecentThumbnail)
+                    binding.layoutExistSwingData.visibility = View.GONE
+                    binding.layoutNoSwingData.visibility = View.VISIBLE
+                    binding.tvTitleTotalSwingCnt2.text = "0"
+                    binding.tvRecentScore.text = "0/100"
+                    binding.tvTempo.text = 0.toString()
                 }
-                binding.tvTitleTotalSwingCnt2.text = getSwingDataSizeUseCase(userID).toString()
-                binding.tvRecentScore.text = "${lastItem.score}/100"
-                binding.tvTempo.text = lastItem.tempo.toString()
+            }else{
+                launch(Dispatchers.Main) {
+                    val list = getLocalSwingFeedbackListUseCase(userID)
+                    binding.layoutExistSwingData.visibility = View.VISIBLE
+                    binding.layoutNoSwingData.visibility = View.GONE
+                    launch(Dispatchers.Main) {
+                        Glide.with(binding.root).load(SwingLocalDataProcessor.getSwingThumbnailFile(fragmentContext, list.last().swingCode, userID)).into(binding.ivRecentThumbnail)
+                    }
+                    binding.tvTitleTotalSwingCnt2.text = list.size.toString()
+                    binding.tvRecentScore.text = "${list.last().score}/100"
+                    binding.tvTempo.text = list.last().tempo.toString()
+                }
             }
         }
         initFlow()
@@ -91,6 +100,10 @@ class HomeFragment :
         initAppBarMotionLayout()
     }
 
+    override fun onResume() {
+
+        super.onResume()
+    }
     private fun isInternetAvailable(context: Context): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkCapabilities = connectivityManager.activeNetwork?.let { network ->

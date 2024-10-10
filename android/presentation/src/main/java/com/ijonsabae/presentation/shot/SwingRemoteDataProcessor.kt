@@ -39,6 +39,9 @@ import com.ijonsabae.presentation.util.formatTDateFromLongKorea
 import com.ijonsabae.presentation.util.stringToTimeInMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -235,116 +238,128 @@ class SwingRemoteDataProcessor @Inject constructor(
         sendProgressIntent(context, progress3)
 
         val progressRatio = (50 - progressStatus)/result.data.size
-        result.data.forEach { swingFeedbackParam ->
-            insertLocalSwingFeedbackUseCase(
-                SwingFeedback(
-                    userID = userID,
-                    title = swingFeedbackParam.title,
-                    swingCode = swingFeedbackParam.code,
-                    tempo = swingFeedbackParam.tempo,
-                    date = stringToTimeInMillis(swingFeedbackParam.time),
-                    score = swingFeedbackParam.score,
-                    likeStatus = swingFeedbackParam.likeStatus,
-                    similarity = swingFeedbackParam.similarity,
-                    solution = swingFeedbackParam.solution
-                )
-            )
-
-            swingFeedbackParam.downSwingComments.forEach { comment ->
-                insertLocalSwingFeedbackCommentUseCase(
-                    SwingFeedbackComment(
-                        userID = userID,
-                        swingCode = swingFeedbackParam.code,
-                        poseType = DOWNSWING,
-                        content = comment.content,
-                        commentType = if(comment.commentType == "NICE"){NICE}else{
-                            BAD
+        withContext(Dispatchers.IO){
+            val job = result.data.chunked(5).map { chunk ->
+                launch {
+                    chunk.forEach { swingFeedbackParam ->
+                        val videoUri = Uri.parse(S3_URL + userID + VIDEO + swingFeedbackParam.code + ".mp4") // [파일 다운로드 주소 : 확장자명 포함되어야함]
+                        val thumbnailUri = Uri.parse(S3_URL + userID + THUMBNAIL + swingFeedbackParam.code + ".jpg") // [파일 다운로드 주소 : 확장자명 포함되어야함]
+                        Log.d(TAG, "showCustomPopup: $videoUri")
+                        fun returnImageUri(idx: Int): Uri {
+                            return Uri.parse(S3_URL + userID + IMAGE + swingFeedbackParam.code + "_" + idx + ".jpg") // [파일 다운로드 주소 : 확장자명 포함되어야함]
                         }
-                    )
-                )
-            }
 
-
-
-            swingFeedbackParam.backSwingComments.forEach { comment ->
-                insertLocalSwingFeedbackCommentUseCase(
-                    SwingFeedbackComment(
-                        userID = userID,
-                        swingCode = swingFeedbackParam.code,
-                        poseType = BACKSWING,
-                        content = comment.content,
-                        commentType = if(comment.commentType == "NICE"){NICE}else{
-                            BAD
-                        }
-                    )
-                )
-            }
-
-            val progress5 = (progressRatio * Random.nextDouble(0.2, 0.3)).toInt()
-            progressStatus += progress5
-            sendProgressIntent(context, progress5)
-
-            // DownloadManager에 요청 추가
-            val downloadManager = context.getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-            val videoUri = Uri.parse(S3_URL + userID + VIDEO + swingFeedbackParam.code + ".mp4") // [파일 다운로드 주소 : 확장자명 포함되어야함]
-            val thumbnailUri = Uri.parse(S3_URL + userID + THUMBNAIL + swingFeedbackParam.code + ".jpg") // [파일 다운로드 주소 : 확장자명 포함되어야함]
-            Log.d(TAG, "showCustomPopup: $videoUri")
-            fun returnImageUri(idx: Int): Uri {
-                return Uri.parse(S3_URL + userID + IMAGE + swingFeedbackParam.code + "_" + idx + ".jpg") // [파일 다운로드 주소 : 확장자명 포함되어야함]
-            }
-
-            Log.d(TAG, "showCustomPopup: ${SwingLocalDataProcessor.getSwingVideoFile(context, userId = userID, swingCode = swingFeedbackParam.code).path}")
-            CoroutineScope(Dispatchers.IO).launch {
-                launch {
-                    downloadAndSaveFile(videoUri.toString(),  SwingLocalDataProcessor.getSwingVideoFile(context, userId = userID, swingCode = swingFeedbackParam.code).toString())
-                    val progress6 = (progressRatio * Random.nextDouble(0.15, 0.25)).toInt()
-                    progressStatus += progress6
-                    sendProgressIntent(context, progress6)
-                }
-                launch {
-                    downloadAndSaveFile(thumbnailUri.toString(), SwingLocalDataProcessor.getSwingThumbnailFile(context, userId = userID, swingCode = swingFeedbackParam.code).toString())
-                    val progress6 = (progressRatio * Random.nextDouble(0.05, 0.15)).toInt()
-                    progressStatus += progress6
-                    sendProgressIntent(context, progress6)
-                }
-                launch {
-                    val poseDestination = SwingLocalDataProcessor.getSwingPoseFiles(context, userId = userID, swingCode = swingFeedbackParam.code)
-
-                    for(i in 0 until 8){
-                        downloadManager.apply {
-                            val imageUrl = returnImageUri(i)
-                            launch {
-                                downloadAndSaveFile(imageUrl.toString(), poseDestination[i].toPath().toString())
+                        Log.d(TAG, "showCustomPopup: ${SwingLocalDataProcessor.getSwingVideoFile(context, userId = userID, swingCode = swingFeedbackParam.code).path}")
+                        withContext(Dispatchers.IO) {
+                            val jobVideo = launch {
+                                downloadAndSaveFile(videoUri.toString(),  SwingLocalDataProcessor.getSwingVideoFile(context, userId = userID, swingCode = swingFeedbackParam.code).toString())
+                                val progress6 = (progressRatio * Random.nextDouble(0.15, 0.25)).toInt()
+                                progressStatus += progress6
+                                sendProgressIntent(context, progress6)
                             }
+                            val jobThumbnail = launch {
+                                downloadAndSaveFile(thumbnailUri.toString(), SwingLocalDataProcessor.getSwingThumbnailFile(context, userId = userID, swingCode = swingFeedbackParam.code).toString())
+                                val progress6 = (progressRatio * Random.nextDouble(0.05, 0.15)).toInt()
+                                progressStatus += progress6
+                                sendProgressIntent(context, progress6)
+                            }
+                            val jobSwingPose = launch {
+                                val poseDestination = SwingLocalDataProcessor.getSwingPoseFiles(context, userId = userID, swingCode = swingFeedbackParam.code)
+
+                                for(i in 0 until 8){
+                                    val imageUrl = returnImageUri(i)
+                                    launch {
+                                        downloadAndSaveFile(imageUrl.toString(), poseDestination[i].toPath().toString())
+                                    }
+                                }
+                            }
+                            jobVideo.join()
+                            jobThumbnail.join()
+                            jobSwingPose.join()
                         }
+                        val progress6 = (progressRatio * Random.nextDouble(0.5, 0.7)).toInt()
+                        progressStatus += progress6
+                        sendProgressIntent(context, progress6)
+
+                        insertLocalSwingFeedbackUseCase(
+                            SwingFeedback(
+                                userID = userID,
+                                title = swingFeedbackParam.title,
+                                swingCode = swingFeedbackParam.code,
+                                tempo = swingFeedbackParam.tempo,
+                                date = stringToTimeInMillis(swingFeedbackParam.time),
+                                score = swingFeedbackParam.score,
+                                likeStatus = swingFeedbackParam.likeStatus,
+                                similarity = swingFeedbackParam.similarity,
+                                solution = swingFeedbackParam.solution
+                            )
+                        )
+
+                        swingFeedbackParam.downSwingComments.forEach { comment ->
+                            insertLocalSwingFeedbackCommentUseCase(
+                                SwingFeedbackComment(
+                                    userID = userID,
+                                    swingCode = swingFeedbackParam.code,
+                                    poseType = DOWNSWING,
+                                    content = comment.content,
+                                    commentType = if(comment.commentType == "NICE"){NICE}else{
+                                        BAD
+                                    }
+                                )
+                            )
+                        }
+
+
+
+                        swingFeedbackParam.backSwingComments.forEach { comment ->
+                            insertLocalSwingFeedbackCommentUseCase(
+                                SwingFeedbackComment(
+                                    userID = userID,
+                                    swingCode = swingFeedbackParam.code,
+                                    poseType = BACKSWING,
+                                    content = comment.content,
+                                    commentType = if(comment.commentType == "NICE"){NICE}else{
+                                        BAD
+                                    }
+                                )
+                            )
+                        }
+
+                        val progress5 = (progressRatio * Random.nextDouble(0.2, 0.3)).toInt()
+                        progressStatus += progress5
+                        sendProgressIntent(context, progress5)
                     }
                 }
             }
-            val progress6 = (progressRatio * Random.nextDouble(0.5, 0.7)).toInt()
-            progressStatus += progress6
-            sendProgressIntent(context, progress6)
+            job.joinAll()
         }
+
 
         sendProgressIntent(context, (50 - progressStatus.toInt()))
     }
 
     private suspend fun downloadAndSaveFile(presignedUrl: String, saveFilePath: String) {
-        withContext(Dispatchers.IO) {
             val client = OkHttpClient()
             val request = Request.Builder().url(presignedUrl).build()
+            var result = false
+            while(!result){
+                try{
+                    client.newCall(request).execute().use { response ->
+                        if (!response.isSuccessful) throw Exception("Failed to download file: ${response.code} ${response.message}")
 
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) throw Exception("Failed to download file: ${response.code} ${response.message}")
+                        val body = response.body ?: throw Exception("Empty response body")
+                        val file = File(saveFilePath)
 
-                val body = response.body ?: throw Exception("Empty response body")
-                val file = File(saveFilePath)
-
-                FileOutputStream(file).use { outputStream ->
-                    body.byteStream().use { inputStream ->
-                        inputStream.copyTo(outputStream)
+                        FileOutputStream(file).use { outputStream ->
+                            body.byteStream().use { inputStream ->
+                                inputStream.copyTo(outputStream)
+                            }
+                        }
+                        result = true
                     }
+                }catch (_: Exception){
+
                 }
             }
-        }
     }
 }

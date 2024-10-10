@@ -5,7 +5,7 @@ import com.ijonsabae.domain.model.SwingFeedback
 import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackListUseCase
 import javax.inject.Inject
 
-class GetLocalSwingFeedbackListUseCaseImpl@Inject constructor(
+class GetLocalSwingFeedbackListUseCaseImpl @Inject constructor(
     private val swingFeedbackRepository: SwingFeedbackRepository
 ): GetLocalSwingFeedbackListUseCase{
     override suspend operator fun invoke(userID: Long): List<SwingFeedback>{
