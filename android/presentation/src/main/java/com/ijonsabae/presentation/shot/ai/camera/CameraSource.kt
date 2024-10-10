@@ -850,11 +850,35 @@ class CameraSource(
             scores[6].toDouble(),
             scores[7].toDouble(),
         )
-        var scoreResult = 0.0
+        var scoreResult = 0.0f  // float형으로 변경
         scores.forEachIndexed { _, score ->
-            scoreResult += (score * 100)
+            var adjustedScore = (score * 100f)  // float형 연산을 위해 f를 붙임
+
+            // 최소 점수를 20점으로 설정
+            if (adjustedScore < 20f) {
+                adjustedScore = 20f
+            }
+
+            // 최대 점수를 99점으로 제한
+            if (adjustedScore >= 100f) {
+                adjustedScore = 99f
+            }
+
+            scoreResult += adjustedScore
         }
-        return (scoreResult / 8).toInt()
+
+        // 비례 계수를 적용하여 점수를 올리되, 100점을 초과하지 않게 제한
+        val averageScore = scoreResult / 8f  // float 연산을 위해 f 추가
+        val adjustmentFactor = 1.7f  // 비례적으로 70% 증가 (원하는 비율로 조정 가능)
+        var finalScore = averageScore * adjustmentFactor
+
+        // 최종 점수는 99점을 넘지 않도록 제한
+        if (finalScore >= 100f) {
+            finalScore = 99f
+        }
+
+        return finalScore.toInt()
+
     }
 
     private fun saveSwingFeedbackAndComment(swingSaveResult: Pair<String, Long>, tempoRatio: String, poseAnalysisResults: PoseAnalysisResult) {
