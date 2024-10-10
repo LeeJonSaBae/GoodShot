@@ -674,7 +674,7 @@ class CameraSource(
                     val preciseIndices = swingData.map { it.third }
                     val preciseBitmaps = swingData.map { it.first }
                     val precisePoseScores = classifyPoseScores(swingData.map { it.second })
-                    Log.d("유사도", "$precisePoseScores")
+                    Log.d("유사도 점수 확인", "$precisePoseScores")
 
                     // 백스윙, 탑스윙 피드백 체크하기
                     val poseAnalysisResults = PostureFeedback.checkPosture(
@@ -827,19 +827,25 @@ class CameraSource(
         val scores = Array(8) { 0.0f }
 
         indices.forEachIndexed { poseNumber, frameIndex ->
-            val classifierResultList = classifier4!!.classify(jointDataList[frameIndex])
-            classifierResultList.forEachIndexed { classifiedPoseIndex, classifiedResult ->
+            val classifierResultList1 = classifier4!!.classify(jointDataList[frameIndex])
+            classifierResultList1.forEachIndexed { classifiedPoseIndex, classifiedResult ->
                 val classifiedPoseScore = classifiedResult.second
                 if (classifiedPoseIndex < 4 && poseNumber < 4) {
                     scores[classifiedPoseIndex] =
                         max(scores[classifiedPoseIndex], classifiedPoseScore)
                 }
-                if (classifiedPoseIndex in 4..7 && poseNumber in 4..7) {
-                    scores[classifiedPoseIndex] =
-                        max(scores[classifiedPoseIndex], classifiedPoseScore)
-                }
+                scores[classifiedPoseIndex] =
+                    max(scores[classifiedPoseIndex], classifiedPoseScore)
+            }
+            val classifierResultList2 = classifier8!!.classify(jointDataList[frameIndex])
+            classifierResultList2.forEachIndexed { classifiedPoseIndex, classifiedResult ->
+                val classifiedPoseScore = classifiedResult.second
+                scores[classifiedPoseIndex + 4] =
+                    max(scores[classifiedPoseIndex + 4], classifiedPoseScore)
             }
         }
+        Log.d("유사도 점수 확인", "${scores.toList()}")
+
         swingSimilarity = Similarity(
             scores[0].toDouble(),
             scores[1].toDouble(),
@@ -854,28 +860,10 @@ class CameraSource(
         scores.forEachIndexed { _, score ->
             var adjustedScore = (score * 100f)  // float형 연산을 위해 f를 붙임
 
-            // 최소 점수를 20점으로 설정
-            if (adjustedScore < 20f) {
-                adjustedScore = 20f
-            }
-
-            // 최대 점수를 99점으로 제한
-            if (adjustedScore >= 100f) {
-                adjustedScore = 99f
-            }
-
             scoreResult += adjustedScore
         }
 
-        // 비례 계수를 적용하여 점수를 올리되, 100점을 초과하지 않게 제한
-        val averageScore = scoreResult / 8f  // float 연산을 위해 f 추가
-        val adjustmentFactor = 1.7f  // 비례적으로 70% 증가 (원하는 비율로 조정 가능)
-        var finalScore = averageScore * adjustmentFactor
-
-        // 최종 점수는 99점을 넘지 않도록 제한
-        if (finalScore >= 100f) {
-            finalScore = 99f
-        }
+        val finalScore = scoreResult / 8
 
         return finalScore.toInt()
 
