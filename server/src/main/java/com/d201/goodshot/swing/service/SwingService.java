@@ -219,6 +219,7 @@ public class SwingService {
                             .title(swing.getTitle())
                             .code(swing.getCode())
                             .time(swing.getTime())
+                            .createdAt(swing.getCreatedAt())
                             .backSwingComments(convertCommentsToCommentItems(swing.getComments(), PoseType.BACK))
                             .downSwingComments(convertCommentsToCommentItems(swing.getComments(), PoseType.DOWN))
                             .build();
