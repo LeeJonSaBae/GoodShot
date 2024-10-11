@@ -38,10 +38,6 @@ class FeedbackDialog :
             if (intent.action == "SKIP_MOTION_DETECTED") {
                 swingViewModel.setCurrentState(CameraState.ADDRESS)
                 checkSwingCompletionAndNavigate()
-                Log.d(
-                    "processDetectedInfo",
-                    "processDetectedInfo: SKIP_MOTION_DETECTED 인텐트 수신 in FeedbackDialog"
-                )
                 dismiss()
             }
         }

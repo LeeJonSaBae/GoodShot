@@ -147,7 +147,6 @@ class HomeFragment :
             val userName = runBlocking {
                 getLocalUserNameUseCase() ?: "Guest"
             }
-            Log.d(TAG, "initView: $userName")
             binding.tvBannerNickname.text = "${userName}님"
             binding.tvTitleRecentNickname.text = "${userName} "
             binding.tvNoSwingDataTitleRecentNickname.text = "${userName} "

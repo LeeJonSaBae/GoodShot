@@ -72,7 +72,6 @@ class SwingRemoteDataProcessor @Inject constructor(
     }
     suspend fun uploadLocalSwingData(context: Context) {
         val userID = getUserIdUseCase()
-        Log.d(TAG, "showCustomPopup: $userID")
         if (userID == -1L) {
             withContext(Dispatchers.Main) {
                 Toast.makeText(context, "비회원은 동기화를 진행하실 수 없습니다!", Toast.LENGTH_SHORT).show()
@@ -240,12 +239,10 @@ class SwingRemoteDataProcessor @Inject constructor(
                     chunk.forEach { swingFeedbackParam ->
                         val videoUri = Uri.parse(S3_URL + userID + VIDEO + swingFeedbackParam.code + ".mp4") // [파일 다운로드 주소 : 확장자명 포함되어야함]
                         val thumbnailUri = Uri.parse(S3_URL + userID + THUMBNAIL + swingFeedbackParam.code + ".jpg") // [파일 다운로드 주소 : 확장자명 포함되어야함]
-                        Log.d(TAG, "showCustomPopup: $videoUri")
                         fun returnImageUri(idx: Int): Uri {
                             return Uri.parse(S3_URL + userID + IMAGE + swingFeedbackParam.code + "_" + idx + ".jpg") // [파일 다운로드 주소 : 확장자명 포함되어야함]
                         }
 
-                        Log.d(TAG, "showCustomPopup: ${SwingLocalDataProcessor.getSwingVideoFile(context, userId = userID, swingCode = swingFeedbackParam.code).path}")
                         withContext(Dispatchers.IO) {
                             val jobVideo = launch {
                                 downloadAndSaveFile(videoUri.toString(),  SwingLocalDataProcessor.getSwingVideoFile(context, userId = userID, swingCode = swingFeedbackParam.code).toString())

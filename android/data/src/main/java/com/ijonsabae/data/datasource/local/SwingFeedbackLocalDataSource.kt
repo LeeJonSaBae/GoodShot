@@ -21,8 +21,6 @@ class SwingFeedbackLocalDataSource @Inject constructor(
         return swingFeedbackDao.getSwingFeedback(userID, swingCode)
     }
     fun getAllSwingFeedback(userID: Long): PagingSource<Int, SwingFeedback> {
-        Log.d(TAG, "getAllSwingFeedback: 전체 갱신")
-        Log.d(TAG, "getAllSwingFeedback: stackTrace ${Throwable().stackTrace.asList()}")
         return swingFeedbackDao.getAllSwingFeedback(userID)
     }
     suspend fun getSwingFeedbackListNeedToUpload(userID:Long): List<SwingFeedback>{

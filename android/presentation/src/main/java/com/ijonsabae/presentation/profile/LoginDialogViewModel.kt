@@ -42,7 +42,6 @@ class LoginDialogViewModel @Inject constructor(
     suspend fun login() = loginUseCase(LoginParam(email.value, password.value))
 
     suspend fun setToken(token: Token) {
-        Log.d(TAG, "setToken: $token")
         _token.emit(token)
     }
 

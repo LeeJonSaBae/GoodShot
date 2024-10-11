@@ -17,7 +17,6 @@ class ForbiddenDialog :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.d(TAG, "onViewCreated: ㄴ이ㅏ런")
         setScreenWidthPercentage(0.9F)
         setScreenHeightConstraint(WRAP_CONTENT)
 

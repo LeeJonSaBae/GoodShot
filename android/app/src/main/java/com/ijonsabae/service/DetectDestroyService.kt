@@ -25,7 +25,6 @@ class DetectDestroyService : Service() {
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
         runBlocking {
-            Log.d(TAG, "onTerminate: 종료")
             if(!getAutoLoginStatusUseCase()){
                 clearLocalTokenUseCase()
             }

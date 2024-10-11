@@ -34,7 +34,6 @@ class TotalReportCommentAdapter :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(position: Int) {
             val item = getItem(position)
-            Log.d(TAG, "bind: item = $item")
             binding.tvContent.text = item
         }
     }

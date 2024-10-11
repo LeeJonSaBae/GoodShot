@@ -51,14 +51,12 @@ class ProgressDialog:
                 lifecycleScope.launch(coroutineExceptionHandler+ Dispatchers.IO) {
                     val userId = getUserIdUseCase()
                     val result = getLocalSwingFeedbackListUseCase(userId)
-                    Log.d(TAG, "onReceive: ${result.size}")
                     if(result.size < 16){
                         launch(Dispatchers.Main){
                             navController.navigate(R.id.action_progress_dialog_to_forbidden_dialog)
                         }
                     }else{
                         val totalReport = TotalReportMapper.mapperTotalReportParcelable(getTotalReportUseCase().getOrThrow().data)
-                        Log.d(TAG, "onReceive: $totalReport")
                         withContext(Dispatchers.Main){
                             navController.navigate(ProgressDialogDirections.actionProgressDialogToProfileTotalReport(totalReport))
                         }

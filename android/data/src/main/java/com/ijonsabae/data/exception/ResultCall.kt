@@ -34,7 +34,6 @@ class ResultCall<T>(private val delegate: Call<T>, private val retrofit: Retrofi
                     // 응답은 왔지만 400번 등 에러가 발생했을 때
                     else {
                         if (response.errorBody() == null) {
-                            Log.d(TAG, "onResponse: ${response.errorBody()}")
                             callback.onResponse(
                                 this@ResultCall,
                                 Response.success(
@@ -52,7 +51,6 @@ class ResultCall<T>(private val delegate: Call<T>, private val retrofit: Retrofi
                                 ErrorResponse::class.java,
                                 ErrorResponse::class.java.annotations
                             ).convert(response.errorBody()!!)
-                            Log.d(TAG, "onResponse: ${response.errorBody()!!} ${errorBody}")
                             val message: String = errorBody?.message ?: "에러 메세지가 없습니다!"
                             val code: Int = errorBody?.errorCode ?: 404
                             callback.onResponse(

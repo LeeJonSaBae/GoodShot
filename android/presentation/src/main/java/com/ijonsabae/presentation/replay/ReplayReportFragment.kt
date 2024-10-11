@@ -99,7 +99,6 @@ class ReplayReportFragment :
     }
 
     private fun initSummary() {
-        Log.d(TAG, "initSummary: ${args.SwingFeedback}")
         binding.tvSummary.text = args.SwingFeedback.solution
     }
 

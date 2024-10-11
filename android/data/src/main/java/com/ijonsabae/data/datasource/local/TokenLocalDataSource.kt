@@ -37,7 +37,6 @@ class TokenLocalDataSource @Inject constructor(@ApplicationContext private val c
             pref[REFRESH_TOKEN] = token.refreshToken
             pref[USER_ID] = token.userId
         }
-        Log.d(TAG, "setToken: 로그인 토큰 설정 완료")
     }
 
     suspend fun setLocalTokenCreatedTime() {

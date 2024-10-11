@@ -154,7 +154,6 @@ class ProfileFragment :
                             // Presigned URL 받아오기
                             val imageExtension =
                                 getImageExtension(fragmentContext.contentResolver, croppedUri)
-                            Log.d(TAG, "확장자: $imageExtension")
                             if (imageExtension != null) {
                                 profileViewModel.getPresignedURL(imageExtension)
                             } else {
@@ -166,7 +165,6 @@ class ProfileFragment :
                 launch {
                     // 프로필 이미지 upload
                     profileViewModel.presignedUrl.drop(1).collect { presignedUrl ->
-                        Log.d(TAG, "presignedUrl: $presignedUrl")
                         presignedUrl?.let {
                             profileViewModel.uploadProfileImage(
                                 presignedUrl,
@@ -187,8 +185,6 @@ class ProfileFragment :
                 }
                 launch {
                     profileViewModel.isLogin.collect {
-                        Log.d(TAG, "initFlow: ${it}")
-
                         getUserInfo()
                     }
                 }
@@ -209,7 +205,6 @@ class ProfileFragment :
 
     private fun getUserInfo() {
         lifecycleScope.launch(coroutineExceptionHandler) {
-            Log.d(TAG, "getUserInfo: ${profileViewModel.getToken()}")
             if (profileViewModel.getToken() == null) {
                 setGuestUI()
             } else {
@@ -218,7 +213,6 @@ class ProfileFragment :
             }
 
             profileViewModel.profileInfo.collect { profileInfo ->
-                Log.d(TAG, "profileInfo: $profileInfo")
                 if (profileInfo != null) {
                     setUserInfo(
                         profileImgUrl = Uri.parse(profileInfo.profileUrl),

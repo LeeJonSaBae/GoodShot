@@ -90,7 +90,6 @@ object SwingLocalDataProcessor {
         FileOutputStream(file).use { out ->
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
         }
-        Log.d("MainActivity_Capture", "썸네일 저장 완료")
     }
 
 

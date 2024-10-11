@@ -276,7 +276,6 @@ class CameraSource(
                         
 
                         //클럽 테스트
-//                        Log.d("ClubLog", "w : ${bitmap.width} |  h : ${bitmap.height}")
                         // TODO 모델 검증 부분 성능 낮음
 //
 //                        bitmap
@@ -285,7 +284,6 @@ class CameraSource(
 //                        for (result in detectionResults) {
 //                            val box = result.boundingBox
 //                            val score = result.score
-//                            Log.d("ClubLog", "box: $box, score: $score")
 //                            // 여기서 감지된 클럽에 대한 추가 처리를 수행합니다.
 //                            // 예: 화면에 바운딩 박스 그리기, 결과 로깅 등
 //                        }
@@ -304,7 +302,6 @@ class CameraSource(
 
             frameProcessedInOneSecondInterval++
         } else {
-            Log.d(TAG, "processImage: 처리 안함")
         }
     }
 
@@ -395,7 +392,6 @@ class CameraSource(
             imageReaderThread = null
             imageReaderHandler = null
         } catch (e: InterruptedException) {
-            Log.d(TAG, e.message.toString())
         }
     }
 
@@ -525,14 +521,12 @@ class CameraSource(
         // 중복 검사
         val uniqueIndices = poseIndices.toSet()
         if (uniqueIndices.size != poseIndices.size) {
-            Log.d("분석결과", "중복 발생 ${Arrays.toString(poseIndices)}")
             return false
         }
 
         // 지속적으로 감소하는지 검사 -> 순서 보장
         for (i in 0 until poseIndices.size - 1) {
             if (poseIndices[i] <= poseIndices[i + 1]) {
-                Log.d("분석결과", "순서 오류 ${Arrays.toString(poseIndices)}")
                 return false
             }
         }
@@ -674,7 +668,6 @@ class CameraSource(
                     val preciseIndices = swingData.map { it.third }
                     val preciseBitmaps = swingData.map { it.first }
                     val precisePoseScores = classifyPoseScores(swingData.map { it.second })
-                    Log.d("유사도 점수 확인", "$precisePoseScores")
 
                     // 백스윙, 탑스윙 피드백 체크하기
                     val poseAnalysisResults = PostureFeedback.checkPosture(
@@ -844,7 +837,6 @@ class CameraSource(
                     max(scores[classifiedPoseIndex + 4], classifiedPoseScore)
             }
         }
-        Log.d("유사도 점수 확인", "${scores.toList()}")
 
         swingSimilarity = Similarity(
             scores[0].toDouble(),
@@ -917,8 +909,6 @@ class CameraSource(
             action = "SKIP_MOTION_DETECTED"
             putExtra("skipMotion", "Skip motion detected")
         }
-        Log.d("processDetectedInfo", "processDetectedInfo: SKIP_MOTION_DETECTED 인텐트 전송 전")
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
-        Log.d("processDetectedInfo", "processDetectedInfo: SKIP_MOTION_DETECTED 인텐트 전송 후")
     }
 }

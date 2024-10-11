@@ -108,10 +108,8 @@ class CameraFragment :
             startCamera()
         }
         if (permissionChecker.checkPermission(fragmentContext, permissionList)) {
-            Log.d(TAG, "onViewCreated: 통과")
             permissionChecker.permitted.onGranted()
         } else {
-            Log.d(TAG, "onViewCreated: 권한 부족")
             permissionChecker.requestPermissionLauncher.launch(permissionList) // 권한없으면 창 띄움
         }
     }
@@ -190,7 +188,6 @@ class CameraFragment :
                         if (lastTimestamp != 0L) {
                             val deltaTime = currentTimestamp - lastTimestamp
                             val fps = 1000.0 / deltaTime
-                            Log.d("CameraAnalyzer", "Current FPS: ${fps.roundToInt()}")
                         }
                         cameraSource.processImage(
                             cameraSource.getRotateBitmap(
@@ -208,7 +205,6 @@ class CameraFragment :
             cameraController = camera!!.cameraControl
             cameraController!!.setZoomRatio(1F) // 1x Zoom
         } catch (exc: Exception) {
-            Log.d(TAG, "Camera Setting Error: $exc")
         }
     }
 

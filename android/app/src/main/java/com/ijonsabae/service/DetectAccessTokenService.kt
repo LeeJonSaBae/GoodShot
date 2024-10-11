@@ -59,7 +59,6 @@ class DetectAccessTokenService : Service() {
             accessLoginTokenFlow.collect{
                 if(it != null){
                     val id = getUserIdUseCase()
-                    Log.d(TAG, "initFlow: $id")
                     updateUserIdUseCase(oldUserId = -1, newUserId = id)
                     SwingLocalDataProcessor.guestDataTransfer(baseContext, id)
                 }

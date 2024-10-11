@@ -67,7 +67,6 @@ class ReplayAdapter(private val context: Context) :
         val clamp = binding.root.width.toFloat() / 10 * 3
         fun bindInfo(position: Int) {
             val replayItem = getItem(position)
-            Log.d(TAG, "bindInfo: $replayItem")
             replayItem?.let {
                 Glide.with(binding.root)
                     .load(SwingLocalDataProcessor.getSwingThumbnailFile(context, replayItem.swingCode, replayItem.userID))
@@ -97,12 +96,10 @@ class ReplayAdapter(private val context: Context) :
                     showEditCustomDialog(replayItem)
                 }
                 if (it.isClamped) {
-                    Log.d(TAG, "bindInfo: 클램프")
                     binding.cvReplayItem.translationX =
                         binding.root.width * -1f / 10 * 3
                 }
                 else {
-                    Log.d(TAG, "bindInfo: 클램프 안됨")
                     binding.cvReplayItem.translationX = 0f
                 }
 
@@ -123,9 +120,7 @@ class ReplayAdapter(private val context: Context) :
         }
 
         fun getClamped(): Boolean {
-            Log.d(TAG, "getClamped: $bindingAdapterPosition")
             if(this.bindingAdapterPosition != NO_POSITION){
-                Log.d(TAG, "getClamped: ${getItem(this.bindingAdapterPosition)!!.isClamped}")
                 return getItem(this.bindingAdapterPosition)!!.isClamped
             }
             return false

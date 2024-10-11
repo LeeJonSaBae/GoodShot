@@ -100,14 +100,12 @@ class ReplayFragment :
                     }
 
                     override fun changeClampStatus(item: SwingFeedback, clampStatus: Boolean) {
-                                Log.d(TAG, "changeClampStatus: $clampStatus")
                         lifecycleScope.launch(Dispatchers.IO) {
                             updateClampStatusUseCase(item.userID, item.swingCode, clampStatus)
                         }
                     }
 
                     override fun onTouchListener(position: Int) {
-                        Log.d(TAG, "onTouchListener: 터치 리스너 작동 $position")
                         //binding.rvReplay.scrollToPosition(position)
                     }
                 }
@@ -128,7 +126,6 @@ class ReplayFragment :
             replayAdapter.submitData(viewModel.swingFeedbackList.value)
         }
         binding.cbFilter.setOnCheckedChangeListener { buttonView, isChecked ->
-            Log.d(TAG, "onViewCreated: checkChangedListeener")
             // room에서 Flow를 받아서 갱신하는데, Flow의 내부 값을 갱신하는게 아니라 Flow 값 자체를 바꾸는 거니까 emit 같은거로 감지하는게 무용지물
             // 그냥 flow 자체를 바꾸면 직접 넣어줘야 함
             lifecycleScope.launch {
@@ -157,7 +154,6 @@ class ReplayFragment :
         lifecycleScope.launch(coroutineExceptionHandler) {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.swingFeedbackList.collectLatest{
-                    Log.d(TAG, "initFlow: $it")
                     replayAdapter.submitData(it)
                 }
             }
@@ -203,7 +199,6 @@ class ReplayFragment :
                     lifecycleScope.launch {
                         viewModel.getLocalSwingFeedbackList()
                         replayAdapter.submitData(viewModel.swingFeedbackList.value)
-                        Log.d(TAG, "onViewCreated: ${replayAdapter.itemCount}")
                     }
                 }
                 withContext(Dispatchers.Main){
@@ -225,7 +220,6 @@ class ReplayFragment :
         anchorView.getLocationOnScreen(location)
         val anchorX = location[0]
         val anchorY = location[1]
-        Log.d(TAG, "setDialogLocation: $anchorX, $anchorY")
 
         window?.setGravity(Gravity.TOP or Gravity.START)
         val params: WindowManager.LayoutParams? = window?.attributes

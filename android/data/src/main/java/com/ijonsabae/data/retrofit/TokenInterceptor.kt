@@ -25,7 +25,6 @@ class TokenInterceptor @Inject constructor(
             }
             val newAccessToken = tokenRepository.getLocalAccessToken()
             val newTokenValue = "Bearer $newAccessToken"
-            Log.d(TAG, "intercept: $newTokenValue")
 
             response = if(newAccessToken.isNullOrBlank()){
                 // 비로그인 상태
@@ -76,12 +75,9 @@ class TokenInterceptor @Inject constructor(
     private suspend fun refreshToken() {
         val refreshResponse = tokenRepository.reissueRemoteToken()
         refreshResponse.onSuccess {
-            Log.d(TAG, "refreshToken: 갱신 success")
             tokenRepository.setLocalToken(it.data)
         }.onFailure {throwable ->
             //다른 기기로 로그인 기존 token 변경됐거나 refresh Token마저 유효기간이 끝난 경우
-            Log.e(TAG, "refreshToken: $throwable", )
-            Log.i("Interceptor Refresh", "failed..")
             logout()
         }
     }

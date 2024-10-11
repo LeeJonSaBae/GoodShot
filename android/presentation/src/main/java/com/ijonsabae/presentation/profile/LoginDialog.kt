@@ -91,7 +91,6 @@ class LoginDialog : BaseDialog<DialogLoginBinding>(
             repeatOnLifecycle(Lifecycle.State.STARTED){
                 loginDialogViewModel.token.collect{
                     if(it != Token.EMPTY){
-                        Log.d(TAG, "initFlow: Token Collect setLoginStatusTrue")
                         profileViewModel.setLoginStatus(true)
                     }
                 }

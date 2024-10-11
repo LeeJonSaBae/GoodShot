@@ -16,8 +16,6 @@ class RefreshTokenAuthorizationInterceptor @Inject constructor(
         val request = chain.request().newBuilder()
             .addHeader("refreshToken", tokenValue)
             .build()
-        Log.d(TAG, "intercept: $request")
-        Log.d(TAG, "intercept: $tokenValue")
         return chain.proceed(request)
     }
 }
