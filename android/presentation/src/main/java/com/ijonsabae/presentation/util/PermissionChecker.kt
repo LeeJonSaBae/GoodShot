@@ -68,8 +68,6 @@ class PermissionChecker(activityOrFragment: Any) {
 
 
     private fun resultChecking(result: Map<String, Boolean>) {
-        Log.d(TAG, "requestPermissionLauncher: 건수 : ${result.size}")
-
         if (result.values.contains(false)) { //false가 있는 경우라면..
             Toast.makeText(context, "권한이 부족합니다.", Toast.LENGTH_SHORT).show()
             moveToSettings()
@@ -82,7 +80,6 @@ class PermissionChecker(activityOrFragment: Any) {
 
     //사용자가 권한을 허용하지 않았을때, 설정창으로 이동
     private fun moveToSettings() {
-        Log.d(TAG, "moveToSettings: 퍼미션 다이얼로그")
         val alertDialog = AlertDialog.Builder(context)
         alertDialog.setTitle("권한이 필요합니다.")
         alertDialog.setMessage("설정으로 이동합니다.")

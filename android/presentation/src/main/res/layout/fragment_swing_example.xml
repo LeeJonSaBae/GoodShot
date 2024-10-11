@@ -11,7 +11,7 @@
         android:id="@+id/pv_swing_example"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:resize_mode="fit"
+        app:resize_mode="zoom"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/layout_menu"
         />

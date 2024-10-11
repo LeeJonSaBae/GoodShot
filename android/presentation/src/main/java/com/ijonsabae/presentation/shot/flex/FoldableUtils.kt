@@ -159,12 +159,10 @@ object FoldableUtils {
             animator2 = ValueAnimator.ofInt(alertConstraintLayout.height, rootConstraintLayout.bottom - foldingFeatureRect.bottom - cameraMenuLayout.height).apply {
                 duration = 300 // 애니메이션 지속 시간 (밀리초)
                 interpolator = AccelerateDecelerateInterpolator() // 애니메이션의 속도 조절
-                Log.d(TAG, "moveToTopOf: ${rootConstraintLayout.bottom - foldingFeatureRect.bottom}")
                 addUpdateListener { valueAnimator ->
                     val animatedValue = valueAnimator.animatedValue as Int
                     alertConstraintLayout.layoutParams.height = animatedValue
                     requestLayout()
-                    Log.d(TAG, "moveToTopOf: ${alertConstraintLayout.layoutParams.height}")
                 }
                 doOnEnd {  }
             }

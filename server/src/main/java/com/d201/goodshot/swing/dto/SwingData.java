@@ -16,16 +16,17 @@ import java.util.List;
 @NoArgsConstructor
 public class SwingData {
 
-    private Long id; // swing id
+    private Long id;
     private List<CommentItem> backSwingComments;
     private List<CommentItem> downSwingComments;
-    private String similarity;
+    private Similarity similarity;
     private String solution;
     private int score;
     private double tempo;
     private Boolean likeStatus;
     private String title;
     private String code;
+    private long createdAt;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

@@ -1,6 +1,5 @@
 package com.ijonsabae.data.di
 
-import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.ijonsabae.data.BuildConfig
@@ -9,12 +8,12 @@ import com.ijonsabae.data.exception.YoutubeCallAdapterFactory
 import com.ijonsabae.data.retrofit.ConsultService
 import com.ijonsabae.data.retrofit.ProfileService
 import com.ijonsabae.data.retrofit.RefreshTokenAuthorizationInterceptor
+import com.ijonsabae.data.retrofit.SwingService
 import com.ijonsabae.data.retrofit.TokenInterceptor
 import com.ijonsabae.data.retrofit.TokenService
-import com.ijonsabae.data.retrofit.UploadImageService
+import com.ijonsabae.data.retrofit.PresignedService
 import com.ijonsabae.data.retrofit.UserService
 import com.ijonsabae.data.retrofit.YoutubeService
-import com.ijonsabae.domain.repository.TokenRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -41,8 +40,8 @@ class RetrofitModule {
     @Named("default_okhttp_client")
     fun provideDefaultOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor, tokenInterceptor: TokenInterceptor): OkHttpClient {
         return OkHttpClient.Builder()
-            .readTimeout(5000, TimeUnit.MILLISECONDS)
-            .connectTimeout(5000, TimeUnit.MILLISECONDS)
+            .readTimeout(150000, TimeUnit.MILLISECONDS)
+            .connectTimeout(150000, TimeUnit.MILLISECONDS)
             .addInterceptor(httpLoggingInterceptor)
             .addInterceptor(tokenInterceptor)
             .build()
@@ -171,8 +170,8 @@ class RetrofitModule {
     }
 
     @Provides
-    fun provideUploadImageService(@Named("no_interceptor_retrofit")retrofit: Retrofit): UploadImageService {
-        return retrofit.create(UploadImageService::class.java)
+    fun provideUploadImageService(@Named("no_interceptor_retrofit")retrofit: Retrofit): PresignedService {
+        return retrofit.create(PresignedService::class.java)
     }
 
     @Provides
@@ -183,5 +182,10 @@ class RetrofitModule {
     @Provides
     fun provideYoutubeService(@Named("youtube_api_retrofit")retrofit: Retrofit): YoutubeService{
         return retrofit.create(YoutubeService::class.java)
+    }
+
+    @Provides
+    fun provideSwingService(@Named("default_retrofit")retrofit: Retrofit): SwingService {
+        return retrofit.create(SwingService::class.java)
     }
 }

@@ -39,6 +39,10 @@ class UserRemoteDataSource @Inject constructor(private val userService: UserServ
         return userService.checkEmailDuplicated(email)
     }
 
+    suspend fun getUserName(): Result<CommonResponse<String>>{
+        return userService.getUserName()
+    }
+
     suspend fun generateTemporaryPassWord(name: String, email: String): Result<CommonResponse<Unit>>{
         return userService.generateTemporaryPassWord(GenerateTemporaryPassWordParam(
             name = name,

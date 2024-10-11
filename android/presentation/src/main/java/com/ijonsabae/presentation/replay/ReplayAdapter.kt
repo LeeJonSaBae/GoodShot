@@ -17,15 +17,13 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.DiffUtil.DiffResult.NO_POSITION
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.ijonsabae.domain.model.Replay
 import com.ijonsabae.domain.model.SwingFeedback
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.databinding.ItemReplayBinding
-import com.ijonsabae.presentation.shot.SwingVideoProcessor
+import com.ijonsabae.presentation.shot.SwingLocalDataProcessor
 import com.ijonsabae.presentation.util.formatDateFromLongKorea
-import kotlinx.coroutines.runBlocking
 
-private const val TAG = "SearchResultOfMountainListAdapter_싸피"
+private const val TAG = "ReplayAdapter_싸피"
 
 class ReplayAdapter(private val context: Context) :
     PagingDataAdapter<SwingFeedback, ReplayAdapter.ReplayViewHolder>(
@@ -37,7 +35,7 @@ class ReplayAdapter(private val context: Context) :
             oldItem: SwingFeedback,
             newItem: SwingFeedback
         ): Boolean {
-            return System.identityHashCode(oldItem) == System.identityHashCode(newItem)
+            return oldItem.swingCode == newItem.swingCode
         }
 
         override fun areContentsTheSame(
@@ -57,6 +55,7 @@ class ReplayAdapter(private val context: Context) :
         fun onItemDelete(item: SwingFeedback)
         fun onTitleChange(item: SwingFeedback, title: String)
         fun changeClampStatus(item: SwingFeedback, clampStatus: Boolean)
+        fun onTouchListener(position: Int)
     }
 
     fun setItemClickListener(onItemClickListener: OnItemClickListener) {
@@ -65,15 +64,15 @@ class ReplayAdapter(private val context: Context) :
 
     inner class ReplayViewHolder(private val binding: ItemReplayBinding) :
         RecyclerView.ViewHolder(binding.root) {
-
+        val clamp = binding.root.width.toFloat() / 10 * 3
         fun bindInfo(position: Int) {
             val replayItem = getItem(position)
             replayItem?.let {
                 Glide.with(binding.root)
-                    .load(SwingVideoProcessor.getSwingThumbnailFile(context, replayItem.swingCode, replayItem.userID))
+                    .load(SwingLocalDataProcessor.getSwingThumbnailFile(context, replayItem.swingCode, replayItem.userID))
                     .into(binding.ivThumbnail)
                 binding.tvTitle.text = replayItem.title
-                binding.tvDate.text = formatDateFromLongKorea(replayItem.date)
+                binding.tvDate.text = formatDateFromLongKorea(SwingLocalDataProcessor.convertSwingcodeToTimestamp(replayItem.swingCode))
                 binding.tvTag1.text = "점수 ${replayItem.score}점"
                 binding.tvTag2.text = "템포 ${replayItem.tempo}"
                 binding.root.setOnClickListener { itemClickListener.onItemClick(replayItem) }
@@ -96,9 +95,13 @@ class ReplayAdapter(private val context: Context) :
                 binding.ivEditTitle.setOnClickListener {
                     showEditCustomDialog(replayItem)
                 }
-                if (replayItem.isClamped) binding.cvReplayItem.translationX =
-                    binding.root.width * -1f / 10 * 3
-                else binding.cvReplayItem.translationX = 0f
+                if (it.isClamped) {
+                    binding.cvReplayItem.translationX =
+                        binding.root.width * -1f / 10 * 3
+                }
+                else {
+                    binding.cvReplayItem.translationX = 0f
+                }
 
                 binding.btnDelete.setOnClickListener {
                     if (getClamped())
@@ -117,7 +120,6 @@ class ReplayAdapter(private val context: Context) :
         }
 
         fun getClamped(): Boolean {
-            Log.d(TAG, "getClamped: $bindingAdapterPosition")
             if(this.bindingAdapterPosition != NO_POSITION){
                 return getItem(this.bindingAdapterPosition)!!.isClamped
             }
@@ -143,6 +145,7 @@ class ReplayAdapter(private val context: Context) :
         // 애니메이션 설정
         setAnimation(holder.itemView, position)
     }
+
 
     private fun setAnimation(viewToAnimate: View, position: Int) {
         // 애니메이션 딜레이 설정

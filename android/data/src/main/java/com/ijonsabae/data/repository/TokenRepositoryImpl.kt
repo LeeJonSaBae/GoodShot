@@ -1,15 +1,18 @@
 package com.ijonsabae.data.repository
 
 import com.ijonsabae.data.datasource.local.TokenLocalDataSource
+import com.ijonsabae.data.datasource.local.UserLocalDataSource
 import com.ijonsabae.data.datasource.remote.TokenRemoteDataSource
+import com.ijonsabae.data.datasource.remote.UserRemoteDataSource
 import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.Token
-import com.ijonsabae.domain.repository.TokenRepository
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 class TokenRepositoryImpl @Inject constructor(
     private val tokenRemoteDataSource: TokenRemoteDataSource,
-    private val tokenLocalDataSource: TokenLocalDataSource
+    private val tokenLocalDataSource: TokenLocalDataSource,
+    private val userLocalDataSource: UserLocalDataSource,
 ) : TokenRepository {
     override suspend fun getLocalAccessToken(): String?{
         return tokenLocalDataSource.getAccessToken()
@@ -29,6 +32,7 @@ class TokenRepositoryImpl @Inject constructor(
     }
 
     override suspend fun clearToken() {
+        userLocalDataSource.clearUserName()
         return tokenLocalDataSource.clear()
     }
 
@@ -38,5 +42,9 @@ class TokenRepositoryImpl @Inject constructor(
 
     override suspend fun getLocalTokenCreatedTime(): Long? {
         return tokenLocalDataSource.getLocalTokenCreatedTime()
+    }
+
+    override suspend fun getLocalAccessTokenFlow(): StateFlow<String?> {
+        return tokenLocalDataSource.getLocalAccessTokenFlow()
     }
 }

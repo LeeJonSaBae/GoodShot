@@ -7,7 +7,7 @@ import javax.inject.Inject
 class UpdateLikeStatusUseCaseImpl @Inject constructor(
     private val swingFeedbackRepository: SwingFeedbackRepository
 ): UpdateLikeStatusUseCase {
-    override fun invoke(userID: Long, swingCode: String, likeStatus: Boolean): Int {
-        return swingFeedbackRepository.updateLikeStatus(userID, swingCode, likeStatus)
+    override suspend fun invoke(userID: Long, swingCode: String, likeStatus: Boolean, currentTime: Long): Int {
+        return swingFeedbackRepository.updateLikeStatus(userID, swingCode, likeStatus, currentTime)
     }
 }

@@ -13,12 +13,16 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.ijonsabae.domain.model.LoginParam
 import com.ijonsabae.domain.model.Token
+import com.ijonsabae.domain.usecase.login.GetRemoteUserNameUseCase
 import com.ijonsabae.domain.usecase.login.LoginUseCase
+import com.ijonsabae.domain.usecase.login.SetLocalUserNameUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentLoginBinding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 
@@ -26,7 +30,10 @@ import javax.inject.Inject
 class LoginFragment :
     BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::bind, R.layout.fragment_login) {
     private val loginViewModel: LoginViewModel by activityViewModels()
-
+    @Inject
+    lateinit var getRemoteUserNameUseCase: GetRemoteUserNameUseCase
+    @Inject
+    lateinit var setLocalUserNameUseCase: SetLocalUserNameUseCase
     @Inject
     lateinit var loginUseCase: LoginUseCase
 
@@ -59,8 +66,11 @@ class LoginFragment :
                             binding.etPassword.text.toString()
                         )
                     ).getOrThrow()
-                    loginViewModel.setToken(result.data)
-                    loginViewModel.saveToken(result.data)
+                    withContext(Dispatchers.IO){
+                        loginViewModel.saveToken(result.data)
+                        setLocalUserNameUseCase(getRemoteUserNameUseCase().getOrThrow().data)
+                        loginViewModel.setToken(result.data)
+                    }
                     if(binding.checkbox.isChecked){
                         loginViewModel.setAutoLoginStatus(true)
                     }else{
@@ -68,6 +78,9 @@ class LoginFragment :
                     }
                 }
             }
+        }
+        binding.btnGuestLogin.setOnClickListener{
+            (fragmentContext as LoginActivity).login()
         }
     }
 

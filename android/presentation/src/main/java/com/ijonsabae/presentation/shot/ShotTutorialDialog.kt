@@ -18,16 +18,18 @@ class ShotTutorialDialog : BaseDialog<DialogShotTutorialBinding>(
         super.onViewCreated(view, savedInstanceState)
         dialog?.window?.setBackgroundDrawableResource(R.drawable.rounded_dialog_background)
 
-        initViewPager()
+        binding.btnClose.setOnClickListener {
+            dismiss()
+        }
 
+        initViewPager()
     }
 
     private fun initViewPager() {
         val viewPager: ViewPager2 = binding.vpTutorial
         val dotsIndicator: SpringDotsIndicator = binding.vpIndicator
 
-
-        val items = listOf(1, 2, 3, 4, 5, 6, 7, 8)
+        val items = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9)
         val adapter = TutorialAdapter(items)
 
         viewPager.adapter = adapter
@@ -36,7 +38,7 @@ class ShotTutorialDialog : BaseDialog<DialogShotTutorialBinding>(
 
     override fun onStart() {
         super.onStart()
-        setScreenWidthPercentage(0.85F)
-        setScreenHeightPercentage(0.55F)
+        setScreenWidthPercentage(0.8F)
+        setScreenHeightPercentage(0.6F)
     }
 }

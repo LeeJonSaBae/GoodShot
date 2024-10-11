@@ -1,9 +1,13 @@
 package com.ijonsabae.presentation.home
 
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
@@ -11,18 +15,28 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import com.ijonsabae.domain.model.YouTubeResponse
+import com.bumptech.glide.Glide
+import com.ijonsabae.domain.usecase.home.GetLastSwingDataUseCase
+import com.ijonsabae.domain.usecase.home.GetSwingDataSizeUseCase
+import com.ijonsabae.domain.usecase.login.GetLocalAccessTokenUseCase
+import com.ijonsabae.domain.usecase.login.GetLocalUserNameUseCase
+import com.ijonsabae.domain.usecase.login.GetUserIdUseCase
+import com.ijonsabae.domain.usecase.replay.GetLocalSwingFeedbackListUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.databinding.FragmentHomeBinding
 import com.ijonsabae.presentation.main.MainActivity
 import com.ijonsabae.presentation.replay.HorizontalMarginItemDecoration
+import com.ijonsabae.presentation.shot.SwingLocalDataProcessor
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
 import kotlin.math.abs
 
 
@@ -31,31 +45,136 @@ private const val TAG = "굿샷_HomeFragment"
 @AndroidEntryPoint
 class HomeFragment :
     BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::bind, R.layout.fragment_home) {
+    @Inject
+    lateinit var getLocalAccessTokenUseCase: GetLocalAccessTokenUseCase
+    @Inject
+    lateinit var getLastSwingDataUseCase: GetLastSwingDataUseCase
+    @Inject
+    lateinit var getSwingDataSizeUseCase: GetSwingDataSizeUseCase
+    @Inject
+    lateinit var getUserIdUseCase: GetUserIdUseCase
+    @Inject
+    lateinit var getLocalUserNameUseCase: GetLocalUserNameUseCase
+    @Inject
+    lateinit var getLocalSwingFeedbackListUseCase : GetLocalSwingFeedbackListUseCase
+
     private val homeViewModel: HomeViewModel by viewModels()
     private var newsList = mutableListOf<NewsDTO>()
     private val NEWS_MARGIN_PX by lazy { resources.getDimension(R.dimen.home_news_margin_dp_between_items) }
     private lateinit var newsViewPagAdapter: NewsViewPagerAdapter
     private lateinit var youtubeRecyclerViewAdapter: YoutubeRecyclerViewAdapter
-
+    private var userID = -1L
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        (fragmentContext as MainActivity).hideAppBar()
+        userID = runBlocking {
+            getUserIdUseCase()
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            val lastItem = getLastSwingDataUseCase(userID)
+            // 가장 최신 데이터를 가져옴, 만약 데이터가 없으면 null 반환됨
+            if(lastItem == null){
+                launch(Dispatchers.Main) {
+                    binding.layoutExistSwingData.visibility = View.GONE
+                    binding.layoutNoSwingData.visibility = View.VISIBLE
+                    binding.tvTitleTotalSwingCnt2.text = "0"
+                    binding.tvRecentScore.text = "0/100"
+                    binding.tvTempo.text = 0.toString()
+                }
+            }else{
+                launch(Dispatchers.Main) {
+                    binding.layoutExistSwingData.visibility = View.VISIBLE
+                    binding.layoutNoSwingData.visibility = View.GONE
+                    launch(Dispatchers.Main) {
+                        Glide.with(binding.root).load(SwingLocalDataProcessor.getSwingThumbnailFile(fragmentContext, lastItem.swingCode, userID)).into(binding.ivRecentThumbnail)
+                    }
+                    binding.tvTitleTotalSwingCnt2.text = getSwingDataSizeUseCase(userID).toString()
+                    binding.tvRecentScore.text = "${lastItem.score}/100"
+                    binding.tvTempo.text = lastItem.tempo.toString()
+                }
+            }
+        }
         initFlow()
+        initView()
         initClickListener()
         initAppBarMotionLayout()
-        initNewsViewPager(binding.vpNews)
-        initYoutubeRecyclerView(binding.rvYoutube)
-        sendLoadingCompleteMessage()
     }
 
-    private fun initFlow() {
-        lifecycleScope.launch(coroutineExceptionHandler) {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                homeViewModel.youtubeList.collectLatest {
-                    val list = it.getOrThrow().items.map { videoItem ->
-                        convertVideoItemToYoutubeDTO(videoItem)
+    override fun onResume() {
+
+        super.onResume()
+    }
+    private fun isInternetAvailable(context: Context): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkCapabilities = connectivityManager.activeNetwork?.let { network ->
+            connectivityManager.getNetworkCapabilities(network)
+        }
+        return networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+
+    }
+
+    private fun initView() {
+        (fragmentContext as MainActivity).hideAppBar()
+        if(isInternetAvailable(fragmentContext)){
+            lifecycleScope.launch(coroutineExceptionHandler) {
+                homeViewModel.load()
+            }
+
+            binding.viewNewsNoInternet.visibility = View.GONE
+            binding.vpNews.visibility = View.VISIBLE
+            binding.viewYoutubeNoInternet.visibility = View.GONE
+
+        }else{
+            binding.homeProgress.visibility = View.GONE
+            binding.homeProgressTitle.visibility = View.GONE
+            binding.viewNewsNoInternet.visibility = View.VISIBLE
+            binding.vpNews.visibility = View.GONE
+            binding.viewYoutubeNoInternet.visibility = View.VISIBLE
+            binding.rvYoutube.visibility = View.GONE
+        }
+
+
+        lifecycleScope.launch {
+//            if (getLocalAccessTokenUseCase() == null) {
+//                binding.layoutContentNotLogin.visibility = View.VISIBLE
+//                binding.layoutContentLogin.visibility = View.GONE
+//            } else {
+//                binding.layoutContentNotLogin.visibility = View.GONE
+//                binding.layoutContentLogin.visibility = View.VISIBLE
+//            }
+            initNewsViewPager(binding.vpNews)
+            initYoutubeRecyclerView(binding.rvYoutube)
+            sendLoadingCompleteMessage()
+            val userName = runBlocking {
+                getLocalUserNameUseCase() ?: "Guest"
+            }
+            binding.tvBannerNickname.text = "${userName}님"
+            binding.tvTitleRecentNickname.text = "${userName} "
+            binding.tvNoSwingDataTitleRecentNickname.text = "${userName} "
+
+        }
+
+        binding.btnGoRecentReplay.setOnClickListener {
+            navController.navigate(R.id.action_home_to_replay)
+        }
+
+        binding.btnGoTotalReport.setOnClickListener {
+            val bundle = Bundle().apply {
+                putBoolean("GoTotalReport", true)
+            }
+            findNavController().navigate(R.id.action_home_to_total_report, bundle)
+
+        }
+    }
+
+    private fun initFlow(){
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED){
+                homeViewModel.youtubeList.collect{
+                    if(it != emptyList<YoutubeDTO>()){
+                        binding.homeProgress.visibility = View.GONE
+                        binding.homeProgressTitle.visibility = View.GONE
                     }
-                    youtubeRecyclerViewAdapter.submitList(list)
+                    youtubeRecyclerViewAdapter.submitList(it)
                 }
             }
         }
@@ -71,6 +190,12 @@ class HomeFragment :
     private fun initClickListener() {
         binding.btnConsult.setOnClickListener {
             navController.navigate(R.id.action_home_to_consult)
+        }
+        binding.btnGoRecentReplay.setOnClickListener {
+            (requireActivity() as MainActivity).changeBottomNavbarSelectedItemId(R.id.replay_tab)
+        }
+        binding.btnGoTotalReport.setOnClickListener {
+            (requireActivity() as MainActivity).changeBottomNavbarSelectedItemId(R.id.profile_tab)
         }
     }
 
@@ -121,6 +246,9 @@ class HomeFragment :
                     }
                 })
             }
+//        lifecycleScope.launch(coroutineExceptionHandler + Dispatchers.IO) {
+//            youtubeRecyclerViewAdapter.submitList(homeViewModel.getYoutubeList())
+//        }
 //        youtubeRecyclerViewAdapter.submitList(homeViewModel.youtubeList.v)
         recyclerView.adapter = youtubeRecyclerViewAdapter
         recyclerView.layoutManager =

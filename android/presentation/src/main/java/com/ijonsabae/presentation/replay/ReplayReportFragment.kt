@@ -21,7 +21,7 @@ import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.config.Const.Companion.BACKSWING
 import com.ijonsabae.presentation.config.Const.Companion.DOWNSWING
 import com.ijonsabae.presentation.databinding.FragmentReplayReportBinding
-import com.ijonsabae.presentation.shot.SwingVideoProcessor
+import com.ijonsabae.presentation.shot.SwingLocalDataProcessor
 import kotlin.math.abs
 
 private const val TAG = "굿샷_ReplayReportFragment"
@@ -35,6 +35,7 @@ class ReplayReportFragment :
     private lateinit var player: ExoPlayer
     private lateinit var playerView: PlayerView
     private val swingFlowAdapter by lazy { SwingFlowAdapter() }
+    private val REPLAY_REPORT_MARGIN_PX by lazy { resources.getDimension(R.dimen.replay_report_margin_dp_between_items) }
     private val backSwingFlowAnalysisAdapter by lazy { BackSwingFlowAnalysisAdapter() }
     private val downSwingFlowAnalysisAdapter by lazy { DownSwingFlowAnalysisAdapter() }
 
@@ -51,7 +52,7 @@ class ReplayReportFragment :
         playerView = binding.pvReplayVideo
         player = ExoPlayer.Builder(requireContext()).build()
         playerView.player = player
-        val videoUri = Uri.parse(SwingVideoProcessor.getSwingVideoFile(fragmentContext, swingCode = args.SwingFeedback.swingCode, userId = args.SwingFeedback.userID).toString())
+        val videoUri = Uri.parse(SwingLocalDataProcessor.getSwingVideoFile(fragmentContext, swingCode = args.SwingFeedback.swingCode, userId = args.SwingFeedback.userID).toString())
         val mediaItem = MediaItem.fromUri(videoUri)
         player.setMediaItem(mediaItem)
         player.prepare()
@@ -78,26 +79,31 @@ class ReplayReportFragment :
     private fun initSwingFlowViewPager(viewPager: ViewPager2) {
         viewPager.adapter = swingFlowAdapter
         swingFlowAdapter.submitList(loadPoseImage())
-        viewPager.offscreenPageLimit = 1
+        viewPager.offscreenPageLimit = 2
         viewPager.overScrollMode = RecyclerView.OVER_SCROLL_NEVER
-        val itemDecoration = HorizontalMarginItemDecoration(horizontalMarginInPx = 20)
+
+
+        val screenWidth = resources.displayMetrics.widthPixels
+        val marginPx =
+            (screenWidth * 0.05).toInt() + (REPLAY_REPORT_MARGIN_PX * 2).toInt()
+
+        val itemDecoration = HorizontalMarginItemDecoration(horizontalMarginInPx = marginPx)
         viewPager.addItemDecoration(itemDecoration)
         viewPager.setPageTransformer { page, position ->
-            val offsetX = position * -(2 * 150) // offset 값으로 간격 조정
+            val offsetX =  position * -(2.7 * marginPx).toInt()
             page.translationX = offsetX
 
-            val scale = 1 - abs(position) // scale 값으로 양쪽 애들 높이 조정
+            val scale = 1 - abs(position)
             page.scaleY = 0.85f + 0.15f * scale
         }
     }
 
     private fun initSummary() {
-        Log.d(TAG, "initSummary: ${args.SwingFeedback}")
         binding.tvSummary.text = args.SwingFeedback.solution
     }
 
     private fun loadPoseImage(): List<SwingFlowDTO>{
-        val result = SwingVideoProcessor.getSwingPoseFiles(fragmentContext, swingCode = args.SwingFeedback.swingCode, userId = args.SwingFeedback.userID)
+        val result = SwingLocalDataProcessor.getSwingPoseFiles(fragmentContext, swingCode = args.SwingFeedback.swingCode, userId = args.SwingFeedback.userID)
         val pose = listOf("ADDRESS", "TOE_UP", "MID_BACKSWING", "TOP", "MID_DOWNSWING", "IMPACT", "MID_FOLLOW_THROUGH", "FINISH")
         return result.mapIndexed { index, file ->
             SwingFlowDTO(

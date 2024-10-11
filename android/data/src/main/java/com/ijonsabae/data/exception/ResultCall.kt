@@ -1,6 +1,8 @@
 package com.ijonsabae.data.exception
 
+import android.util.Log
 import com.ijonsabae.domain.model.CommonResponse
+import com.ijonsabae.domain.model.ErrorResponse
 import com.ijonsabae.domain.model.RetrofitException
 import okhttp3.Request
 import okio.FileNotFoundException
@@ -12,6 +14,7 @@ import retrofit2.HttpException
 import retrofit2.Response
 import retrofit2.Retrofit
 
+private const val TAG = "ResultCall 싸피"
 class ResultCall<T>(private val delegate: Call<T>, private val retrofit: Retrofit) :
     Call<Result<T>> {
     override fun enqueue(callback: Callback<Result<T>>) {
@@ -44,13 +47,12 @@ class ResultCall<T>(private val delegate: Call<T>, private val retrofit: Retrofi
                                 )
                             )
                         } else {
-                            val errorBody = retrofit.responseBodyConverter<CommonResponse<T>>(
-                                CommonResponse::class.java,
-                                CommonResponse::class.java.annotations
+                            val errorBody = retrofit.responseBodyConverter<ErrorResponse<T>>(
+                                ErrorResponse::class.java,
+                                ErrorResponse::class.java.annotations
                             ).convert(response.errorBody()!!)
-
                             val message: String = errorBody?.message ?: "에러 메세지가 없습니다!"
-                            val code: Int = errorBody?.code ?: 404
+                            val code: Int = errorBody?.errorCode ?: 404
                             callback.onResponse(
                                 this@ResultCall,
                                 Response.success(

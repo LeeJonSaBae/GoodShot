@@ -7,7 +7,7 @@ import javax.inject.Inject
 class UpdateUserIdUseCaseImpl @Inject constructor(
     private val feedbackRepository: SwingFeedbackRepository
 ): UpdateUserIdUseCase {
-    override fun invoke(oldUserId: Long, newUserId: Long) : Int {
+    override suspend fun invoke(oldUserId: Long, newUserId: Long) : Int {
         return feedbackRepository.updateUserId(oldUserId, newUserId)
     }
 }

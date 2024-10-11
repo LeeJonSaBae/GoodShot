@@ -48,6 +48,7 @@ import com.ijonsabae.presentation.shot.ai.camera.CameraSource
 import com.ijonsabae.presentation.shot.flex.FoldingStateActor
 import com.ijonsabae.presentation.util.PermissionChecker
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Locale
 import java.util.concurrent.Executors
@@ -68,7 +69,6 @@ class CameraFragment :
     @Inject
     lateinit var getUserIdUseCase: GetUserIdUseCase
 
-    //TODO: Inject 유즈케이스 받아서 lateinitvar로 받아서 camerasource에 던져주면 된다
     private val permissionList = arrayOf(Manifest.permission.CAMERA)
     private var camera: Camera? = null
     private var cameraController: CameraControl? = null
@@ -108,10 +108,8 @@ class CameraFragment :
             startCamera()
         }
         if (permissionChecker.checkPermission(fragmentContext, permissionList)) {
-            Log.d(TAG, "onViewCreated: 통과")
             permissionChecker.permitted.onGranted()
         } else {
-            Log.d(TAG, "onViewCreated: 권한 부족")
             permissionChecker.requestPermissionLauncher.launch(permissionList) // 권한없으면 창 띄움
         }
     }
@@ -143,12 +141,6 @@ class CameraFragment :
             } else {
                 Log.e(TAG, "TTS Initialization failed!")
             }
-        }
-    }
-
-    private fun stopTts() {
-        if (tts?.isSpeaking == true) {
-            tts?.stop()
         }
     }
 
@@ -196,7 +188,6 @@ class CameraFragment :
                         if (lastTimestamp != 0L) {
                             val deltaTime = currentTimestamp - lastTimestamp
                             val fps = 1000.0 / deltaTime
-                            Log.d("CameraAnalyzer", "Current FPS: ${fps.roundToInt()}")
                         }
                         cameraSource.processImage(
                             cameraSource.getRotateBitmap(
@@ -214,7 +205,6 @@ class CameraFragment :
             cameraController = camera!!.cameraControl
             cameraController!!.setZoomRatio(1F) // 1x Zoom
         } catch (exc: Exception) {
-            Log.d(TAG, "Camera Setting Error: $exc")
         }
     }
 
@@ -244,7 +234,6 @@ class CameraFragment :
     }
 
     override fun onPause() {
-        stopTts()
         cameraSource.pause()
         super.onPause()
     }
@@ -252,7 +241,9 @@ class CameraFragment :
     override fun onDestroyView() {
         (fragmentContext as MainActivity).showBottomNavBar()
         requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        cameraProvider.unbindAll()
+        if (::cameraProvider.isInitialized) {
+            cameraProvider.unbindAll()
+        }
         super.onDestroyView()
     }
 
@@ -519,8 +510,16 @@ class CameraFragment :
                 { cameraState -> swingViewModel.setCurrentState(cameraState) },
                 { feedback -> swingViewModel.setFeedBack(feedback) },
                 { swingViewModel.getUserId() },
-                { swingFeedback -> swingViewModel.insertSwingFeedback(swingFeedback) },
-                { swingFeedbackComment -> swingViewModel.insertSwingFeedbackComment(swingFeedbackComment) },
+                { swingFeedback ->
+                    swingViewModel.insertSwingFeedback(
+                        swingFeedback
+                    )
+                },
+                { swingFeedbackComment ->
+                    swingViewModel.insertSwingFeedbackComment(
+                        swingFeedbackComment
+                    )
+                },
                 swingViewModel::initializeSwingCnt,
                 swingViewModel::increaseSwingCnt,
             )

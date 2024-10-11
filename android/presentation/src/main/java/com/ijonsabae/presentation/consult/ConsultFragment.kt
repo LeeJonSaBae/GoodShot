@@ -51,8 +51,6 @@ class ConsultFragment :
     private fun initFlow() {
         lifecycleScope.launch {
             consultViewModel.consultantList.collectLatest { result ->
-                Log.d(TAG, "setConsultantList: $result")
-                Log.d(TAG, "initFlow: ${result}")
                 consultantListAdapter.submitData(result)
             }
         }

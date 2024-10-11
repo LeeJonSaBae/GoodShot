@@ -5,7 +5,6 @@ import com.d201.goodshot.global.security.dto.Token;
 import com.d201.goodshot.user.domain.User;
 import com.d201.goodshot.user.dto.Auth;
 import com.d201.goodshot.user.repository.RefreshTokenRepository;
-import com.d201.goodshot.user.repository.UserRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
@@ -43,8 +42,7 @@ public class TokenUtil {
 
     @Value("${security.secret-key}")
     private String secret;
-//    private final Long accessTokenExpireTime = 60 * 60L; // 1시간
-    private final Long accessTokenExpireTime = 30 * 24 * 60 * 60L; // 임시 : 한달로 변경
+    private final Long accessTokenExpireTime = 60 * 60L; // 1시간
     private final Long refreshTokenExpireTime = 60 * 60 * 24 * 7L;
     private SecretKey secretKey;
     private final RefreshTokenRepository refreshTokenRepository;

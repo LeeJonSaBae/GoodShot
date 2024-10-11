@@ -54,7 +54,6 @@ class YoutubeRecyclerViewAdapter(
             binding.btnYoutubeLink.setOnClickListener {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(item.link))
                 binding.root.context.startActivity(intent)
-                Log.d(TAG, "bind: 유튜브 링크 바로가기 클릭")
             }
             binding.root.setOnClickListener {
                 onYoutubeItemClickListener.onYoutubeItemClick(item)

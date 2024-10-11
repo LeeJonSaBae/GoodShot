@@ -13,5 +13,8 @@ data class SwingFeedback(
     val tempo: Double,
     val title: String,
     val date: Long,
-    val isClamped: Boolean = false
+    val createdAt: Long,
+    val isClamped: Boolean = false,
+    val isUpdated: Int = 0
 )
+//TODO(스윙 피드백 생성하는 곳에 적용하기)

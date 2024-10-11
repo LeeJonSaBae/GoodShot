@@ -1,7 +1,8 @@
 package com.ijonsabae.data.retrofit
 
 import android.util.Log
-import com.ijonsabae.domain.repository.TokenRepository
+import com.ijonsabae.data.datasource.local.UserLocalDataSource
+import com.ijonsabae.data.repository.TokenRepository
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -11,6 +12,7 @@ private const val TAG = "TokenInterceptor_싸피"
 
 class TokenInterceptor @Inject constructor(
     private val tokenRepository: TokenRepository,
+    private val userLocalDataSource: UserLocalDataSource
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val response: Response
@@ -23,7 +25,6 @@ class TokenInterceptor @Inject constructor(
             }
             val newAccessToken = tokenRepository.getLocalAccessToken()
             val newTokenValue = "Bearer $newAccessToken"
-            Log.d(TAG, "intercept: $newTokenValue")
 
             response = if(newAccessToken.isNullOrBlank()){
                 // 비로그인 상태
@@ -46,7 +47,7 @@ class TokenInterceptor @Inject constructor(
         val currentTimeMillis = System.currentTimeMillis()
         val timeDifference = currentTimeMillis - accessTokenCreatedTime
         val baseTime = 3600000L // 60분
-        Log.i("isAccessTokenValid", (timeDifference >= baseTime).toString())
+        Log.i("isAccessTokenWillInValid", (timeDifference >= baseTime).toString())
         return timeDifference >= baseTime
     }
 
@@ -77,13 +78,12 @@ class TokenInterceptor @Inject constructor(
             tokenRepository.setLocalToken(it.data)
         }.onFailure {throwable ->
             //다른 기기로 로그인 기존 token 변경됐거나 refresh Token마저 유효기간이 끝난 경우
-            Log.e(TAG, "refreshToken: $throwable", )
-            Log.i("Interceptor Refresh", "failed..")
             logout()
         }
     }
 
     private suspend fun logout(){
         tokenRepository.clearToken()
+        userLocalDataSource.clearUserName()
     }
 }

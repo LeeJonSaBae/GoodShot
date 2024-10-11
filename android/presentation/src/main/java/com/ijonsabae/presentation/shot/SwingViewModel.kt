@@ -32,14 +32,14 @@ class SwingViewModel @Inject constructor(
     private var _swingCnt: Int = 0
 
     fun getUserId(): Long{
-        return _id
+        return runBlocking { getUserIdUseCase() }
     }
 
-    fun insertSwingFeedbackComment(swingFeedbackComment: SwingFeedbackComment){
+    suspend fun insertSwingFeedbackComment(swingFeedbackComment: SwingFeedbackComment){
         insertLocalSwingFeedbackCommentUseCase(swingFeedbackComment)
     }
 
-    fun insertSwingFeedback(swingFeedback: SwingFeedback){
+    suspend fun insertSwingFeedback(swingFeedback: SwingFeedback){
         insertLocalSwingFeedbackUseCase(swingFeedback)
     }
 

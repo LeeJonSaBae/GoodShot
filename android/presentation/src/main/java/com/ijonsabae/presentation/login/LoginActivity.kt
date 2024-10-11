@@ -19,12 +19,18 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.ijonsabae.domain.model.Token
+import com.ijonsabae.domain.usecase.login.GetLocalUserNameUseCase
+import com.ijonsabae.domain.usecase.login.GetRemoteUserNameUseCase
+import com.ijonsabae.domain.usecase.login.SetLocalUserNameUseCase
 import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseActivity
 import com.ijonsabae.presentation.databinding.ActivityLoginBinding
 import com.ijonsabae.presentation.main.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
@@ -87,7 +93,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::i
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 loginViewModel.token.collect {
                     if (it != Token.EMPTY) {
-                       login()
+                        login()
                     }
                     else{
                         waiting = false

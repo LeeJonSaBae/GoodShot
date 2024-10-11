@@ -1,8 +1,6 @@
 package com.ijonsabae.data.usecase.login
 
-import com.ijonsabae.domain.model.CommonResponse
-import com.ijonsabae.domain.model.Token
-import com.ijonsabae.domain.repository.TokenRepository
+import com.ijonsabae.data.repository.TokenRepository
 import com.ijonsabae.domain.usecase.login.ClearLocalTokenUseCase
 import javax.inject.Inject
 

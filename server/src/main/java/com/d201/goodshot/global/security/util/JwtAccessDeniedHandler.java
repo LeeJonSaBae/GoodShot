@@ -11,7 +11,6 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 
 import static com.d201.goodshot.global.security.exception.SecurityExceptionList.ACCESS_DENIED_03;
 

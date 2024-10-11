@@ -5,11 +5,9 @@ import com.d201.goodshot.global.security.exception.InvalidTokenException;
 import com.d201.goodshot.global.security.util.TokenUtil;
 import com.d201.goodshot.user.domain.User;
 import com.d201.goodshot.user.dto.Auth;
-import com.d201.goodshot.user.dto.UserRequest;
 import com.d201.goodshot.user.dto.UserRequest.JoinRequest;
 import com.d201.goodshot.user.dto.UserRequest.LoginRequest;
 import com.d201.goodshot.user.dto.UserRequest.ProfileRequest;
-import com.d201.goodshot.user.dto.UserResponse;
 import com.d201.goodshot.user.dto.UserResponse.ProfileResponse;
 import com.d201.goodshot.user.exception.*;
 import com.d201.goodshot.user.repository.RefreshTokenRepository;
@@ -188,6 +186,12 @@ public class UserService {
     public void updateProfile(String email, ProfileRequest profileRequest) {
         User user = userRepository.findByEmail(email).orElseThrow(NotFoundUserException::new);
         user.updateProfileUrl(profileRequest.getProfileUrl());
+    }
+
+    //회원 이름 조회
+    public String getUserName(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(NotFoundUserException::new);
+        return user.getName();
     }
 
 }

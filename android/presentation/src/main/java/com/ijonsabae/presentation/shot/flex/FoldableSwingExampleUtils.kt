@@ -247,7 +247,6 @@ object FoldableSwingExampleUtils {
             connect(replayTitle.id, ConstraintSet.END, replayLayout.id, ConstraintSet.END)
 
             applyTo(replayLayout)
-            Log.d(TAG, "restore: replaylayout ${replayLayout.height}")
         }
 
 

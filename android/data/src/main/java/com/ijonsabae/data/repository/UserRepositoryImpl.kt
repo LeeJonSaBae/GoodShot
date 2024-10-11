@@ -6,7 +6,6 @@ import com.ijonsabae.domain.model.CommonResponse
 import com.ijonsabae.domain.model.LoginParam
 import com.ijonsabae.domain.model.RegisterParam
 import com.ijonsabae.domain.model.Token
-import com.ijonsabae.domain.repository.UserRepository
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
@@ -61,5 +60,21 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun setAutoLoginStatus(autoLogin: Boolean) {
         return userLocalDataSource.setAutoLoginStatus(autoLogin)
+    }
+
+    override suspend fun getRemoteUsername(): Result<CommonResponse<String>> {
+        return userRemoteDataSource.getUserName()
+    }
+
+    override suspend fun getLocalUsername(): String? {
+        return userLocalDataSource.getUserName()
+    }
+
+    override suspend fun setLocalUserName(name: String){
+        return userLocalDataSource.setUserName(name)
+    }
+
+    override suspend fun clearUserName(){
+        return userLocalDataSource.clearUserName()
     }
 }

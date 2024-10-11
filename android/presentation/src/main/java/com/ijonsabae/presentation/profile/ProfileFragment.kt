@@ -1,29 +1,24 @@
 package com.ijonsabae.presentation.profile
 
-import android.Manifest
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.ContentResolver
+import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.MimeTypeMap
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
@@ -32,18 +27,24 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.BaseFragment
 import com.ijonsabae.presentation.config.Const.Companion.GalleryPermission
 import com.ijonsabae.presentation.databinding.FragmentProfileBinding
-import com.ijonsabae.presentation.login.LoginActivity
 import com.ijonsabae.presentation.main.MainActivity
+import com.ijonsabae.presentation.shot.SwingRemoteDataProcessor
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-private const val TAG = "굿샷_ProfileFragment"
+private const val TAG = "ProfileFragment 싸피"
 
 @AndroidEntryPoint
 class ProfileFragment :
     BaseFragment<FragmentProfileBinding>(FragmentProfileBinding::bind, R.layout.fragment_profile) {
-    private val profileViewModel: ProfileViewModel by viewModels()
+    private val profileViewModel: ProfileViewModel by activityViewModels()
+    private val totalReportViewModel: TotalReportViewModel by activityViewModels()
+
+    @Inject
+    lateinit var swingRemoteDataProcessor: SwingRemoteDataProcessor
+
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
@@ -84,13 +85,22 @@ class ProfileFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (fragmentContext as MainActivity).showAppBar("마이 페이지")
+        val isGoTotalReport = arguments?.getBoolean("GoTotalReport")
+        if (isGoTotalReport == true) navController.navigate(R.id.action_profile_to_total_report)
         init()
         initFlow()
-        permissionChecker.setOnGrantedListener{
+        permissionChecker.setOnGrantedListener {
             openGallery()
         }
     }
+    private fun isInternetAvailable(context: Context): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkCapabilities = connectivityManager.activeNetwork?.let { network ->
+            connectivityManager.getNetworkCapabilities(network)
+        }
+        return networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
 
+    }
     private fun init() {
         binding.btnEditProfileImg.setOnClickListener {
             checkPermissionAndOpenGallery()
@@ -100,7 +110,11 @@ class ProfileFragment :
         }
 
         binding.layoutGoTotalReport.setOnClickListener {
-            showTotalReport()
+            if(isInternetAvailable(fragmentContext)){
+                navController.navigate(R.id.action_profile_to_progress_dialog)
+            }else{
+                showToastShort("인터넷이 연결되어 있지 않습니다!")
+            }
         }
 
         binding.layoutLogout.setOnClickListener {
@@ -112,30 +126,34 @@ class ProfileFragment :
         binding.layoutResign.setOnClickListener {
             navController.navigate(R.id.action_profile_to_resign_dialog)
         }
+
+        binding.layoutGoLogin.setOnClickListener {
+            navController.navigate(R.id.action_profile_to_login_dialog)
+        }
     }
 
-    private fun initFlow(){
+    private fun initFlow() {
         lifecycleScope.launch(coroutineExceptionHandler) {
-            repeatOnLifecycle(Lifecycle.State.STARTED){
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     profileViewModel.isLogoutSucceed.collect { result ->
                         if (result == 200) {
                             showToastShort("로그아웃 되었습니다!")
-                            val intent = Intent(fragmentContext, LoginActivity::class.java).apply {
-                                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-                            }
-                            startActivity(intent)
-                            requireActivity().finish()
+//
+//                            val intent = Intent(fragmentContext, LoginActivity::class.java).apply {
+//                                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+//                            }
+//                            startActivity(intent)
+//                            requireActivity().finish()
                         }
                     }
                 }
                 launch {
-                    profileViewModel.croppedUri.drop(1).collect{ croppedUri ->
+                    profileViewModel.croppedUri.drop(1).collect { croppedUri ->
                         launch(coroutineExceptionHandler) {
                             // Presigned URL 받아오기
                             val imageExtension =
                                 getImageExtension(fragmentContext.contentResolver, croppedUri)
-                            Log.d(TAG, "확장자: $imageExtension")
                             if (imageExtension != null) {
                                 profileViewModel.getPresignedURL(imageExtension)
                             } else {
@@ -147,21 +165,27 @@ class ProfileFragment :
                 launch {
                     // 프로필 이미지 upload
                     profileViewModel.presignedUrl.drop(1).collect { presignedUrl ->
-                        Log.d(TAG, "presignedUrl: $presignedUrl")
                         presignedUrl?.let {
-                            profileViewModel.uploadProfileImage(presignedUrl, profileViewModel.croppedUri.value).getOrThrow()
+                            profileViewModel.uploadProfileImage(
+                                presignedUrl,
+                                profileViewModel.croppedUri.value
+                            ).getOrThrow()
                         }
                     }
                 }
                 launch {
                     profileViewModel.imageUrl.drop(1).collect { imageUrl ->
                         val result = profileViewModel.updateProfile(imageUrl).getOrThrow()
-                        if(result.code == 200){
+                        if (result.code == 200) {
                             showToastShort("프로필 수정이 완료되었습니다!")
-                        }else{
+                        } else {
                             showToastShort("프로필 수정에 실패했습니다!")
                         }
-
+                    }
+                }
+                launch {
+                    profileViewModel.isLogin.collect {
+                        getUserInfo()
                     }
                 }
             }
@@ -181,10 +205,14 @@ class ProfileFragment :
 
     private fun getUserInfo() {
         lifecycleScope.launch(coroutineExceptionHandler) {
-            profileViewModel.getProfileInfo()
+            if (profileViewModel.getToken() == null) {
+                setGuestUI()
+            } else {
+                setUserUI()
+                profileViewModel.getProfileInfo()
+            }
 
             profileViewModel.profileInfo.collect { profileInfo ->
-                Log.d(TAG, "profileInfo: $profileInfo")
                 if (profileInfo != null) {
                     setUserInfo(
                         profileImgUrl = Uri.parse(profileInfo.profileUrl),
@@ -192,6 +220,20 @@ class ProfileFragment :
                     )
                 }
             }
+        }
+    }
+
+    private fun setGuestUI() {
+        binding.apply {
+            layoutLogin.visibility = View.INVISIBLE
+            layoutGoLogin.visibility = View.VISIBLE
+        }
+    }
+
+    private fun setUserUI() {
+        binding.apply {
+            layoutLogin.visibility = View.VISIBLE
+            layoutGoLogin.visibility = View.INVISIBLE
         }
     }
 
@@ -210,14 +252,14 @@ class ProfileFragment :
         binding.tvName.text = name
     }
 
-    private fun showTotalReport() {
-        findNavController().navigate(R.id.action_profile_to_totalReport)
-    }
+//    private fun showTotalReport() {
+//        findNavController().navigate(R.id.action_profile_to_totalReport)
+//    }
 
     private fun checkPermissionAndOpenGallery() {
-        if(permissionChecker.checkPermission(fragmentContext, GalleryPermission)){
+        if (permissionChecker.checkPermission(fragmentContext, GalleryPermission)) {
             openGallery()
-        }else{
+        } else {
             showToastShort("권한을 설정하셔야 기록 서비스를 이용 가능합니다!")
             //ask for permission
             permissionChecker.requestPermissionLauncher.launch(GalleryPermission)

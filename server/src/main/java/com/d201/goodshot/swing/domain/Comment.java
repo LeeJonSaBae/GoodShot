@@ -26,8 +26,10 @@ public class Comment {
     @JoinColumn(name = "swing_id")
     private Swing swing;
 
+    @Enumerated(EnumType.STRING)
     private PoseType poseType;
 
+    @Enumerated(EnumType.STRING)
     private CommentType commentType;
 
     private String content;

@@ -1,19 +1,4 @@
-package com.ijonsabae.presentation.shot.ai.camera/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-==============================================================================
-*/
-
+package com.ijonsabae.presentation.shot.ai.camera
 
 import android.content.Context
 import android.content.Intent
@@ -35,7 +20,7 @@ import com.ijonsabae.presentation.R
 import com.ijonsabae.presentation.config.Const.Companion.BACKSWING
 import com.ijonsabae.presentation.config.Const.Companion.BAD
 import com.ijonsabae.presentation.config.Const.Companion.DOWNSWING
-import com.ijonsabae.presentation.config.Const.Companion.GOOD
+import com.ijonsabae.presentation.config.Const.Companion.NICE
 import com.ijonsabae.presentation.model.FeedBack
 import com.ijonsabae.presentation.shot.CameraState
 import com.ijonsabae.presentation.shot.CameraState.ADDRESS
@@ -45,7 +30,7 @@ import com.ijonsabae.presentation.shot.CameraState.POSITIONING
 import com.ijonsabae.presentation.shot.CameraState.RESULT
 import com.ijonsabae.presentation.shot.CameraState.SWING
 import com.ijonsabae.presentation.shot.PostureFeedback
-import com.ijonsabae.presentation.shot.SwingVideoProcessor
+import com.ijonsabae.presentation.shot.SwingLocalDataProcessor
 import com.ijonsabae.presentation.shot.ai.PostureExtractor
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_ANKLE
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.LEFT_EAR
@@ -64,7 +49,6 @@ import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_HIP
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_KNEE
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_SHOULDER
 import com.ijonsabae.presentation.shot.ai.data.BodyPart.RIGHT_WRIST
-import com.ijonsabae.presentation.shot.ai.data.Comment
 import com.ijonsabae.presentation.shot.ai.data.Device
 import com.ijonsabae.presentation.shot.ai.data.KeyPoint
 import com.ijonsabae.presentation.shot.ai.data.Person
@@ -82,17 +66,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.io.File
 import java.util.Arrays
 import java.util.LinkedList
 import java.util.Locale
 import java.util.Queue
 import java.util.concurrent.CountDownLatch
 import kotlin.math.abs
-import kotlin.math.atan2
 import kotlin.math.max
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 data class SwingTiming(
     val backswingTime: Long,
@@ -107,8 +87,8 @@ class CameraSource(
     private val setCurrentCameraState: (cameraState: CameraState) -> Unit,
     private val setFeedback: (FeedBack) -> Unit,
     private val getUserId: () -> Long,
-    private val insertLocalSwingFeedback: (SwingFeedback) -> Unit,
-    private val insertLocalSwingFeedbackComment: (SwingFeedbackComment) -> Unit,
+    private val insertLocalSwingFeedback: suspend (SwingFeedback) -> Unit,
+    private val insertLocalSwingFeedbackComment: suspend (SwingFeedbackComment) -> Unit,
     // TODO (
     //  문현
     //  insertLocalSwingFeedBackComment를 이용해서 스윙에 대한 코멘트를 아래에 해당하는 SwingFeedbackComment 객체를 만들어서 넣어줘야 함!
@@ -175,6 +155,9 @@ class CameraSource(
         val classifier4 = PoseClassifier.create(context, MODEL_FILENAME_4, LABELS_FILENAME_4)
         val classifier8 = PoseClassifier.create(context, MODEL_FILENAME_8, LABELS_FILENAME_8)
         setClassifier(classifier4, classifier8)
+
+        // TODO 모델 초기화 부분
+        // ClubDetector.initialize(context)
 
         initializeSwingCnt()
     }
@@ -290,6 +273,20 @@ class CameraSource(
                             imageQueue.poll()
                         }
                         imageQueue.offer(TimestampedData(capturedBmp, currentTime, -1))
+                        
+
+                        //클럽 테스트
+                        // TODO 모델 검증 부분 성능 낮음
+//
+//                        bitmap
+//                        val detectionResults = ClubDetector.detectClub(bitmap)
+//                        // 결과 처리
+//                        for (result in detectionResults) {
+//                            val box = result.boundingBox
+//                            val score = result.score
+//                            // 여기서 감지된 클럽에 대한 추가 처리를 수행합니다.
+//                            // 예: 화면에 바운딩 박스 그리기, 결과 로깅 등
+//                        }
                     }
 
                     // 정규화된 관절 좌표를 큐에 추가
@@ -305,7 +302,6 @@ class CameraSource(
 
             frameProcessedInOneSecondInterval++
         } else {
-            Log.d(TAG, "processImage: 처리 안함")
         }
     }
 
@@ -396,7 +392,6 @@ class CameraSource(
             imageReaderThread = null
             imageReaderHandler = null
         } catch (e: InterruptedException) {
-            Log.d(TAG, e.message.toString())
         }
     }
 
@@ -427,7 +422,6 @@ class CameraSource(
 
             else -> {
                 if (currentState == SWING) {
-                    // 오른어깨와 왼발이 가까워지면
                     if (pelvisTwisting.not() &&
                         abs(keyPoints[RIGHT_SHOULDER.position].coordinate.x - keyPoints[LEFT_ANKLE.position].coordinate.x) < 0.05f &&
                         abs(keyPoints[RIGHT_SHOULDER.position].coordinate.y - keyPoints[RIGHT_ANKLE.position].coordinate.y) > 0.3f &&
@@ -527,14 +521,12 @@ class CameraSource(
         // 중복 검사
         val uniqueIndices = poseIndices.toSet()
         if (uniqueIndices.size != poseIndices.size) {
-            Log.d("분석결과", "중복 발생 ${Arrays.toString(poseIndices)}")
             return false
         }
 
         // 지속적으로 감소하는지 검사 -> 순서 보장
         for (i in 0 until poseIndices.size - 1) {
             if (poseIndices[i] <= poseIndices[i + 1]) {
-                Log.d("분석결과", "순서 오류 ${Arrays.toString(poseIndices)}")
                 return false
             }
         }
@@ -676,7 +668,6 @@ class CameraSource(
                     val preciseIndices = swingData.map { it.third }
                     val preciseBitmaps = swingData.map { it.first }
                     val precisePoseScores = classifyPoseScores(swingData.map { it.second })
-                    Log.d("유사도", "$precisePoseScores")
 
                     // 백스윙, 탑스윙 피드백 체크하기
                     val poseAnalysisResults = PostureFeedback.checkPosture(
@@ -684,18 +675,8 @@ class CameraSource(
                         jointQueue.toList().reversed(),
                         isLeftHanded.not()
                     )
-                    //TODO 문현 : List<Comment> 처리
 
-                    Log.d("분석결과", "$poseAnalysisResults")
 
-                    Log.d("분석결과", "${poseAnalysisResults.solution.name}")
-                    poseAnalysisResults.backSwingProblems.forEach {
-                        Log.d("분석결과", "${it.javaClass.simpleName}")
-                    }
-                    Log.d("분석결과", "-------------------------------------------------")
-                    poseAnalysisResults.downSwingProblems.forEach {
-                        Log.d("분석결과", "${it.javaClass.simpleName}")
-                    }
 
                     // 나의 스윙 이미지와 전문가의 스윙 이미지 결정하기
                     val userSwingImage: Bitmap
@@ -703,7 +684,7 @@ class CameraSource(
                     determineSwingImage(poseAnalysisResults, preciseBitmaps).let {
                         answerSwingImageResId = it.first
                         if (selfCameraOptionEnable) { // 전면 카메라 스윙 시 결과 사진 반전 처리
-                            userSwingImage = SwingVideoProcessor.flipBitmapHorizontally(it.second)
+                            userSwingImage = SwingLocalDataProcessor.flipBitmapHorizontally(it.second)
                         } else {
                             userSwingImage = it.second
                         }
@@ -737,7 +718,7 @@ class CameraSource(
 
                     // 영상 만들기
                     val swingPoseBitmaps = preciseBitmaps.map {it.data}
-                    val swingSaveResult = SwingVideoProcessor.saveSwingDataToInternalStorage(context, swingPoseBitmaps, actualSwingIndices.reversed(), selfCameraOptionEnable, userId)
+                    val swingSaveResult = SwingLocalDataProcessor.saveSwingDataToInternalStorage(context, swingPoseBitmaps, actualSwingIndices.reversed(), selfCameraOptionEnable, userId)
 
                     // 영상 + PoseAnalysisResult(솔루션 + 피드백 + 코멘트) + @ 룸에 저장
                     saveSwingFeedbackAndComment(swingSaveResult, tempoRatio, poseAnalysisResults)
@@ -839,19 +820,24 @@ class CameraSource(
         val scores = Array(8) { 0.0f }
 
         indices.forEachIndexed { poseNumber, frameIndex ->
-            val classifierResultList = classifier4!!.classify(jointDataList[frameIndex])
-            classifierResultList.forEachIndexed { classifiedPoseIndex, classifiedResult ->
+            val classifierResultList1 = classifier4!!.classify(jointDataList[frameIndex])
+            classifierResultList1.forEachIndexed { classifiedPoseIndex, classifiedResult ->
                 val classifiedPoseScore = classifiedResult.second
                 if (classifiedPoseIndex < 4 && poseNumber < 4) {
                     scores[classifiedPoseIndex] =
                         max(scores[classifiedPoseIndex], classifiedPoseScore)
                 }
-                if (classifiedPoseIndex in 4..7 && poseNumber in 4..7) {
-                    scores[classifiedPoseIndex] =
-                        max(scores[classifiedPoseIndex], classifiedPoseScore)
-                }
+                scores[classifiedPoseIndex] =
+                    max(scores[classifiedPoseIndex], classifiedPoseScore)
+            }
+            val classifierResultList2 = classifier8!!.classify(jointDataList[frameIndex])
+            classifierResultList2.forEachIndexed { classifiedPoseIndex, classifiedResult ->
+                val classifiedPoseScore = classifiedResult.second
+                scores[classifiedPoseIndex + 4] =
+                    max(scores[classifiedPoseIndex + 4], classifiedPoseScore)
             }
         }
+
         swingSimilarity = Similarity(
             scores[0].toDouble(),
             scores[1].toDouble(),
@@ -862,48 +848,58 @@ class CameraSource(
             scores[6].toDouble(),
             scores[7].toDouble(),
         )
-        var scoreResult = 0.0
+        var scoreResult = 0.0f  // float형으로 변경
         scores.forEachIndexed { _, score ->
-            scoreResult += (score * 100)
+            var adjustedScore = (score * 100f)  // float형 연산을 위해 f를 붙임
+
+            scoreResult += adjustedScore
         }
-        return (scoreResult / 8).toInt()
+
+        val finalScore = scoreResult / 8
+
+        return finalScore.toInt()
+
     }
 
     private fun saveSwingFeedbackAndComment(swingSaveResult: Pair<String, Long>, tempoRatio: String, poseAnalysisResults: PoseAnalysisResult) {
         val swingScore = calculateScore(PostureExtractor.manualPoseIndexArray)
-        insertLocalSwingFeedback(SwingFeedback(
-            userID = userId,
-            swingCode = swingSaveResult.first,
-            similarity = swingSimilarity,
-            solution = poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
-            score = swingScore, //TODO 문현 : SCORE 기준 회의 후 정하기
-            tempo = tempoRatio.toDouble(),
-            title = swingScore.toString() + "점 스윙",
-            date = swingSaveResult.second
-        ))
+        CoroutineScope(Dispatchers.IO).launch{
+            // TODO(이쪽에도 createdTime을 추가해줘야 함)
+            insertLocalSwingFeedback(SwingFeedback(
+                userID = userId,
+                swingCode = swingSaveResult.first,
+                similarity = swingSimilarity,
+                solution = poseAnalysisResults.solution.getSolution(isLeftHanded.not()),
+                score = swingScore, //TODO 문현 : SCORE 기준 회의 후 정하기
+                tempo = tempoRatio.toDouble(),
+                title = swingScore.toString() + "점 스윙",
+                date = swingSaveResult.second,
+                createdAt = swingSaveResult.second
+            ))
 
-        val swingCommentList: MutableList<SwingFeedbackComment> = mutableListOf()
-        // down swing이 1 backswing이 0
-        poseAnalysisResults.backSwingProblems.forEachIndexed { index, comment ->
-            swingCommentList.add(SwingFeedbackComment(
-                userID = userId,
-                swingCode = swingSaveResult.first,
-                poseType = BACKSWING, //TODO : backswing downswing 매크로 상수로 지정하기
-                content = comment.content,
-                commentType = if (comment.type == "BAD") 0 else 1 //TODO : BAD GOOD 매크로 상수로 지정하기
-            ))
-        }
-        poseAnalysisResults.downSwingProblems.forEachIndexed { index, comment ->
-            swingCommentList.add(SwingFeedbackComment(
-                userID = userId,
-                swingCode = swingSaveResult.first,
-                poseType = DOWNSWING,
-                content = comment.content,
-                commentType = if (comment.type == "BAD") BAD else GOOD
-            ))
-        }
-        swingCommentList.forEach { swingFeedbackComment ->
-            insertLocalSwingFeedbackComment(swingFeedbackComment)
+            val swingCommentList: MutableList<SwingFeedbackComment> = mutableListOf()
+            // down swing이 1 backswing이 0
+            poseAnalysisResults.backSwingProblems.forEachIndexed { index, comment ->
+                swingCommentList.add(SwingFeedbackComment(
+                    userID = userId,
+                    swingCode = swingSaveResult.first,
+                    poseType = BACKSWING, //TODO : backswing downswing 매크로 상수로 지정하기
+                    content = comment.content,
+                    commentType = if (comment.type == "BAD") 0 else 1 //TODO : BAD GOOD 매크로 상수로 지정하기
+                ))
+            }
+            poseAnalysisResults.downSwingProblems.forEachIndexed { index, comment ->
+                swingCommentList.add(SwingFeedbackComment(
+                    userID = userId,
+                    swingCode = swingSaveResult.first,
+                    poseType = DOWNSWING,
+                    content = comment.content,
+                    commentType = if (comment.type == "BAD") BAD else NICE
+                ))
+            }
+            swingCommentList.forEach { swingFeedbackComment ->
+                insertLocalSwingFeedbackComment(swingFeedbackComment)
+            }
         }
 
     }
@@ -913,8 +909,6 @@ class CameraSource(
             action = "SKIP_MOTION_DETECTED"
             putExtra("skipMotion", "Skip motion detected")
         }
-        Log.d("processDetectedInfo", "processDetectedInfo: SKIP_MOTION_DETECTED 인텐트 전송 전")
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
-        Log.d("processDetectedInfo", "processDetectedInfo: SKIP_MOTION_DETECTED 인텐트 전송 후")
     }
 }

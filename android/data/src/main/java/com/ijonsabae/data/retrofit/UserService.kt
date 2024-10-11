@@ -32,4 +32,6 @@ interface UserService {
     suspend fun logout(): Result<CommonResponse<Unit>>
     @PUT("users/password")
     suspend fun changePassword(@Body changePasswordParam: ChangePasswordParam):Result<CommonResponse<Unit>>
+    @GET("users/name")
+    suspend fun getUserName():Result<CommonResponse<String>>
 }

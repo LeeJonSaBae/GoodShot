@@ -1,6 +1,6 @@
 package com.ijonsabae.data.usecase.login
 
-import com.ijonsabae.domain.repository.UserRepository
+import com.ijonsabae.data.repository.UserRepository
 import com.ijonsabae.domain.usecase.login.SetAutoLoginStatusUseCase
 import javax.inject.Inject
 

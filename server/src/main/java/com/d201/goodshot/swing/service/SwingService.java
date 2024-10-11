@@ -5,53 +5,185 @@ import com.d201.goodshot.global.s3.dto.ImageRequest.PresignedUrlRequest;
 import com.d201.goodshot.global.s3.service.S3Service;
 import com.d201.goodshot.global.security.dto.CustomUser;
 import com.d201.goodshot.swing.domain.Comment;
+import com.d201.goodshot.swing.domain.Report;
 import com.d201.goodshot.swing.domain.Swing;
 import com.d201.goodshot.swing.dto.CommentItem;
+import com.d201.goodshot.swing.dto.Similarity;
 import com.d201.goodshot.swing.dto.SwingData;
 import com.d201.goodshot.swing.dto.SwingRequest.SwingDataRequest;
+import com.d201.goodshot.swing.dto.SwingRequest.SwingUpdateDataRequest;
 import com.d201.goodshot.swing.dto.SwingResponse.ReportResponse;
 import com.d201.goodshot.swing.dto.SwingResponse.SwingCodeResponse;
+import com.d201.goodshot.swing.enums.CommentType;
 import com.d201.goodshot.swing.enums.PoseType;
+import com.d201.goodshot.swing.enums.ProblemType;
+import com.d201.goodshot.swing.exception.InsufficientAttemptsException;
+import com.d201.goodshot.swing.exception.SwingJsonProcessingException;
 import com.d201.goodshot.swing.repository.CommentRepository;
+import com.d201.goodshot.swing.repository.ReportRepository;
 import com.d201.goodshot.swing.repository.SwingRepository;
 import com.d201.goodshot.user.domain.User;
 import com.d201.goodshot.user.exception.NotFoundUserException;
 import com.d201.goodshot.user.repository.UserRepository;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.persistence.*;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class SwingService {
 
     private final SwingRepository swingRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final ReportRepository reportRepository;
+
+    @Value("${image.folder}")
+    private String folder;
+
     private final S3Service s3Service;
 
     // 종합 리포트 조회
     public ReportResponse getReport(CustomUser customUser) {
 
         User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
+        List<Swing> swings = swingRepository.findByUser(user); // swing 전부 찾기
+
+        int swingCount = swings.size();
+        if(swingCount < 15) { // swing 횟수가 부족하면 종합 리포트 조회 불가능 (15회)
+            throw new InsufficientAttemptsException();
+        }
+
+        double totalScore = 0.0;
+
+        // 유사도 값을 누적할 맵 (8가지 자세에 대한 유사도를 저장)
+        Map<String, Double> cumulativeSimilarity = new HashMap<>();
+        // 유사도를 0으로 초기화
+        cumulativeSimilarity.put("address", 0.0);
+        cumulativeSimilarity.put("toeUp", 0.0);
+        cumulativeSimilarity.put("midBackSwing", 0.0);
+        cumulativeSimilarity.put("top", 0.0);
+        cumulativeSimilarity.put("midDownSwing", 0.0);
+        cumulativeSimilarity.put("impact", 0.0);
+        cumulativeSimilarity.put("midFollowThrough", 0.0);
+        cumulativeSimilarity.put("finish", 0.0);
+
+        ObjectMapper objectMapper = new ObjectMapper(); // JSON 파서를 위한 ObjectMapper 생성
+
+        // Comment content 빈도를 저장할 맵
+        Map<String, Integer> commentFrequency = new HashMap<>();
 
         // 1. 해당 user 에 대한 Comment 전부 가져와서
+        for(Swing swing : swings) {
+            List<Comment> comments = swing.getComments(); // 하나의 스윙에 Comment 는 10개
+
+            for (Comment comment : comments) {
+                if(comment.getCommentType() == CommentType.NICE) continue; // NICE Comment 는 Pass
+
+                // Comment의 content 가져오기
+                String content = comment.getContent();
+
+                // content의 빈도를 카운트
+                commentFrequency.put(content, commentFrequency.getOrDefault(content, 0) + 1);
+            }
+
+            // 점수
+            totalScore += swing.getScore();
+
+            // 유사도 (0 ~ 1 사이값) : 100 곱해줘서 계산해야 함
+            // 8가지 자세 각 value 값 뽑아서 더하기
+            // 유사도 처리 (JSON 형식 파싱)
+            String similarityJson = swing.getSimilarity(); // JSON 형식 문자열
+
+            try {
+                // JSON 문자열을 Map<String, Double> 형식으로 파싱
+                Map<String, Double> similarityMap = objectMapper.readValue(similarityJson, new TypeReference<Map<String, Double>>() {});
+
+                // 8가지 자세의 유사도를 누적하여 더함
+                for (Map.Entry<String, Double> entry : similarityMap.entrySet()) {
+                    String poseType = entry.getKey();
+                    Double value = entry.getValue();
+
+                    // cumulativeSimilarity 에서 poseType 에 해당하는 값을 가져오고, 없으면 기본값 0.0 사용
+                    double currentSimilarity = cumulativeSimilarity.getOrDefault(poseType, 0.0);
+
+                    // 유사도 값을 누적하여 더하기 (100을 곱한 값을 더함)
+                    cumulativeSimilarity.put(poseType, currentSimilarity + Math.round(value * 100));
+                }
+
+            } catch (IOException e) {
+                throw new SwingJsonProcessingException();
+            }
+
+        }
+
+        double averageScore = totalScore / swingCount;
 
         // 2. 데이터 전처리 (반복적으로 문제가 있었던 Comment 3개만 뽑기)
+        List<String> top3Comments = commentFrequency.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed()) // 빈도 순으로 내림차순 정렬
+                .limit(3) // 상위 3개 선택
+                .map(Map.Entry::getKey) // 키 (comment content)만 추출
+                .toList();
 
-        // 3. Chat GPT API 활용 (자세 교정에 대한 종합 의견 5줄로 달라하기)
+        // 3. Comment
+        String totalComment = generateComment(top3Comments.get(0), top3Comments.get(1));
+
+        List<String> poseOrder = List.of("address", "toeUp", "midBackSwing", "top",
+                "midDownSwing", "impact", "midFollowThrough", "finish");
+        // 8가지 자세에 대한 평균 유사도 계산
+        List<Double> averageSimilarity = poseOrder.stream()
+                .map(poseType -> cumulativeSimilarity.getOrDefault(poseType, 0.0) / swingCount)
+                .toList();
 
         return ReportResponse.builder()
                 .name(user.getName())
+                .score(averageScore)
+                .problems(top3Comments)
+                .similarity(averageSimilarity)
+                .content(totalComment)
                 .build();
+    }
+
+    private String generateComment(String top1, String top2) {
+
+        // 가장 빈도수가 많은 2개에 대해서
+        // 1. top1, top2 에 맞는 enum 찾아서
+        ProblemType problemType1 = ProblemType.findByComment(top1);
+        ProblemType problemType2 = ProblemType.findByComment(top2);
+
+        // 2. 그 enum 에 맞는 3개 피드백 찾아와 (Report DB 에서)
+        List<Report> feedbackList1 = reportRepository.findByProblem(problemType1);
+        List<Report> feedbackList2 = reportRepository.findByProblem(problemType2);
+
+        // 3개 찾은 것 중에서 랜덤핑
+        // top1 에서 랜덤으로 하나 뽑고, top2 에서 랜덤으로 하나 뽑아
+        String feedback1 = getRandomFeedback(feedbackList1);
+        String feedback2 = getRandomFeedback(feedbackList2);
+
+        // 랜덤으로 뽑은 값 합쳐서 return
+        return feedback1 + feedback2;
+    }
+
+    // 랜덤으로 선택
+    private String getRandomFeedback(List<Report> feedbackList) {
+        if (feedbackList == null || feedbackList.isEmpty()) {
+            return "";  // 리스트가 비어있으면 빈 문자열 반환
+        }
+
+        Random random = new Random();
+        int randomIndex = random.nextInt(feedbackList.size());  // 랜덤한 인덱스 선택
+        return feedbackList.get(randomIndex).getContent();
     }
 
     // 스윙 가져오기
@@ -60,6 +192,8 @@ public class SwingService {
         List<Swing> swings = swingRepository.findByUser(user); // 해당 사용자에 대한 swing 전부 찾아오기
         Set<String> codesSet = new HashSet<>(swingDataRequest.getCodes());
 
+        ObjectMapper objectMapper = new ObjectMapper();
+
         // 받아온 swingDataRequest 내부에 있는 codes 를 돌면서
         // swings 에 있는 code 랑 비교해서
         // 서버에만 있는 스윙 데이터 return
@@ -67,19 +201,32 @@ public class SwingService {
         // 서버에만 있는 스윙 데이터를 필터링
         return swings.stream()
                 .filter(swing -> !codesSet.contains(swing.getCode())) // 서버에만 있는 데이터를 필터링
-                .map(swing -> SwingData.builder()
-                        .id(swing.getId())
-                        .similarity(swing.getSimilarity())
-                        .solution(swing.getSolution())
-                        .score(swing.getScore())
-                        .tempo(swing.getTempo())
-                        .likeStatus(swing.getLikeStatus())
-                        .title(swing.getTitle())
-                        .code(swing.getCode())
-                        .time(swing.getTime())
-                        .backSwingComments(convertCommentsToCommentItems(swing.getComments(), PoseType.BACK))
-                        .downSwingComments(convertCommentsToCommentItems(swing.getComments(), PoseType.DOWN))
-                        .build())
+                .map(swing -> {
+                    Similarity similarityObject;
+                    try {
+                        // JSON 문자열을 Similarity 객체로 변환
+                        // JSON 파싱 전에 로그 출력
+                        log.info("Parsing similarity JSON: {}", swing.getSimilarity());
+                        similarityObject = objectMapper.readValue(swing.getSimilarity(), Similarity.class);
+                    } catch (Exception e) {
+                        throw new SwingJsonProcessingException();
+                    }
+
+                    return SwingData.builder()
+                            .id(swing.getId())
+                            .similarity(similarityObject)
+                            .solution(swing.getSolution())
+                            .score(swing.getScore())
+                            .tempo(swing.getTempo())
+                            .likeStatus(swing.getLikeStatus())
+                            .title(swing.getTitle())
+                            .code(swing.getCode())
+                            .time(swing.getTime())
+                            .createdAt(swing.getCreatedAt())
+                            .backSwingComments(convertCommentsToCommentItems(swing.getComments(), PoseType.BACK))
+                            .downSwingComments(convertCommentsToCommentItems(swing.getComments(), PoseType.DOWN))
+                            .build();
+                })
                 .collect(Collectors.toList()); // List로 변환하여 반환
 
     }
@@ -148,25 +295,75 @@ public class SwingService {
         return swingCodeResponses;
     }
 
+    // 스윙 동기화 (DB 랑 Room 변경, 삭제된 데이터 동기화)
+    public void syncSwingData(CustomUser customUser, List<SwingUpdateDataRequest> swingUpdateDataRequestList) {
+
+        User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
+
+        // 업데이트 열이 1이면 레코드 업데이트 해주고 (swing title)
+        // 즐겨찾기 (바꼈는지 안바꼈는지)
+        // 업데이트 열이 2이면 해당 레코드 삭제해야 함 (삭제된 데이터면 S3도 같이 삭제)
+        for(SwingUpdateDataRequest swingUpdateDataRequest : swingUpdateDataRequestList) {
+            swingRepository.findByCode(swingUpdateDataRequest.getCode()).ifPresent(swing -> {
+                int update = swingUpdateDataRequest.getUpdate();
+
+                // update : 1 (수정)
+                if (update == 1) {
+                    swing.updateSwingData(swingUpdateDataRequest);
+                } else if (update == 2) {
+                    // update : 2 (삭제)
+                    swingRepository.delete(swing);
+
+                    // s3 영상 삭제
+                    PresignedUrlRequest presignedUrlVideoRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.MP4);
+                    String url = folder + user.getId() + "/" + "video" + "/" + swingUpdateDataRequest.getCode() + "." + presignedUrlVideoRequest.getImageExtension().getUploadExtension();
+                    s3Service.deleteObject(url);
+
+                    // s3 이미지 삭제 (썸네일, 8가지 자세)
+                    PresignedUrlRequest presignedUrlThumbnailRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.JPG);
+                    url = folder + user.getId() + "/" + "thumbnail" + "/" + swingUpdateDataRequest.getCode() + "." + presignedUrlThumbnailRequest.getImageExtension().getUploadExtension();
+                    s3Service.deleteObject(url);
+
+                    for (int i = 0; i < 8; i++) {
+                        PresignedUrlRequest presignedUrlImageRequest = new PresignedUrlRequest(ImageRequest.ImageExtension.JPG);
+                        url = folder + user.getId() + "/" + "thumbnail" + "/" + swingUpdateDataRequest.getCode() + "_" + i + "." + presignedUrlImageRequest.getImageExtension().getUploadExtension();
+                        s3Service.deleteObject(url);
+                    }
+                }
+            });
+        }
+
+    }
+
+
     // 스윙 내보내기
     public void exportSwingData(CustomUser customUser, List<SwingData> swingDataList) {
 
         User user = userRepository.findByEmail(customUser.getEmail()).orElseThrow(NotFoundUserException::new);
+        ObjectMapper objectMapper = new ObjectMapper();
 
         // 받아온 데이터 DB 에 저장
         for(SwingData swingData : swingDataList) {
+            String similarityJson;
+            try {
+                // Similarity 객체를 JSON 문자열로 변환
+                similarityJson = objectMapper.writeValueAsString(swingData.getSimilarity());
+            } catch (Exception e) {
+                throw new SwingJsonProcessingException();
+            }
 
             // swing 저장
             Swing swing = Swing.builder()
                     .code(swingData.getCode())
                     .user(user)
                     .likeStatus(swingData.getLikeStatus())
-                    .similarity(swingData.getSimilarity())
+                    .similarity(similarityJson)
                     .solution(swingData.getSolution())
                     .score(swingData.getScore())
                     .tempo(swingData.getTempo())
                     .title(swingData.getTitle())
                     .time(swingData.getTime())
+                    .createdAt(swingData.getCreatedAt())
                     .build();
 
             swingRepository.save(swing);

@@ -25,7 +25,6 @@ class BarChartRender(
     override fun drawDataSet(c: Canvas, dataSet: IBarDataSet, index: Int) { // 내부적으로 그래프 그릴 때 호출되는 함수
         val trans = mChart.getTransformer(dataSet.axisDependency)
         mShadowPaint.color = dataSet.barShadowColor
-        Log.d(TAG, "drawDataSet: $mShadowPaint.color")
         val phaseX = mAnimator.phaseX //애니메이션(막대바 데이터에 맞게 바 길이 늘어나는 애니메이션)의 x축에 대한 진행 정도
         val phaseY = mAnimator.phaseY //애니메이션(막대바 데이터에 맞게 바 길이 늘어나는 애니메이션)의 y축에 대한 진행 정도
 

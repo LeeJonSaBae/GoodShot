@@ -29,7 +29,6 @@ class FindPasswordFragment : BaseFragment<FragmentFindPasswordBinding>(FragmentF
 
     private fun initClickListener(){
         binding.btnSendPassword.setOnClickListener {
-            Log.d(TAG, "initClickListener: 클릭")
             if(checkValidation()){
                 lifecycleScope.launch(coroutineExceptionHandler) {
                     fpViewModel.generateTemporaryPassword().getOrThrow()

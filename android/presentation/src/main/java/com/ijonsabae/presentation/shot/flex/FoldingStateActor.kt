@@ -196,7 +196,6 @@ class FoldingStateActor @Inject constructor(private val windowInfoTracker: Windo
 
                 FoldingFeature.Orientation.HORIZONTAL -> {
                     /** Device is half open and kept horizontal, so it is in tabletop mode **/
-                    Log.d(TAG, "updateLayoutByFoldingState: 폴드")
                     cameraViewfinder.moveToTopOf(
                         foldPosition,
                         cameraState,
@@ -213,7 +212,6 @@ class FoldingStateActor @Inject constructor(private val windowInfoTracker: Windo
                 }
             }
         } else {
-            Log.d(TAG, "updateLayoutByFoldingState: restore")
             cameraViewfinder.restore(
                 foldPosition,
                 cameraState,
