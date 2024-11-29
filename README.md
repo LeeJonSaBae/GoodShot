@@ -27,5 +27,3 @@
 
 ![014.png](./readmeFile/014.png)
 
-![015.png](./readmeFile/015.png)
-
